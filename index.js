@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-// const sequelize = require('./config/connection');
+const sequelize = require('./config/connection');
 // const cors = require('cors');
 
 const routes = require('./controllers');
@@ -25,8 +25,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(routes);
 
-// sequelize.sync().then(() => {
-app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}!`);
+sequelize.sync().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}!`);
+  });
 });
-// });
