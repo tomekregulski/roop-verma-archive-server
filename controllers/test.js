@@ -1,8 +1,15 @@
 const router = require('express').Router();
+const { Test } = require('../models');
 
-router.get('/', (req, res) => {
-  console.log('success get');
-  res.send('success get');
+router.get('/', async (req, res) => {
+  try {
+    const allTests = await Test.findAll();
+    const testData = allTests.map((test) => test.get({ plain: true }));
+    res.status(200).json(testData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
 });
 
 router.post('/', (req, res) => {
