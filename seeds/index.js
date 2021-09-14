@@ -5,6 +5,7 @@ const seedRaags = require('./raagSeeds');
 const seedTapes = require('./tapeSeeds');
 const seedTracks = require('./trackSeeds');
 const seedUsers = require('./userSeeds');
+const seedTrackArtists = require('./trackArtistsSeeds');
 
 const sequelize = require('../config/connection');
 
@@ -32,6 +33,9 @@ const seedAll = async () => {
 
   await seedTracks();
   console.log('\n----- TRACKS SEEDED -----\n');
+
+  await seedTrackArtists();
+  console.log('\n----- TRACK ARTISTS SEEDED -----\n');
 
   process.exit(0);
 };

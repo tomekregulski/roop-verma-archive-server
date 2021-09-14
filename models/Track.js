@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/connection');
+const { TrackArtists } = require('./TrackArtists');
 
 class Track extends Model {}
 
@@ -48,8 +49,18 @@ Track.init(
       },
     },
   },
+  // {
+  //   hooks: {
+  //     afterCreate: (track) => {
+  //       return sequelize.models.TrackArtists.create({
+  //         artist_id: track.artist_id,
+  //         track_id: track.id,
+  //       });
+  //     },
+  //   },
+  // },
   {
-    sequelize,
+    sequelize: sequelize,
     freezeTableName: true,
     underscored: true,
     modelName: 'track',
