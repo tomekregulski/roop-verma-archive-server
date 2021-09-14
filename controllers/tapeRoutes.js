@@ -14,12 +14,12 @@ router.get('/', async (req, res) => {
               as: 'location',
             },
             {
-              model: Raag,
-              as: 'raag',
-            },
-            {
               model: PerformanceType,
               as: 'performance_type',
+            },
+            {
+              model: Raag,
+              as: 'raag',
             },
           ],
         },
