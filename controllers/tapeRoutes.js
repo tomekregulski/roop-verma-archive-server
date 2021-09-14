@@ -1,5 +1,13 @@
 const router = require('express').Router();
-const { Tape, Track, Location, Raag, PerformanceType } = require('../models');
+const {
+  Tape,
+  Track,
+  Location,
+  Raag,
+  PerformanceType,
+  Artist,
+  TrackArtists,
+} = require('../models');
 
 router.get('/', async (req, res) => {
   try {
@@ -20,6 +28,13 @@ router.get('/', async (req, res) => {
             {
               model: Raag,
               as: 'raag',
+            },
+            {
+              model: Artist,
+              as: 'artists',
+              through: {
+                model: TrackArtists,
+              },
             },
           ],
         },
