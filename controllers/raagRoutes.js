@@ -1,9 +1,28 @@
 const router = require('express').Router();
-const { Raag } = require('../models');
+const { Track, Tape, Location, PerformanceType, Raag } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
-    const allRaags = await Raag.findAll();
+    const allRaags = await Raag.findAll({
+      include: {
+        model: Track,
+        as: 'tracks',
+        include: [
+          {
+            model: Tape,
+            as: 'tape',
+          },
+          {
+            model: Location,
+            as: 'location',
+          },
+          {
+            model: PerformanceType,
+            as: 'performance_type',
+          },
+        ],
+      },
+    });
     const raagData = allRaags.map((raag) => raag.get({ plain: true }));
     res.status(200).json(raagData);
   } catch (err) {

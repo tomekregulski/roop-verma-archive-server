@@ -1,9 +1,28 @@
 const router = require('express').Router();
-const { PerformanceType } = require('../models');
+const { Track, Tape, Location, PerformanceType, Raag } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
-    const allPerformanceTypes = await PerformanceType.findAll();
+    const allPerformanceTypes = await PerformanceType.findAll({
+      include: {
+        model: Track,
+        as: 'tracks',
+        include: [
+          {
+            model: Tape,
+            as: 'tape',
+          },
+          {
+            model: Location,
+            as: 'location',
+          },
+          {
+            model: Raag,
+            as: 'raag',
+          },
+        ],
+      },
+    });
     const performanceTypeData = allPerformanceTypes.map((performanceType) =>
       performanceType.get({ plain: true })
     );
