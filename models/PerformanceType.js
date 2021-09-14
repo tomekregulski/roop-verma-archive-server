@@ -20,7 +20,7 @@ PerformanceType.init(
     sequelize,
     freezeTableName: true,
     underscored: true,
-    modelName: 'peformance_type',
+    modelName: 'performance_type',
   }
 );
 

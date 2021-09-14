@@ -15,6 +15,38 @@ Track.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    tape_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'tape',
+        key: 'id',
+      },
+    },
+    location_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'location',
+        key: 'id',
+      },
+    },
+    performance_type_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'performance_type',
+        key: 'id',
+      },
+    },
+    raag_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'raag',
+        key: 'id',
+      },
+    },
   },
   {
     sequelize,

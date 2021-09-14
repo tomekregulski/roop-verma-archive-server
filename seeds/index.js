@@ -27,11 +27,11 @@ const seedAll = async () => {
   await seedTapes();
   console.log('\n----- TAPES SEEDED -----\n');
 
-  await seedTracks();
-  console.log('\n----- TRACKS SEEDED -----\n');
-
   await seedUsers();
   console.log('\n----- USERS SEEDED -----\n');
+
+  await seedTracks();
+  console.log('\n----- TRACKS SEEDED -----\n');
 
   process.exit(0);
 };
