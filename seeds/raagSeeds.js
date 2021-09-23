@@ -2,13 +2,16 @@ const { Raag } = require('../models');
 
 const raagData = [
   {
-    name: 'Yaman Kalyan',
+    name: 'Bhupali',
   },
   {
-    name: 'Megh',
+    name: 'Madhukauns',
   },
   {
-    name: 'Kirwani',
+    name: 'Rageshree',
+  },
+  {
+    name: 'Chandrakauns',
   },
 ];
 

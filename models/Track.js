@@ -48,6 +48,10 @@ Track.init(
         key: 'id',
       },
     },
+    url: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   // {
   //   hooks: {

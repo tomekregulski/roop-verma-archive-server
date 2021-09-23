@@ -15,6 +15,10 @@ Artist.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    instrument: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
     sequelize,

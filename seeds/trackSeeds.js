@@ -7,6 +7,7 @@ const trackData = [
     location_id: 1,
     raag_id: 1,
     performance_type_id: 1,
+    url: '/static/media/00001.a3638678.mp3',
   },
   {
     track_id: 00002,
@@ -14,20 +15,23 @@ const trackData = [
     location_id: 1,
     raag_id: 2,
     performance_type_id: 1,
+    url: '/static/media/00002.d1e348b6.mp3',
   },
   {
     track_id: 00003,
     tape_id: 2,
     location_id: 1,
-    raag_id: 1,
-    performance_type_id: 2,
+    raag_id: 3,
+    performance_type_id: 1,
+    url: '/static/media/00003.54cb7637.mp3',
   },
   {
     track_id: 00004,
-    tape_id: 3,
+    tape_id: 2,
     location_id: 1,
-    raag_id: 3,
-    performance_type_id: 3,
+    raag_id: 4,
+    performance_type_id: 1,
+    url: '/static/media/00004.c2eda1d4.mp3',
   },
 ];
 
