@@ -15,6 +15,22 @@ Tape.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    date: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    location_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'location',
+        key: 'id',
+      },
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,

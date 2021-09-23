@@ -10,6 +10,9 @@ const performanceTypeData = [
   {
     name: 'Meditation',
   },
+  {
+    name: 'Lesson',
+  },
 ];
 
 const seedPerformanceTypes = () =>
