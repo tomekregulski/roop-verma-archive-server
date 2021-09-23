@@ -13,6 +13,21 @@ const raagData = [
   {
     name: 'Chandrakauns',
   },
+  {
+    name: 'Nat Bhairav',
+  },
+  {
+    name: 'Manj Khammaj',
+  },
+  {
+    name: 'Hemant',
+  },
+  {
+    name: 'Dhun',
+  },
+  {
+    name: 'Bageshree',
+  },
 ];
 
 const seedRaags = () => Raag.bulkCreate(raagData);

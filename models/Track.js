@@ -24,11 +24,11 @@ Track.init(
         key: 'id',
       },
     },
-    location_id: {
+    raag_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
-        model: 'location',
+        model: 'raag',
         key: 'id',
       },
     },
@@ -40,14 +40,7 @@ Track.init(
         key: 'id',
       },
     },
-    raag_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'raag',
-        key: 'id',
-      },
-    },
+
     url: {
       type: DataTypes.STRING,
       allowNull: false,

@@ -9,6 +9,18 @@ const artistData = [
     name: 'Narendra Verma',
     instrument: 'Tabla',
   },
+  {
+    name: 'Kevin West Milburn',
+    instrument: 'Tabla',
+  },
+  {
+    name: 'Kamala Vedanthan',
+    instrument: 'Tanpura',
+  },
+  {
+    name: 'Ravi Shankar',
+    instrument: 'Sitar',
+  },
 ];
 
 const seedArtists = () => Artist.bulkCreate(artistData);
