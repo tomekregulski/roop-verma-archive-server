@@ -48,7 +48,7 @@ const trackData = [
     tape_id: 4,
     raag_id: 6,
     performance_type_id: 1,
-    url: 'https://res.cloudinary.com/intelly/video/upload/v1640045617/music/00007_nsjnnz.mp3
+    url: 'https://res.cloudinary.com/intelly/video/upload/v1640045617/music/00007_nsjnnz.mp3'
   {
     track_id: 00008,
     tape_id: 4,
