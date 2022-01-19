@@ -100,7 +100,9 @@ router.get('/login', (req, res) => {
   };
   const token = jwt.sign(user, 'YOUR_SECRET_KEY');
   console.log(token);
-  res.cookie('roop_verma_library', token);
+  res.cookie('roop_verma_library', token, {
+    domain: 'https://admiring-goldwasser-e0b0fd.netlify.app',
+  });
   res.status(200).json({ message: 'Logged in successfully', token });
 });
 
