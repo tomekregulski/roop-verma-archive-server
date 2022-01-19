@@ -4,14 +4,14 @@ const {
   Tape,
   Location,
   PerformanceType,
-  Raag,
+  Raga,
   Artist,
   TrackArtists,
 } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
-    const allRaags = await Raag.findAll({
+    const allRagas = await Raga.findAll({
       include: {
         model: Track,
         as: 'tracks',
@@ -38,8 +38,8 @@ router.get('/', async (req, res) => {
         ],
       },
     });
-    const raagData = allRaags.map((raag) => raag.get({ plain: true }));
-    res.status(200).json(raagData);
+    const ragaData = allRagas.map((raga) => raga.get({ plain: true }));
+    res.status(200).json(ragaData);
   } catch (err) {
     console.log(err);
     res.status(500).json(err);

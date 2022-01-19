@@ -3,11 +3,14 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const sequelize = require('./config/connection');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const routes = require('./controllers');
 const PORT = process.env.PORT || 5000;
 
 const app = express();
+
+app.use(cookieParser());
 
 // var corsOptions = {
 //   origin: '/',

@@ -4,9 +4,11 @@ const {
   Tape,
   Location,
   PerformanceType,
-  Raag,
+  Raga,
   Artist,
   TrackArtists,
+  Event,
+  MediaType,
 } = require('../models');
 
 router.get('/', async (req, res) => {
@@ -16,18 +18,30 @@ router.get('/', async (req, res) => {
         {
           model: Tape,
           as: 'tape',
-        },
-        {
-          model: Location,
-          as: 'location',
+          include: [
+            {
+              model: Event,
+              as: 'event',
+              include: [
+                {
+                  model: Location,
+                  as: 'location',
+                },
+              ],
+            },
+          ],
         },
         {
           model: PerformanceType,
           as: 'performance_type',
         },
         {
-          model: Raag,
-          as: 'raag',
+          model: MediaType,
+          as: 'media_type',
+        },
+        {
+          model: Raga,
+          as: 'raga',
         },
         {
           model: Artist,

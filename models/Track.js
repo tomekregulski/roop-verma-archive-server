@@ -18,29 +18,80 @@ Track.init(
     },
     tape_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'tape',
         key: 'id',
       },
     },
-    raag_id: {
+    raga_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'raag',
+        model: 'raga',
         key: 'id',
       },
     },
-    performance_type_id: {
+    primary_artist_id: {
       type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    other_artist_ids: {
+      type: DataTypes.STRING,
       allowNull: true,
+    },
+    time_of_day: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    alap: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    jor: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    jhalla: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    slow_gat: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    medium_gat: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    fast_gat: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    accompanied: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    notes: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    audio_quality: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    master: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    media_type_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
-        model: 'performance_type',
+        model: 'media_type',
         key: 'id',
       },
     },
-
     url: {
       type: DataTypes.STRING,
       allowNull: false,
