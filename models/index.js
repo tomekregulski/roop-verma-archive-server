@@ -1,7 +1,10 @@
 const Artist = require('./Artist');
+const Event = require('./Event');
 const Location = require('./Location');
 const PerformanceType = require('./PerformanceType');
-const Raag = require('./Raag');
+const MediaType = require('./MediaType');
+const NonMusicalItem = require('./NonMusicalItem');
+const Raga = require('./Raga');
 const Tape = require('./Tape');
 const Track = require('./Track');
 const User = require('./User');
@@ -36,6 +39,22 @@ Track.belongsToMany(Artist, {
 //   foreignKey: 'artist_id',
 // });
 
+Tape.belongsTo(Event, {
+  foreignKey: 'event_id',
+});
+
+Event.hasMany(Tape, {
+  foreignKey: 'event_id',
+});
+
+NonMusicalItem.belongsTo(Event, {
+  foreignKey: 'event_id',
+});
+
+Event.hasMany(NonMusicalItem, {
+  foreignKey: 'event_id',
+});
+
 Track.belongsTo(Tape, {
   foreignKey: 'tape_id',
 });
@@ -44,11 +63,11 @@ Tape.hasMany(Track, {
   foreignKey: 'tape_id',
 });
 
-Track.belongsTo(Location, {
+Event.belongsTo(Location, {
   foreignKey: 'location_id',
 });
 
-Location.hasMany(Track, {
+Location.hasMany(Event, {
   foreignKey: 'location_id',
 });
 
@@ -60,19 +79,30 @@ PerformanceType.hasMany(Track, {
   foreignKey: 'performance_type_id',
 });
 
-Track.belongsTo(Raag, {
-  foreignKey: 'raag_id',
+Track.belongsTo(MediaType, {
+  foreignKey: 'performance_type_id',
 });
 
-Raag.hasMany(Track, {
-  foreignKey: 'raag_id',
+MediaType.hasMany(Track, {
+  foreignKey: 'performance_type_id',
+});
+
+Track.belongsTo(Raga, {
+  foreignKey: 'raga_id',
+});
+
+Raga.hasMany(Track, {
+  foreignKey: 'raga_id',
 });
 
 module.exports = {
   Artist,
+  Event,
   Location,
+  MediaType,
+  NonMusicalItem,
   PerformanceType,
-  Raag,
+  Raga,
   Tape,
   Track,
   User,

@@ -1,6 +1,6 @@
-const { Raag } = require('../models');
+const { Raga } = require('../models');
 
-const raagData = [
+const ragaData = [
   {
     name: 'Bhupali',
   },
@@ -30,6 +30,6 @@ const raagData = [
   },
 ];
 
-const seedRaags = () => Raag.bulkCreate(raagData);
+const seedRagas = () => Raga.bulkCreate(ragaData);
 
-module.exports = seedRaags;
+module.exports = seedRagas;

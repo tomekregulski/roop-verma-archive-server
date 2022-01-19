@@ -1,9 +1,9 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/connection');
 
-class Tape extends Model {}
+class MediaType extends Model {}
 
-Tape.init(
+MediaType.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -11,25 +11,17 @@ Tape.init(
       primaryKey: true,
       autoIncrement: true,
     },
-    tape_id: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    event_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'event',
-        key: 'id',
-      },
     },
   },
   {
     sequelize,
     freezeTableName: true,
     underscored: true,
-    modelName: 'tape',
+    modelName: 'media_type',
   }
 );
 
-module.exports = Tape;
+module.exports = MediaType;

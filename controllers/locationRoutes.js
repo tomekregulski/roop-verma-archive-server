@@ -4,7 +4,7 @@ const {
   Tape,
   Location,
   PerformanceType,
-  Raag,
+  Raga,
   Artist,
   TrackArtists,
 } = require('../models');
@@ -25,8 +25,8 @@ router.get('/', async (req, res) => {
             as: 'performance_type',
           },
           {
-            model: Raag,
-            as: 'raag',
+            model: Raga,
+            as: 'raga',
           },
           {
             model: Artist,

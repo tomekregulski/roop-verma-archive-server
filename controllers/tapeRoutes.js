@@ -3,7 +3,7 @@ const {
   Tape,
   Track,
   Location,
-  Raag,
+  Raga,
   PerformanceType,
   Artist,
   TrackArtists,
@@ -26,8 +26,8 @@ router.get('/', async (req, res) => {
               as: 'performance_type',
             },
             {
-              model: Raag,
-              as: 'raag',
+              model: Raga,
+              as: 'raga',
             },
             {
               model: Artist,
