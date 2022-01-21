@@ -98,8 +98,7 @@ router.get('/login', (req, res) => {
     email: req.body.email,
     password: req.body.password,
   };
-  const token = jwt.sign(user, 'YOUR_SECRET_KEY');
-  console.log(token);
+  const token = jwt.sign(user, 'YOUR_SECRET_KEY', { expiresIn: '100h' });
   res.cookie('roop_verma_library', token, {
     domain: 'https://admiring-goldwasser-e0b0fd.netlify.app',
   });

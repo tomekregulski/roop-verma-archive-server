@@ -11,7 +11,9 @@ const {
   MediaType,
 } = require('../models');
 
-router.get('/', async (req, res) => {
+const authorization = require('../middleware/authorization');
+
+router.get('/', authorization, async (req, res) => {
   try {
     const allTracks = await Track.findAll({
       include: [
