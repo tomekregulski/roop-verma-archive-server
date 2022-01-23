@@ -1,12 +1,12 @@
 const { Model, DataTypes } = require('sequelize');
-// const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 const sequelize = require('../config/connection');
 
 class User extends Model {
-  // checkPassword(pass) {
-  //   console.log(bcrypt.compareSync(pass, this.password));
-  //   return bcrypt.compareSync(pass, this.password);
-  // }
+  checkPassword(pass) {
+    console.log(bcrypt.compareSync(pass, this.password));
+    return bcrypt.compareSync(pass, this.password);
+  }
 }
 
 User.init(
@@ -37,12 +37,23 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    access: {
+    subscription_active: {
       type: DataTypes.BOOLEAN,
+      defaultValue: false,
       allowNull: false,
     },
-    admin: {
+    subscription_id: {
+      type: DataTypes.STRING,
+
+      allowNull: true,
+    },
+    stripe_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    is_admin: {
       type: DataTypes.BOOLEAN,
+      defaultValue: false,
       allowNull: false,
     },
   },

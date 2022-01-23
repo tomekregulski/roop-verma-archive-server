@@ -6,6 +6,7 @@ const ragaRoutes = require('./ragaRoutes');
 const tapeRoutes = require('./tapeRoutes');
 const trackRoutes = require('./trackRoutes');
 const userRoutes = require('./userRoutes');
+const paymentRuotes = require('./paymentRoutes');
 
 router.use('/api/artists', artistRoutes);
 router.use('/api/locations', locationRoutes);
@@ -14,5 +15,6 @@ router.use('/api/ragas', ragaRoutes);
 router.use('/api/tapes', tapeRoutes);
 router.use('/api/tracks', trackRoutes);
 router.use('/api/users', userRoutes);
+router.use('/api/payments', paymentRuotes);
 
 module.exports = router;
