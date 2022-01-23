@@ -2,6 +2,8 @@ const router = require('express').Router();
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
+const bcrypt = require('bcrypt');
+
 // const authorization = require('../middleware/authorization');
 
 router.get('/', async (req, res) => {
@@ -22,8 +24,10 @@ router.post('/', async (req, res) => {
       password: req.body.password,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
-      access: true,
-      admin: false,
+      subscription_active: req.body.subscription_active || false,
+      subscription_id: "''",
+      stripe_id: "''",
+      is_admin: req.body.is_admin || false,
     });
 
     res.status(200).json(userData);
@@ -41,8 +45,10 @@ router.put('/:id', async (req, res) => {
         password: req.body.password,
         first_name: req.body.first_name,
         last_name: req.body.last_name,
-        access: req.body.access,
-        admin: req.body.admin,
+        subscription_active: req.body.subscription_active,
+        subscription_id: "''",
+        stripe_id: "''",
+        is_admin: req.body.is_admin,
       },
       {
         where: {
@@ -74,35 +80,94 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.post('/register', (req, res) => {
-  const newUser = {
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    email: req.body.email,
-    password: req.body.password,
-  };
-  console.log(newUser);
-  const token = jwt.sign({ newUser, access: 'yes' }, 'YOUR_SECRET_KEY');
-  console.log(token);
-  return res
-    .cookie('access_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-    })
-    .status(200)
-    .json({ newUser, message: 'Registered successfully' });
+router.post('/register', async (req, res) => {
+  try {
+    // graceful handle of email validation failure
+    // var validRegex =
+    //   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
+    // if (!req.body.email.match(validRegex)) {
+    //   res.status(500).json({ message: 'invalid email' });
+    //   return;
+    // }
+
+    const userData = await User.create({
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      email: req.body.email,
+      password: req.body.password,
+      subscription_active: false,
+      subscription_id: '',
+      stripe_id: '',
+      is_admin: false,
+    });
+
+    res.status(200).json(userData);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
 });
 
-router.get('/login', (req, res) => {
-  const user = {
-    email: req.body.email,
-    password: req.body.password,
-  };
-  const token = jwt.sign(user, 'YOUR_SECRET_KEY', { expiresIn: '100h' });
-  res.cookie('roop_verma_library', token, {
-    domain: 'https://admiring-goldwasser-e0b0fd.netlify.app',
-  });
-  res.status(200).json({ message: 'Logged in successfully', token });
+router.post('/login', async (req, res) => {
+  console.log(req.body);
+  try {
+    const userData = await User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
+
+    console.log(userData);
+    if (!userData) {
+      res.status(400).json('Incorrect username or password...');
+      return;
+    }
+
+    console.log('userData OK');
+
+    const passwordData = await userData.checkPassword(req.body.password);
+
+    if (!passwordData) {
+      res.status(400).json('Incorrect username or password...');
+      return;
+    }
+
+    console.log('password OK');
+
+    const tokenData = {
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      email: userData.email,
+      password: userData.password,
+      subscription_active: userData.subscription_active,
+      subscription_id: userData.subscription_id,
+      stripe_id: userData.stripe_id,
+      is_admin: userData.is_admin,
+    };
+
+    const token = jwt.sign(tokenData, 'YOUR_SECRET_KEY', {
+      expiresIn: '100h',
+    });
+
+    console.log('password OK');
+
+    res.status(200).json({
+      userData,
+      // id: userData.id,
+      // email: userData.email,
+      // first_name: userData.first_name,
+      // last_name: userData.last_name,
+      // subscription_active: userData.subscription_active,
+      // subscription_id: userData.subscription_id,
+      // stripe_id: userData.stripe_id,
+      // is_admin: userData.is_admin,
+      token,
+    });
+  } catch (err) {
+    res.status(500).json(err);
+    console.log(err);
+  }
 });
 
 router.get('/protected', (req, res) => {
