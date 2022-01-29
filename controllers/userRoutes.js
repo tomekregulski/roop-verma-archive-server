@@ -118,13 +118,10 @@ router.post('/login', async (req, res) => {
       },
     });
 
-    console.log(userData);
     if (!userData) {
       res.status(400).json('Incorrect username or password...');
       return;
     }
-
-    console.log('userData OK');
 
     const passwordData = await userData.checkPassword(req.body.password);
 
@@ -132,8 +129,6 @@ router.post('/login', async (req, res) => {
       res.status(400).json('Incorrect username or password...');
       return;
     }
-
-    console.log('password OK');
 
     const tokenData = {
       first_name: userData.first_name,
@@ -150,18 +145,8 @@ router.post('/login', async (req, res) => {
       expiresIn: '100h',
     });
 
-    console.log('password OK');
-
     res.status(200).json({
       userData,
-      // id: userData.id,
-      // email: userData.email,
-      // first_name: userData.first_name,
-      // last_name: userData.last_name,
-      // subscription_active: userData.subscription_active,
-      // subscription_id: userData.subscription_id,
-      // stripe_id: userData.stripe_id,
-      // is_admin: userData.is_admin,
       token,
     });
   } catch (err) {

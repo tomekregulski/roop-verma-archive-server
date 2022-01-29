@@ -51,13 +51,11 @@ router.post('/subscribe', async (req, res) => {
     expand: ['latest_invoice.payment_intent'],
   });
 
-  console.log(subscription);
-
   const status = subscription['latest_invoice']['payment_intent']['status'];
   const client_secret =
     subscription['latest_invoice']['payment_intent']['client_secret'];
 
-  const userData = await User.update(
+  await User.update(
     {
       stripe_id: customer.id,
       subscription_id: subscription.id,
@@ -65,14 +63,25 @@ router.post('/subscribe', async (req, res) => {
     },
     {
       where: {
-        id: id,
+        email: email,
       },
     }
   );
 
   const user = { id, email, first_name, last_name };
 
-  const token = jwt.sign(user, 'YOUR_SECRET_KEY', { expiresIn: '100h' });
+  const userData = {
+    id,
+    first_name,
+    last_name,
+    email,
+    stripe_id: customer.id,
+    subscription_id: subscription.id,
+    subscription_active: true,
+    is_admin: false,
+  };
+
+  const token = jwt.sign(userData, 'YOUR_SECRET_KEY', { expiresIn: '100h' });
 
   res.status(200).json({
     message: 'Logged in successfully',
@@ -84,26 +93,33 @@ router.post('/subscribe', async (req, res) => {
 });
 
 router.post('/cancel-subscription', async (req, res) => {
-  console.log('cancelling subscription...');
-
   const customer_id = req.body.customer_id;
-
-  const customer = await stripe.customers.retrieve(customer_id);
-
-  console.log(customer);
 
   let subscriptions = await stripe.subscriptions.list();
 
   subscriptions = subscriptions.data;
 
-  const delSub = subscriptions.filter(
+  const targetSubscription = subscriptions.filter(
     (subscription) => subscription.customer === customer_id
   );
 
-  const deleted = await stripe.subscriptions.del(delSub[0].id);
+  const deleted = await stripe.subscriptions.del(targetSubscription[0].id);
+
+  const userData = await User.update(
+    {
+      subscription_active: false,
+      subscription_id: '',
+    },
+    {
+      where: {
+        stripe_id: customer_id,
+      },
+    }
+  );
 
   console.log(deleted);
-  res.json({ message: 'cancelled' });
+  console.log(userData);
+  res.json({ message: 'cancelled', userData: userData });
 });
 
 module.exports = router;
