@@ -92,6 +92,10 @@ Track.init(
         key: 'id',
       },
     },
+    public: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
     url: {
       type: DataTypes.STRING,
       allowNull: false,
