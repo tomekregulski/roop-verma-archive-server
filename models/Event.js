@@ -37,31 +37,15 @@ Event.init(
         key: 'id',
       },
     },
-    performance_type_id: {
+    category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'performance_type',
+        model: 'category',
         key: 'id',
       },
     },
     notes: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    associated_tapes: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    associated_videos: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    associated_images: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    associated_texts: {
       type: DataTypes.STRING,
       allowNull: true,
     },

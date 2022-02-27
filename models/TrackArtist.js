@@ -2,9 +2,9 @@ const { Model, DataTypes } = require('sequelize');
 
 const sequelize = require('../config/connection');
 
-class TrackArtists extends Model {}
+class TrackArtist extends Model {}
 
-TrackArtists.init(
+TrackArtist.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -32,8 +32,8 @@ TrackArtists.init(
     timestamps: false,
     freezeTableName: true,
     underscored: true,
-    modelName: 'track_artists',
+    modelName: 'track_artist',
   }
 );
 
-module.exports = TrackArtists;
+module.exports = TrackArtist;

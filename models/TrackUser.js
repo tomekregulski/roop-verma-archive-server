@@ -1,9 +1,10 @@
 const { Model, DataTypes } = require('sequelize');
+
 const sequelize = require('../config/connection');
 
-class Tape extends Model {}
+class TrackUser extends Model {}
 
-Tape.init(
+TrackUser.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -11,21 +12,28 @@ Tape.init(
       primaryKey: true,
       autoIncrement: true,
     },
-    event_id: {
+    user_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
-        model: 'event',
+        model: 'user',
+        key: 'id',
+      },
+    },
+    track_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'track',
         key: 'id',
       },
     },
   },
   {
     sequelize,
+    timestamps: false,
     freezeTableName: true,
     underscored: true,
-    modelName: 'tape',
+    modelName: 'track_user',
   }
 );
 
-module.exports = Tape;
+module.exports = TrackUser;

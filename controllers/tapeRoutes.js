@@ -4,9 +4,9 @@ const {
   Track,
   Location,
   Raga,
-  PerformanceType,
+  Category,
   Artist,
-  TrackArtists,
+  TrackArtist,
 } = require('../models');
 
 router.get('/', async (req, res) => {
@@ -22,8 +22,8 @@ router.get('/', async (req, res) => {
               as: 'location',
             },
             {
-              model: PerformanceType,
-              as: 'performance_type',
+              model: Category,
+              as: 'category',
             },
             {
               model: Raga,
@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
               model: Artist,
               as: 'artists',
               through: {
-                model: TrackArtists,
+                model: TrackArtist,
               },
             },
           ],

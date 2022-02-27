@@ -1,9 +1,9 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/connection');
 
-class PerformanceType extends Model {}
+class Category extends Model {}
 
-PerformanceType.init(
+Category.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -20,8 +20,8 @@ PerformanceType.init(
     sequelize,
     freezeTableName: true,
     underscored: true,
-    modelName: 'performance_type',
+    modelName: 'category',
   }
 );
 
-module.exports = PerformanceType;
+module.exports = Category;
