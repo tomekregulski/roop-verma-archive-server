@@ -1,43 +1,31 @@
 const Artist = require('./Artist');
 const Event = require('./Event');
 const Location = require('./Location');
-const PerformanceType = require('./PerformanceType');
+const Category = require('./Category');
 const MediaType = require('./MediaType');
 const NonMusicalItem = require('./NonMusicalItem');
 const Raga = require('./Raga');
 const Tape = require('./Tape');
 const Track = require('./Track');
 const User = require('./User');
-const TrackArtists = require('./TrackArtists');
-
-// Artist.belongsToMany(Track, {
-//   through: 'ArtistTracks',
-// });
+const TrackArtist = require('./TrackArtist');
+const TrackUser = require('./TrackUser');
 
 Artist.belongsToMany(Track, {
-  through: 'TrackArtists',
+  through: 'track_artist',
 });
 
 Track.belongsToMany(Artist, {
-  through: 'TrackArtists',
+  through: 'track_artist',
 });
 
-// Track.belongsToMany(Artist, {
-//   through: 'TrackArtists',
-//   foreignKey: 'artist_id',
-// });
+User.belongsToMany(Track, {
+  through: 'track_user',
+});
 
-// Track.belongsToMany(Artist, {
-//   through: 'ArtistTracks',
-//   as: 'artists',
-//   foreignKey: 'track_id',
-//   otherKey: 'artist_id',
-// });
-
-// Track.hasMany(Artist, {
-//   as: 'artists',
-//   foreignKey: 'artist_id',
-// });
+Track.belongsToMany(User, {
+  through: 'track_user',
+});
 
 Tape.belongsTo(Event, {
   foreignKey: 'event_id',
@@ -71,20 +59,20 @@ Location.hasMany(Event, {
   foreignKey: 'location_id',
 });
 
-Track.belongsTo(PerformanceType, {
-  foreignKey: 'performance_type_id',
+Event.belongsTo(Category, {
+  foreignKey: 'category_id',
 });
 
-PerformanceType.hasMany(Track, {
-  foreignKey: 'performance_type_id',
+Category.hasMany(Event, {
+  foreignKey: 'category_id',
 });
 
 Track.belongsTo(MediaType, {
-  foreignKey: 'performance_type_id',
+  foreignKey: 'media_type_id',
 });
 
 MediaType.hasMany(Track, {
-  foreignKey: 'performance_type_id',
+  foreignKey: 'media_type_id',
 });
 
 Track.belongsTo(Raga, {
@@ -101,10 +89,11 @@ module.exports = {
   Location,
   MediaType,
   NonMusicalItem,
-  PerformanceType,
+  Category,
   Raga,
   Tape,
   Track,
   User,
-  TrackArtists,
+  TrackArtist,
+  TrackUser,
 };

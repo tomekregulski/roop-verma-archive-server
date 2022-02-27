@@ -91,6 +91,19 @@ router.post('/register', async (req, res) => {
     //   return;
     // }
 
+    const existingUser = await User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
+
+    if (existingUser) {
+      res
+        .status(400)
+        .json({ message: 'An account with this email already exists.' });
+      return;
+    }
+
     const userData = await User.create({
       first_name: req.body.first_name,
       last_name: req.body.last_name,
@@ -121,6 +134,13 @@ router.post('/login', async (req, res) => {
       res.status(400).json('Incorrect username or password...');
       return;
     }
+
+    // if (userData.subscription_active != true) {
+    //   res.status(400).json('Your subscription is not active. Please contact support to re');
+    //   return;
+    // }
+
+    console.log(userData);
 
     const passwordData = await userData.checkPassword(req.body.password);
 

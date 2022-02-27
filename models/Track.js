@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/connection');
-const { TrackArtists } = require('./TrackArtists');
+const { TrackArtist } = require('./TrackArtist');
 
 class Track extends Model {}
 
@@ -11,10 +11,6 @@ Track.init(
       allowNull: false,
       primaryKey: true,
       autoIncrement: true,
-    },
-    track_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
     },
     tape_id: {
       type: DataTypes.INTEGER,
@@ -36,41 +32,33 @@ Track.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    other_artist_ids: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    time_of_day: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     alap: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     jor: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     jhalla: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     slow_gat: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     medium_gat: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     fast_gat: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     accompanied: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     notes: {
       type: DataTypes.STRING,
@@ -82,7 +70,7 @@ Track.init(
     },
     master: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,
     },
     media_type_id: {
       type: DataTypes.INTEGER,

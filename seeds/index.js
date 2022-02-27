@@ -1,7 +1,7 @@
 const seedArtists = require('./artistSeeds');
 const seedLocations = require('./locationSeeds');
 const seedMediaTypes = require('./mediaTypeSeeds');
-const seedPerformanceTypes = require('./performanceTypeSeeds');
+const seedCategories = require('./categorySeeds');
 const seedRagas = require('./ragaSeeds');
 const seedTapes = require('./tapeSeeds');
 const seedTracks = require('./trackSeeds');
@@ -21,8 +21,8 @@ const seedAll = async () => {
   await seedLocations();
   console.log('\n----- LOCATIONS SEEDED -----\n');
 
-  await seedPerformanceTypes();
-  console.log('\n----- PERFORMANCE TYPES SEEDED -----\n');
+  await seedCategories();
+  console.log('\n----- CATEGORIES TYPES SEEDED -----\n');
 
   await seedMediaTypes();
   console.log('\n----- MEDIA TYPES SEEDED -----\n');

@@ -2,7 +2,7 @@ const { Location } = require('../models');
 
 const locationData = [
   {
-    name: 'N/A',
+    name: '',
   },
   {
     name: 'Ananda Ashram',

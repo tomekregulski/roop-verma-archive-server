@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { Artist, Track, TrackArtists } = require('../models');
+const { Artist, Track, TrackArtist } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
       include: {
         model: Track,
         through: {
-          model: TrackArtists,
+          model: TrackArtist,
         },
       },
     });

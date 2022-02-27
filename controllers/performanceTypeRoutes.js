@@ -3,15 +3,15 @@ const {
   Track,
   Tape,
   Location,
-  PerformanceType,
+  Category,
   Raga,
   Artist,
-  TrackArtists,
+  TrackArtist,
 } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
-    const allPerformanceTypes = await PerformanceType.findAll({
+    const allPerformanceTypes = await Category.findAll({
       include: {
         model: Track,
         as: 'tracks',
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
             model: Artist,
             as: 'artists',
             through: {
-              model: TrackArtists,
+              model: TrackArtist,
             },
           },
         ],

@@ -44,11 +44,11 @@ NonMusicalItem.init(
         key: 'id',
       },
     },
-    performance_type_id: {
+    category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'performance_type',
+        model: 'category',
         key: 'id',
       },
     },

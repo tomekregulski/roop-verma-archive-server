@@ -1,8 +1,11 @@
-const { PerformanceType } = require('../models');
+const { Category } = require('../models');
 
-const performanceTypeData = [
+const categoryData = [
   {
     name: 'concert',
+  },
+  {
+    name: 'lesson',
   },
   {
     name: 'retreat',
@@ -23,9 +26,6 @@ const performanceTypeData = [
     name: 'interview',
   },
   {
-    name: 'lesson',
-  },
-  {
     name: 'lecture',
   },
   {
@@ -38,16 +38,10 @@ const performanceTypeData = [
     name: 'demo',
   },
   {
-    name: 'picture',
-  },
-  { name: 'essay' },
-  { name: 'composition' },
-  {
     name: 'class',
   },
 ];
 
-const seedPerformanceTypes = () =>
-  PerformanceType.bulkCreate(performanceTypeData);
+const seedCategories = () => Category.bulkCreate(categoryData);
 
-module.exports = seedPerformanceTypes;
+module.exports = seedCategories;

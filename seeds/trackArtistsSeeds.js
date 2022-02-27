@@ -1,6 +1,6 @@
-const { TrackArtists } = require('../models');
+const { TrackArtist } = require('../models');
 
-const trackArtistsData = [
+const trackArtistData = [
   {
     track_id: 1,
     artist_id: 1,
@@ -96,6 +96,6 @@ const trackArtistsData = [
   },
 ];
 
-const seedTrackArtists = () => TrackArtists.bulkCreate(trackArtistsData);
+const seedTrackArtists = () => TrackArtist.bulkCreate(trackArtistData);
 
 module.exports = seedTrackArtists;
