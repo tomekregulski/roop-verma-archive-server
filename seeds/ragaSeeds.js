@@ -3,21 +3,21 @@ const { Raga } = require('../models');
 const ragaData = [
   {
     name: 'Abheri',
-    alternate_spelling_b: 'Avhiri',
-    light: 'Dusk',
+    alternate_spelling: 'Avhiri',
+    time: 'Dusk',
     rasa: 'Devotion (Bhakti)',
   },
   {
     name: 'Abhogi',
-    alternate_spelling_a: 'Abhogi Kanada',
+    alternate_spelling: 'Abhogi Kanada,',
     time: 'Evening',
-    rasa: 'Heroic (Vira)\r\nPeace (Shanti)',
+    rasa: 'Heroic (Vira)Peace (Shanti)',
   },
   {
     name: 'Adana',
-    alternate_spelling_b: 'Ardana, Addana',
+    alternate_spelling: 'Ardana, Addana',
     time: 'Late Evening',
-    rasa: 'Heroic (Vira)\r\nHumorous (Hasya)',
+    rasa: 'Heroic (Vira)Humorous (Hasya)',
   },
   {
     name: 'Adbhut Todi',
@@ -25,105 +25,116 @@ const ragaData = [
     rasa: 'Wonder (Adbhuta)',
   },
   {
+    name: 'Adi Bhairav',
+    time: 'Early Morning',
+  },
+  {
     name: 'Aheri Todi',
-    alternate_spelling_b: 'Ahiri Todi',
+    alternate_spelling: 'Ahiri Todi',
     time: 'Morning',
   },
   {
     name: 'Ahir Bhairav',
-    alternate_spelling_b: 'Ahir Bhairo',
-    time: 'Early Morning',
-    light: 'Dawn',
-    rasa: 'Devotion (Bhakti)\r\nDetachment (Tyaga)\r\nJoy (Shringara)\r\nPathos (Karuna)',
+    alternate_spelling: 'Ahir Bhairo',
+    time: 'Dawn',
+    rasa: 'Devotion (Bhakti)Detachment (Tyaga)Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Ahir Lalit',
-    time: 'Early Morning\r\nMorning',
-    rasa: 'Pathos (Karuna)\r\nDevotion (Bhakti)\r\nPeace (Shanti)\r\nDetachment (Tyaga)',
+    time: 'Early Morning, Morning',
+    rasa: 'Pathos (Karuna)Devotion (Bhakti)Peace (Shanti)Detachment (Tyaga)',
   },
   {
     name: 'Ahiri Bhatiyar',
   },
   {
-    name: 'Alam Bhairav',
-    alternate_spelling_a: 'Alam Malaya Shmiti/Alam Malaya',
-    alternate_spelling_b: 'Alam Bhairo',
+    name: 'Ahiri Todi',
     time: 'Morning',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
+  },
+  {
+    name: 'Alam Bhairav',
+    alternate_spelling: 'Alam Malaya ShmitiAlam Malaya, Alam Bhairo',
+    time: 'Morning',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Alam Kauns',
   },
   {
     name: 'Alam Malaya',
-    alternate_spelling_a: 'Alam Malaya ShmritiAlamBhairo',
-    time: 'Morning\r\nLate Morning',
+    alternate_spelling: 'Alam Malaya ShmritiAlamBhairo,',
+    time: 'Morning',
   },
   {
     name: 'Alamgiri',
-    time: 'Morning\r\nEvening\r\nLate Morning\r\nNoon\r\nEarly Afternoon\r\nMid-afternoon\r\nLate Afternoon\r\nEarly Evening\r\nLate Evening',
   },
   {
     name: 'Alhaiya',
-    alternate_spelling_a: 'Alhaiya Bilawal',
-    alternate_spelling_b: 'Alhaiya Bilawal',
-    time: 'Morning\r\nLate Morning',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)\r\nWaiting (Intezari)',
+    alternate_spelling: 'Alhaiya Bilawal, Alhaiya Bilawal',
+    time: 'Morning',
+    rasa: 'Joy (Shringara)Pathos (Karuna)Waiting (Intezari)',
   },
   {
     name: 'Anand Bhairav',
-    alternate_spelling_b: 'Ananda Bhairo',
+    alternate_spelling: 'Ananda Bhairo',
     time: 'Morning',
-    rasa: 'Devotion (Bhakti)\r\nPathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Devotion (Bhakti)Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Anandi',
     time: 'Evening',
-    rasa: 'Devotion (Bhakti)\r\nPathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Devotion (Bhakti)Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Anandi Kalyan',
+    time: 'Evening',
   },
   {
     name: 'Anjani Todi',
     time: 'Late Morning',
   },
   {
+    name: 'Aroon Malhar',
+    alternate_spelling: 'Arun Malhar',
+    time: 'Evening',
+  },
+  {
     name: 'Asawari',
-    time: 'Morning\r\nLate Morning',
-    rasa: 'Detachment (Tyaga)\r\nPathos (Karuna)\r\nJoy (Shringara)',
+    time: 'Morning',
+    rasa: 'Detachment (Tyaga)Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Asha Mand',
-    alternate_spelling_b: 'Asa Mand',
+    alternate_spelling: 'Asa Mand',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Badahans Sarang',
-    alternate_spelling_b: 'Badahamsa Sarang, Barahangs Sarang (AAK)',
-    time: 'Early Afternoon\r\nMid-afternoon',
+    alternate_spelling: 'Badahamsa Sarang, Barahangs Sarang (AAK)',
+    time: 'Early Afternoon, Mid-afternoon',
   },
   {
     name: 'Bagesri',
-    alternate_spelling_a: 'Bageswari',
-    time: 'Evening\r\nLate Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    alternate_spelling: 'Bageswari, Bageshwari',
+    time: 'Late Evening',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Bagesri Bahar',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)\r\nDevotion (Bhakti)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)Devotion (Bhakti)',
   },
   {
     name: 'Bagesri Kanada',
-    alternate_spelling_a: 'Bageswari Kanada',
-    time: 'Evening\r\nLate Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nDevotion (Bhakti)',
+    alternate_spelling: 'Bageswari Kanada, Bageshwari',
+    time: 'Late Evening',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Devotion (Bhakti)',
   },
   {
     name: 'Bagkauns',
-    time: 'Night\r\nLate Evening',
+    time: 'Night',
   },
   {
     name: 'Bahaduri Todi',
@@ -131,7 +142,7 @@ const ragaData = [
   },
   {
     name: 'Bahar',
-    time: 'Evening\r\nLate Evening',
+    time: 'Late Evening',
   },
   {
     name: 'Bahar Anta Jog',
@@ -142,7 +153,7 @@ const ragaData = [
   },
   {
     name: 'Bangal Bhairav',
-    alternate_spelling_b: 'Bangal Bhairo',
+    alternate_spelling: 'Bangal Bhairo',
     time: 'Morning',
   },
   {
@@ -151,54 +162,59 @@ const ragaData = [
   {
     name: 'Baruwa',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Basant',
-    time: 'Middle of Night\r\nLate Night',
+    time: 'Middle of Night',
     rasa: 'Heroic (Vira)',
   },
   {
     name: 'Basant Kedar',
-    time: 'Evening\r\nLate Evening\r\nNight',
+    time: 'Night',
   },
   {
     name: 'Basant Mukhari',
     time: 'Morning',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Basant Pancham',
   },
   {
     name: 'Bhairav',
-    alternate_spelling_b: 'Bhairo',
-    time: 'Early Morning',
-    light: 'Dawn',
-    rasa: 'Serious (gambir)\r\nPeace (Shanti)\r\nJoy (Shringara)\r\nPathos (Karuna)\r\nWonder (Adbhuta)\r\nDevotion (Bhakti)\r\nHumorous (Hasya)\r\nHeroic (Vira)',
+    alternate_spelling: 'Bhairo',
+    time: 'Dawn',
+    rasa: 'Serious (gambir)Peace (Shanti)Joy (Shringara)Pathos (Karuna)Wonder (Adbhuta)Devotion (Bhakti)Humorous (Hasya)Heroic (Vira)',
   },
   {
     name: 'Bhairavi',
-    alternate_spelling_b: 'Suddha Bhairavi',
-    time: 'Morning\r\nEarly Morning',
+    alternate_spelling: 'Suddha Bhairavi',
+    time: 'Morning, Early Morning',
   },
   {
     name: 'Bhairavi Bhatiyar',
   },
   {
+    name: 'Bhajans without Raga',
+  },
+  {
     name: 'Bhakar',
-    alternate_spelling_b: 'Bhankar',
+    alternate_spelling: 'Bhankar',
     time: 'Morning',
   },
   {
+    name: 'Bhankar Bhatiyari',
+  },
+  {
     name: 'Bhatiyar',
-    alternate_spelling_a: 'Bhatiyari',
-    time: 'Early Morning\r\nMorning',
-    rasa: 'Devotion (Bhakti)\r\nHeroic (Vira)',
+    alternate_spelling: 'Bhatiyari,',
+    time: 'Early Morning',
+    rasa: 'Devotion (Bhakti)Heroic (Vira)',
   },
   {
     name: 'Bhavani',
-    alternate_spelling_b: 'Bhawani',
+    alternate_spelling: 'Bhawani',
     time: 'Evening',
   },
   {
@@ -207,7 +223,7 @@ const ragaData = [
   },
   {
     name: 'Bhimpalasri',
-    alternate_spelling_b: 'Bhimpalashri',
+    alternate_spelling: 'Bhimpalashri',
     time: 'Late Afternoon',
     rasa: 'Pathos (Karuna)',
   },
@@ -216,55 +232,70 @@ const ragaData = [
     time: 'Evening',
   },
   {
+    name: 'Bhup Bilawali',
+  },
+  {
     name: 'Bhup Kalyan',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nDetachment (Tyaga)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Detachment (Tyaga)Joy (Shringara)',
   },
   {
     name: 'Bhup Mand',
   },
   {
     name: 'Bhupal Todi',
-    alternate_spelling_a: 'Bhupali Todi, Bhupal',
+    alternate_spelling: 'Bhupali Todi, Bhupal,',
     time: 'Morning',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Bhupali',
     time: 'Evening',
-    rasa: 'Peace (Shanti)\r\nDevotion (Bhakti)',
+    rasa: 'Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Bihag',
-    time: 'Night\r\nMiddle of Night\r\nLate Night\r\nLate Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    time: 'Night',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Bihangada',
-    alternate_spelling_b: 'Bihagra',
+    alternate_spelling: 'Bihagra',
     time: 'Evening',
   },
   {
     name: 'Bihari',
-    time: 'Evening\r\nLate Evening\r\nNight',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    time: 'Night',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
+  },
+  {
+    name: 'Bilas Todi',
+    time: 'Late Morning',
   },
   {
     name: 'Bilaskhani Todi',
-    alternate_spelling_a: 'Bilaskhani',
+    alternate_spelling: 'Bilaskhani,',
     time: 'Morning',
-    rasa: 'Pathos (Karuna)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Devotion (Bhakti)',
   },
   {
     name: 'Bilawal',
+    time: 'Morning',
+  },
+  {
+    name: 'Bilawali',
+  },
+  {
+    name: 'Bilawali Durga',
+    time: 'Evening',
   },
   {
     name: 'Brihannat',
   },
   {
     name: 'Brindabani Sarang',
-    alternate_spelling_a: 'Brindabani',
-    time: 'Early Afternoon\r\nMid-afternoon\r\nNoon',
+    alternate_spelling: 'Brindabani,',
+    time: 'Early Afternoon, Mid-afternoon',
   },
   {
     name: 'Champak',
@@ -272,12 +303,12 @@ const ragaData = [
   },
   {
     name: 'Chanchalsas Malhar',
-    alternate_spelling_a: 'Chanchalsas Ki Malhar',
+    alternate_spelling: 'Chanchalsas Ki Malhar,',
   },
   {
     name: 'Chandni Kedara',
-    alternate_spelling_b: 'Chandini Kedar',
-    time: 'Evening\r\nLate Evening\r\n7-10 pm',
+    alternate_spelling: 'Chandini Kedar',
+    time: 'Late Evening',
   },
   {
     name: 'Chandra Dhani',
@@ -287,91 +318,119 @@ const ragaData = [
     name: 'Chandra Mohini',
   },
   {
+    name: 'Chandra Mukhi',
+    time: 'Evening',
+  },
+  {
     name: 'Chandrakant',
-    alternate_spelling_a: 'Chandrakant Kalyan',
+    alternate_spelling: 'Chandrakant Kalyan,',
     time: 'Evening',
   },
   {
     name: 'Chandrakauns',
-    time: 'Night\r\nMiddle of Night\r\nLate Night\r\n9 or 10pm till 2 or 3am',
-    rasa: 'Devotion (Bhakti)\r\nHeroic (Vira)\r\nPeace (Shanti)',
+    time: 'Late Night, Middle of Night',
+    rasa: 'Devotion (Bhakti)Heroic (Vira)Peace (Shanti)',
+  },
+  {
+    name: 'Chandrakaunsi',
   },
   {
     name: 'Chandrakaunsi Kanada',
-    alternate_spelling_b: 'Chandrakaunsi Kanara',
+    alternate_spelling: 'Chandrakaunsi Kanara',
   },
   {
     name: 'Chandranandan',
-    time: 'Evening\r\nNight\r\nMiddle of Night\r\nLate Night\r\nFULL MOON\r\nLate Evening',
-    light: '"Midnight"',
-    rasa: '"Krishna and gopis-playing ihe moon"\r\nDevotion (Bhakti)\r\nHeroic (Vira)\r\nJoy (Shringara)\r\nPathos (Karuna)\r\nPeace (Shanti)',
+    time: 'Midnight',
+    rasa: '"Krishna and gopis-playing ihe moon"Devotion (Bhakti)Heroic (Vira)Joy (Shringara)Pathos (Karuna)Peace (Shanti)',
   },
   {
     name: 'Chandrika',
+  },
+  {
+    name: 'Charanashree',
+    alternate_spelling: 'Charanashri',
+    time: 'Evening',
+    rasa: 'Devotion (Bhakti)Pathos (Karuna)',
+  },
+  {
+    name: 'Charukeshi',
+    time: 'Morning, Evening',
   },
   {
     name: 'Chatur Kalyan',
     time: 'Evening',
   },
   {
+    name: 'Chaurang Kalyan',
+    time: 'Evening',
+  },
+  {
     name: 'Chhaya',
-    alternate_spelling_b: 'Chaya',
+    alternate_spelling: 'Chaya',
+  },
+  {
+    name: 'Chhaya Kamodi Kalyan',
   },
   {
     name: 'Chhaya Tilak',
-    alternate_spelling_b: 'Chaya Tilak',
+    alternate_spelling: 'Chaya Tilak',
+    time: 'Evening',
   },
   {
     name: 'Chhayanat',
-    alternate_spelling_b: 'Chayanat',
+    alternate_spelling: 'Chayanat',
     time: 'Evening',
-    rasa: 'Devotion (Bhakti)\r\nPeace (Shanti)\r\nJoy (Shringara)',
+    rasa: 'Devotion (Bhakti)Peace (Shanti)Joy (Shringara)',
   },
   {
     name: 'Chitra Gauri',
-    alternate_spelling_b: 'Chitra Gouri',
+    alternate_spelling: 'Chitra Gouri',
   },
   {
     name: 'Darbari Kanada',
-    alternate_spelling_a: 'Darbari, Kanara Prakaar',
-    alternate_spelling_b: 'Darbari Kanara',
+    alternate_spelling: 'Darbari, Kanara Prakaar, Darbari Kanara',
     time: 'Late Evening',
   },
   {
     name: 'Darbari Todi',
     time: 'Morning',
-    rasa: 'Pathos (Karuna)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Devotion (Bhakti)',
+  },
+  {
+    name: 'Deen Todi',
+    alternate_spelling: 'Ahiri Todi, Bageshree Todi,Hira Todi,',
+    time: 'Morning',
   },
   {
     name: 'Desh',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)\r\nPeace (Shanti)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)Peace (Shanti)',
   },
   {
     name: 'Desh Malhar',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Desi Todi',
-    alternate_spelling_a: 'Desi',
+    alternate_spelling: 'Desi , Deshi',
     time: 'Late Morning',
   },
   {
     name: 'Deskar',
-    alternate_spelling_b: 'Deshkar',
+    alternate_spelling: 'Deshkar',
     time: 'Late Morning',
     rasa: 'Joy (Shringara)',
   },
   {
     name: 'Devgandhar',
-    alternate_spelling_a: 'Duigandhar-(2 gaÔøΩs)',
-    time: 'Late Morning\r\nEarly Afternoon',
-    rasa: 'Joy (Shringara)\r\nHeroic (Vira)',
+    alternate_spelling: "Duigandhar-(2 ga's),",
+    time: 'Late Morning, Early Afternoon',
+    rasa: 'Joy (Shringara)Heroic (Vira)',
   },
   {
     name: 'Devgiri Bilawal',
-    alternate_spelling_a: 'Devgiri',
+    alternate_spelling: 'Devgiri,',
     time: 'Late Morning',
   },
   {
@@ -379,13 +438,12 @@ const ragaData = [
   },
   {
     name: 'Devsakh',
-    alternate_spelling_a: 'Devsaga',
-    alternate_spelling_b: 'Devsag',
-    time: 'Late Morning\r\nEarly Afternoon\r\nNoon',
+    alternate_spelling: 'Devsaga, Devsag',
+    time: 'Late Morning, Early Afternoon',
   },
   {
     name: 'Dhanasri',
-    alternate_spelling_b: 'Dhanashri',
+    alternate_spelling: 'Dhanashri',
     time: 'Evening',
   },
   {
@@ -399,51 +457,66 @@ const ragaData = [
     name: 'Dharmawati',
   },
   {
+    name: 'Dhawalashri',
+    alternate_spelling: 'Dhawalasri',
+    time: 'Evening',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
+  },
+  {
     name: 'Dhuliya Malhar',
-    alternate_spelling_b: 'Dhulia Malhar',
+    alternate_spelling: 'Dhulia Malhar',
+  },
+  {
+    name: 'Dhun',
+    time: 'Evening',
+  },
+  {
+    name: 'Dhup Chhao',
   },
   {
     name: 'Durga Bhawani',
-    alternate_spelling_b: 'Durga Bhavani',
+    alternate_spelling: 'Durga Bhavani',
   },
   {
     name: 'Durga in Bilawal That',
-    alternate_spelling_a: 'Durga',
+    alternate_spelling: 'Durga,',
     time: 'Evening',
   },
   {
     name: 'Durga in Khammaj That',
-    alternate_spelling_a: 'Durga',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    alternate_spelling: 'Durga,',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Durga Kalyan',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Durga Khammaj',
     time: 'Evening',
   },
   {
+    name: 'Durge Malhar',
+  },
+  {
     name: 'Durgeswari',
-    alternate_spelling_b: 'Durgeshwari',
+    alternate_spelling: 'Durgeshwari',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Ferozkhani Todi',
   },
   {
     name: 'Gandhari',
-    alternate_spelling_b: 'Gandhar',
+    alternate_spelling: 'Gandhar',
     time: 'Late Morning',
   },
   {
     name: 'Gandhari Todi',
-    alternate_spelling_a: 'Jaunpuri',
-    alternate_spelling_b: 'Gandhar Todi',
-    time: 'Sometimes after 12 noon\r\nLate Morning',
+    alternate_spelling: 'Jaunpuri\r\n, Gandhar Todi',
+    time: 'Late Morning',
   },
   {
     name: 'Gara',
@@ -451,8 +524,8 @@ const ragaData = [
   },
   {
     name: 'Gara Kanada',
-    alternate_spelling_b: 'Gara Kanara',
-    time: 'midnight\r\nNight',
+    alternate_spelling: 'Gara Kanara',
+    time: 'Night',
   },
   {
     name: 'Gara Pilu',
@@ -462,13 +535,12 @@ const ragaData = [
   },
   {
     name: 'Gaud Malhar',
-    alternate_spelling_b: 'Gaur Malhar',
+    alternate_spelling: 'Gaur Malhar',
   },
   {
     name: 'Gaud Sarang',
-    alternate_spelling_a: 'Dinka Bihag',
-    alternate_spelling_b: 'Gaur Sarang',
-    time: 'Noon\r\nEarly Afternoon\r\n12 - 3 pm',
+    alternate_spelling: 'Dinka Bihag\r\n, Gaur Sarang',
+    time: 'Early Afternoon',
   },
   {
     name: 'Gauri',
@@ -484,45 +556,49 @@ const ragaData = [
   {
     name: 'Gawati',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Gopi Ka Basant',
-    alternate_spelling_b: 'Gopika Basant',
+    alternate_spelling: 'Gopika Basant',
     time: 'Morning',
   },
   {
     name: 'Gorokh Kalyan',
-    alternate_spelling_b: 'Gorak Kalyan, Gorakh Kalyan',
-    time: 'Evening\r\nLate Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)\r\nDetachment (Tyaga)',
+    alternate_spelling: 'Gorak Kalyan, Gorakh Kalyan',
+    time: 'Late Evening',
+    rasa: 'Joy (Shringara)Pathos (Karuna)Detachment (Tyaga)',
+  },
+  {
+    name: 'Gunji Kanada',
+    alternate_spelling: 'Gunji Kanara',
+    time: 'Night',
   },
   {
     name: 'Gunkali',
-    alternate_spelling_b: 'Guna Kali',
+    alternate_spelling: 'Guna Kali',
     time: 'Early Morning',
   },
   {
     name: 'Gurjari Todi',
-    alternate_spelling_a: 'Gurjari',
-    alternate_spelling_b: 'Gujari Todi',
+    alternate_spelling: 'Gurjari, Gujari Todi',
     time: 'Morning',
     rasa: 'Heroic (Vira)',
   },
   {
     name: 'Hambir',
-    alternate_spelling_b: 'Hamir, Hamvir',
+    alternate_spelling: 'Hamir, Hamvir',
     time: 'Evening',
   },
   {
     name: 'Hansadwani',
-    alternate_spelling_b: 'Hamsadhwani, Hangsadhwani',
+    alternate_spelling: 'Hamsadhwani, Hangsadhwani',
     time: 'Evening',
-    rasa: 'Heroic (Vira)\r\nJoy (Shringara)',
+    rasa: 'Heroic (Vira)Joy (Shringara)',
   },
   {
     name: 'Hansakankani',
-    alternate_spelling_b: 'Hansakinkini',
+    alternate_spelling: 'Hansakinkini',
     time: 'Early Afternoon',
   },
   {
@@ -532,15 +608,19 @@ const ragaData = [
   {
     name: 'Hem Bihag',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nPeace (Shanti)\r\nJoy (Shringara)\r\nDevotion (Bhakti)\r\nLoneliness',
+    rasa: 'Pathos (Karuna)Peace (Shanti)Joy (Shringara)Devotion (Bhakti)Loneliness',
   },
   {
     name: 'Hem Kalyan',
-    rasa: 'Devotion (Bhakti)\r\nHeroic (Vira)',
+    rasa: 'Devotion (Bhakti)Heroic (Vira)',
+  },
+  {
+    name: 'Hem Lalit',
   },
   {
     name: 'Hemant',
-    rasa: 'Devotion (Bhakti)\r\nJoy (Shringara)\r\nPathos (Karuna)\r\nPeace (Shanti)\r\nLoneliness',
+    time: 'Evening, Night',
+    rasa: 'Devotion (Bhakti)Joy (Shringara)Pathos (Karuna)Peace (Shanti)Loneliness',
   },
   {
     name: 'Hemant Bahar',
@@ -548,39 +628,50 @@ const ragaData = [
   {
     name: 'Hindol',
     time: 'Evening',
-    rasa: 'Heroic (Vira)\r\nDevotion (Bhakti)\r\nDetachment (Tyaga)',
+    rasa: 'Heroic (Vira)Devotion (Bhakti)Detachment (Tyaga)',
   },
   {
     name: 'Hindol Bahar',
   },
   {
+    name: 'Hindol Gauri',
+  },
+  {
     name: 'Hindol Hem',
-    rasa: 'Pathos (Karuna)\r\nHeroic (Vira)\r\nPeace (Shanti)',
+    time: 'Evening, Night',
+    rasa: 'Pathos (Karuna)Heroic (Vira)Peace (Shanti)',
+  },
+  {
+    name: 'Hindol Kalyan',
+    time: 'Evening, Late Night',
   },
   {
     name: 'Hindol Pancham',
   },
   {
+    name: 'Hindoli',
+  },
+  {
     name: 'Husseini Kanada',
-    alternate_spelling_b: 'Husseni Kanara',
+    alternate_spelling: 'Husseni Kanara',
   },
   {
     name: 'Jait',
-    alternate_spelling_a: 'Jayata',
+    alternate_spelling: 'Jayata,',
   },
   {
     name: 'Jait Kalyan',
-    alternate_spelling_b: 'Jayath Kalyan, Jayati Kalyan',
+    alternate_spelling: 'Jayath Kalyan, Jayati Kalyan',
     time: 'Evening',
   },
   {
     name: 'Jaitasri',
-    alternate_spelling_b: 'Jaitsri',
+    alternate_spelling: 'Jaitsri',
   },
   {
     name: 'Jaladar Kedar',
-    alternate_spelling_b: 'Jhaldhar Kedara',
-    time: 'Late Night\r\nEvening',
+    alternate_spelling: 'Jhaldhar Kedara',
+    time: 'Late Night',
   },
   {
     name: 'Jangla Pilu',
@@ -588,24 +679,24 @@ const ragaData = [
   },
   {
     name: 'Jaunpuri',
-    alternate_spelling_a: 'Jaunpuri Todi',
-    time: 'Morning\r\nLate Morning',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    alternate_spelling: 'Jaunpuri Todi,',
+    time: 'Morning',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Jayasri',
     time: 'Early Evening',
-    rasa: 'Detachment (Tyaga)\r\nPathos (Karuna)',
+    rasa: 'Detachment (Tyaga)Pathos (Karuna)',
   },
   {
     name: 'Jayjaywanti',
-    alternate_spelling_b: 'Jaijaiwanti',
-    time: 'Late Evening\r\nNight',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    alternate_spelling: 'Jaijaiwanti',
+    time: 'Late Evening',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Jhinjhat',
-    rasa: 'Peace (Shanti)\r\nPathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Peace (Shanti)Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Jhinjhat Manj',
@@ -613,12 +704,12 @@ const ragaData = [
   {
     name: 'Jhinjhoti',
     time: 'Late Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Jog',
-    time: 'Late Evening\r\nNight\r\nMiddle of Night',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nHeroic (Vira)',
+    time: 'Late Night',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Heroic (Vira)',
   },
   {
     name: 'Jog Kaunsi',
@@ -632,26 +723,30 @@ const ragaData = [
   },
   {
     name: 'Jogiya Kalengra',
-    alternate_spelling_b: 'Jogia Kalingra',
+    alternate_spelling: 'Jogia Kalingra',
     time: 'Early Morning',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Devotion (Bhakti)',
   },
   {
     name: 'Kafi',
-    time: 'Evening\r\nLate Afternoon\r\nMid-afternoon',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    time: 'Afternoon',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Kafi Bagesri',
   },
   {
     name: 'Kafi Kanada',
-    alternate_spelling_b: 'Kafi Kanara',
+    alternate_spelling: 'Kafi Kanara',
+  },
+  {
+    name: 'Kafi Todi',
+    time: 'Early Afternoon',
   },
   {
     name: 'Kalavati',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Kamod',
@@ -659,15 +754,17 @@ const ragaData = [
     rasa: 'Peace (Shanti)',
   },
   {
+    name: 'Kapi',
+  },
+  {
     name: 'Kaunshik Dhani',
-    alternate_spelling_a: 'Dhani Kaush',
-    alternate_spelling_b: 'Koshik Dhani',
+    alternate_spelling: 'Dhani Kaush, Koshik Dhani',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nDevotion (Bhakti)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Devotion (Bhakti)Joy (Shringara)',
   },
   {
     name: 'Kaunsi Bhairav',
-    alternate_spelling_b: 'Kaunsi Bhairo',
+    alternate_spelling: 'Kaunsi Bhairo',
     time: 'Morning',
   },
   {
@@ -678,45 +775,52 @@ const ragaData = [
   },
   {
     name: 'Kaunsi Kanada',
-    alternate_spelling_b: 'Kaunsi Kanara',
-    time: 'Night\r\nLate Evening',
+    alternate_spelling: 'Kaunsi Kanara',
+    time: 'Late Evening',
+  },
+  {
+    name: 'Kaunsi Sindh',
   },
   {
     name: 'Kaunsiki Bhairavi',
-    alternate_spelling_b: 'Kaunsi Ki Bhairavi',
+    alternate_spelling: 'Kaunsi Ki Bhairavi',
     time: 'Morning',
   },
   {
+    name: 'Kaunsiki Todi',
+    alternate_spelling: 'Kaunsi ki Todi',
+  },
+  {
     name: 'Kedara',
-    alternate_spelling_a: 'Kedar',
-    alternate_spelling_b: 'Kedar',
+    alternate_spelling: 'Kedar, Kedar',
     time: 'Night',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Khambavati',
-    alternate_spelling_b: 'Khambawati',
-    time: 'Night\r\nMiddle of Night\r\nLate Night',
-    light: '"Midnight"',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    alternate_spelling: 'Khambawati',
+    time: 'Midnight',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Khambawati Kanada',
-    alternate_spelling_b: 'Khambavati Kanara',
-    time: 'Night\r\nMiddle of Night\r\nLate Night\r\nEvening\r\nLate Evening',
-    light: '"Midnight"',
+    alternate_spelling: 'Khambavati Kanara',
+    time: 'Midnight',
   },
   {
     name: 'Khammaj',
     time: 'Late Night',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
+  },
+  {
+    name: 'Khammaji',
   },
   {
     name: 'Khammaji Hindol',
   },
   {
     name: 'Khammaji Kanada',
-    alternate_spelling_b: 'Khammaji Kanara',
+    alternate_spelling: 'Khammaji Kanara',
   },
   {
     name: 'Khat',
@@ -726,30 +830,34 @@ const ragaData = [
     name: 'Khat Todi',
   },
   {
+    name: 'Kirtan',
+    alternate_spelling: 'Bengali Mand, Folk Tune',
+  },
+  {
     name: 'Kirwani',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Kohal Kanada',
-    alternate_spelling_b: 'Kohal Kanara',
+    alternate_spelling: 'Kohal Kanara',
   },
   {
     name: 'Komal Asawari',
-    time: 'Morning\r\nLate Morning',
+    time: 'Morning',
   },
   {
     name: 'Kukubh Bilawal',
-    alternate_spelling_b: 'Morning',
-    light: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    time: 'Morning',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Lachari Todi',
-    time: 'Morning\r\nEarly Afternoon\r\nLate Morning',
+    time: 'Early Afternoon, Late Morning',
     rasa: 'happiness',
   },
   {
     name: 'Lachhasag',
-    time: 'Early Afternoon\r\nLate Morning',
+    time: 'Early Afternoon, Late Morning',
   },
   {
     name: 'Lajwanti',
@@ -757,70 +865,99 @@ const ragaData = [
   },
   {
     name: 'Lakshmi Ki Bhairavi',
-    alternate_spelling_b: 'Laxshmi Ki Bhairavi',
+    alternate_spelling: 'Laxshmi Ki Bhairavi',
     time: 'Morning',
   },
   {
     name: 'Lakshmi Todi',
-    alternate_spelling_b: 'Laxshmi Todi',
-    time: 'Morning\r\nLate Morning',
+    alternate_spelling: 'Laxshmi Todi',
+    time: 'Morning',
   },
   {
     name: 'Lalit',
-    time: 'Early Morning\r\nright before it gets light, before Jogiya',
-    light: 'Dawn\r\nPre-dawn\r\nFirst Sunrays',
-    rasa: 'Heroic (Vira)\r\nPathos (Karuna)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    time: 'Pre-dawn',
+    rasa: 'Heroic (Vira)Pathos (Karuna)Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Lalit Pancham',
-    time: 'Early Morning',
-    light: 'Dawn',
+    time: 'Dawn',
+  },
+  {
+    name: 'Lalita Bhatiyari',
+    alternate_spelling: 'Lalit Bhatiyar',
   },
   {
     name: 'Lalita Gauri',
-    time: '"After Sreerag"',
+    time: 'Early Evening',
   },
   {
     name: 'Lankadahan Sarang',
-    alternate_spelling_b: 'Lankadhan Saran, Lankadahan',
+    alternate_spelling: 'Lankadhan Saran, Lankadahan',
     time: 'Mid-afternoon',
   },
   {
+    name: 'Latungi',
+  },
+  {
     name: 'Lom',
-    alternate_spelling_b: 'Loom',
-    time: 'Any time but early morning\r\nLate Morning\r\nNoon\r\nEarly Afternoon\r\nMid-afternoon\r\nLate Afternoon\r\nEarly Evening\r\nEvening\r\nLate Evening\r\nNight\r\nMiddle of Night\r\nLate Night',
+    alternate_spelling: 'Loom',
+    time: 'Any time but early morning',
   },
   {
     name: 'Lom Bilawal',
   },
   {
+    name: 'Lom Mand',
+    alternate_spelling: 'Loom Mand',
+  },
+  {
+    name: 'Lom Manj',
+    alternate_spelling: 'Lome Manj',
+  },
+  {
+    name: 'Lom Narayani',
+    time: 'Evening',
+  },
+  {
+    name: 'Lom Shyam',
+  },
+  {
     name: 'Ma Bhairavi',
+    time: 'Morning',
   },
   {
     name: 'Madan Manjari',
   },
   {
+    name: 'Madan Manjari Malhar',
+    time: 'Evening',
+  },
+  {
     name: 'Madhu Malavi',
   },
   {
+    name: 'Madhukauns',
+    time: 'Late Night',
+  },
+  {
     name: 'Madhumad Sarang',
-    alternate_spelling_b: 'Madhumat Sarang',
-    time: 'Noon\r\nEarly Afternoon',
+    alternate_spelling: 'Madhumat Sarang',
+    time: 'Early Afternoon',
   },
   {
     name: 'Madhumalati',
     time: 'Evening',
-    rasa: 'Detachment (Tyaga)\r\nDevotion (Bhakti)\r\nHumorous (Hasya)\r\nHeroic (Vira)\r\nJoy (Shringara)\r\nPathos (Karuna)\r\nPeace (Shanti)',
+    rasa: 'Detachment (Tyaga)Devotion (Bhakti)Humorous (Hasya)Heroic (Vira)Joy (Shringara)Pathos (Karuna)Peace (Shanti)',
   },
   {
     name: 'Madhumalavi Kanada',
-    alternate_spelling_b: 'Madhumalavi Kanara',
+    alternate_spelling: 'Madhumalavi Kanara',
   },
   {
     name: 'Madhuwanti',
-    alternate_spelling_b: 'Madhuvanti',
-    time: 'Late Afternoon\r\n4 - 9 pm\r\nEvening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    alternate_spelling: 'Madhuvanti',
+    time: 'Late Afternoon',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Madhyam Se Gara',
@@ -828,7 +965,11 @@ const ragaData = [
   {
     name: 'Malasri',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nHeroic (Vira)',
+    rasa: 'Joy (Shringara)Heroic (Vira)',
+  },
+  {
+    name: 'Malaya Giri',
+    time: 'Evening',
   },
   {
     name: 'Malgunji',
@@ -836,7 +977,7 @@ const ragaData = [
   },
   {
     name: 'Malhar',
-    time: 'Middle of Night\r\nLate Night',
+    time: 'Middle of Night',
   },
   {
     name: 'Maligaura',
@@ -847,40 +988,53 @@ const ragaData = [
   },
   {
     name: 'Malkauns',
-    time: 'Night\r\nMiddle of Night\r\nLate Night',
-    rasa: 'Heroic (Vira)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    time: 'Late Night, Middle of Night',
+    rasa: 'Heroic (Vira)Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Maluha Chandini Kedar',
-    alternate_spelling_a: 'Malinichand Kedara',
+    alternate_spelling: 'Malinichand Kedara,',
+  },
+  {
+    name: 'Maluha Gaur Malhar',
   },
   {
     name: 'Maluha Kalyan',
   },
   {
     name: 'Maluha Kedar',
-    alternate_spelling_b: 'Maluha Kedara',
+    alternate_spelling: 'Maluha Kedara',
     time: 'Evening',
+  },
+  {
+    name: 'Maluha Lom',
   },
   {
     name: 'Mand',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)\r\nPeace (Shanti)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)Peace (Shanti)',
   },
   {
     name: 'Mangal Bhairav',
-    alternate_spelling_b: 'Mangal Bhairo',
+    alternate_spelling: 'Mangal Bhairo',
     time: 'Morning',
+  },
+  {
+    name: 'Mangali Kala',
   },
   {
     name: 'Manj',
   },
   {
     name: 'Manj Khammaj',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    time: 'Night',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Manj Mand',
+  },
+  {
+    name: 'Manjari',
   },
   {
     name: 'Manomani Sarang',
@@ -889,39 +1043,38 @@ const ragaData = [
   {
     name: 'Maru Bihag',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Maru Hindol',
-    alternate_spelling_a: 'Maru Hindola',
+    alternate_spelling: 'Maru Hindola,',
   },
   {
     name: 'Marwa',
-    time: 'Evening\r\nLate Evening',
-    light:
-      'Detachment (Tyaga)\r\nHeroic (Vira)\r\nDevotion (Bhakti)\r\nPeace (Shanti)\r\nPathos (Karuna)',
+    time: 'Late Evening',
+    rasa: 'Detachment (Tyaga)Heroic (Vira)Devotion (Bhakti)Peace (Shanti)Pathos (Karuna)',
   },
   {
     name: 'Mata Bhawani',
-    alternate_spelling_b: 'Mata Bhavani',
+    alternate_spelling: 'Mata Bhavani',
   },
   {
     name: 'Medhabi',
-    alternate_spelling_b: 'Medhavi',
+    alternate_spelling: 'Medhavi',
     time: 'Evening',
   },
   {
     name: 'Megh Malhar',
-    alternate_spelling_b: 'Megh',
-    rasa: 'Heroic (Vira)\r\nDevotion (Bhakti)',
+    alternate_spelling: 'Megh',
+    rasa: 'Heroic (Vira)Devotion (Bhakti)',
   },
   {
     name: 'Megh Sarang',
-    rasa: 'Peace (Shanti)\r\nHeroic (Vira)',
+    rasa: 'Peace (Shanti)Heroic (Vira)',
   },
   {
     name: 'Meghranjani',
-    time: 'Early Morning\r\nLate Night',
+    time: 'Early Morning, Late Night',
   },
   {
     name: 'Misra Gara',
@@ -937,7 +1090,7 @@ const ragaData = [
   },
   {
     name: 'Misra Kirwani',
-    rasa: 'Pathos (Karuna)\r\nPeace (Shanti)',
+    rasa: 'Pathos (Karuna)Peace (Shanti)',
   },
   {
     name: 'Misra Mand',
@@ -948,40 +1101,44 @@ const ragaData = [
   },
   {
     name: 'Misra Shivaranjani',
-    time: 'Late Afternoon\r\nEarly Evening',
-    light: 'Joy (Shringara)\r\nPathos (Karuna)\r\nPeace (Shanti)',
+    time: 'Late Afternoon, Early Evening',
+    rasa: 'Joy (Shringara)Pathos (Karuna)Peace (Shanti)',
+  },
+  {
+    name: 'Misra Todi',
   },
   {
     name: 'Miyan Ki Malhar',
-    alternate_spelling_a: 'Miyan Malhar',
-    alternate_spelling_b: 'Mian ki Malhar, Miyanh ki Malhaar',
-    time: 'Evening-in rainy season-anytime but morning',
-    light: 'Pathos (Karuna)\r\nHeroic (Vira)\r\nJoy (Shringara)',
+    alternate_spelling: 'Miyan Malhar, Mian ki Malhar, Miyanh ki Malhaar',
+    time: 'Evening, or anytime in rainy season but morning',
+    rasa: 'Pathos (Karuna)Heroic (Vira)Joy (Shringara)',
   },
   {
     name: 'Miyan Ki Sarang',
-    alternate_spelling_b: 'Mian Ki Sarang',
-    time: 'Early Afternoon\r\nMid-afternoon',
-    light: 'Devotion (Bhakti)\r\nPathos (Karuna)',
+    alternate_spelling: 'Mian Ki Sarang',
+    time: 'Early Afternoon, Mid-afternoon',
+    rasa: 'Devotion (Bhakti)Pathos (Karuna)',
   },
   {
     name: 'Miyan Ki Todi',
-    alternate_spelling_b: 'Mian Ki Todi',
+    alternate_spelling: 'Mian Ki Todi',
     time: 'Morning',
   },
   {
     name: 'Mriga Manjari',
   },
   {
+    name: 'Mudra Ki Todi',
+  },
+  {
     name: 'Mudriki Kanada',
-    alternate_spelling_b: 'Mudra Ki Kanara',
+    alternate_spelling: 'Mudra Ki Kanara',
     time: 'Evening',
   },
   {
     name: 'Multani',
     time: 'Late Afternoon',
-    light:
-      'Pathos (Karuna)"Pathos of birds and animals-they are playing all day in sun-then when the sun is going down they are alitle sad that dark is coming and they have no home to go to"\r\nPathos (Karuna)',
+    rasa: 'Pathos (Karuna)"Pathos of birds and animals-they are playing all day in sun-then when the sun is going down they are alitle sad that dark is coming and they have no home to go to"Pathos (Karuna)',
   },
   {
     name: 'Nand',
@@ -996,10 +1153,13 @@ const ragaData = [
   },
   {
     name: 'Narayani',
-    time: 'Evening\r\nEarly Evening',
+    time: 'Evening, Early Evening',
   },
   {
     name: 'Narayani Gauri',
+  },
+  {
+    name: 'Narayani Kalyan',
   },
   {
     name: 'Nat',
@@ -1007,10 +1167,9 @@ const ragaData = [
   },
   {
     name: 'Nat Bhairav',
-    alternate_spelling_b: 'Nat Bhairo',
-    time: 'Early Morning',
-    light: 'Dawn',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    alternate_spelling: 'Nat Bhairo',
+    time: 'Dawn, Early Morning',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Nat Bihag',
@@ -1018,68 +1177,79 @@ const ragaData = [
   },
   {
     name: 'Nat Bilawal',
-    alternate_spelling_a: 'Nat Bilawali',
+    alternate_spelling: 'Nat Bilawali,',
     time: 'Late Morning',
   },
   {
     name: 'Nat Kuranjika',
-    time: 'Night\r\nMiddle of Night',
+    time: 'Middle of Night',
   },
   {
     name: 'Nat Lom',
-    alternate_spelling_b: 'Nat Loom, Nat Lome',
+    alternate_spelling: 'Nat Loom, Nat Lome',
   },
   {
     name: 'Nat Malhar',
   },
   {
     name: 'Nat Narayani Bhairav',
-    alternate_spelling_b: 'Nat Narayani Bhairo',
+    alternate_spelling: 'Nat Narayani Bhairo',
+    time: 'Morning',
+  },
+  {
+    name: 'Nata Bhairavi',
+  },
+  {
+    name: 'Natchari Todi',
     time: 'Morning',
   },
   {
     name: 'Nayaki Kanada',
-    alternate_spelling_b: 'Nayaki Kanara',
-    time: 'Night\r\nLate Evening',
+    alternate_spelling: 'Nayaki Kanara',
+    time: 'Late Evening',
+  },
+  {
+    name: 'New Maihar Band I',
+    rasa: 'Other',
   },
   {
     name: 'Pahadi',
-    alternate_spelling_b: 'Pahari, Pohadi',
+    alternate_spelling: 'Pahari, Pohadi',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Pahadi Jhinjhoti',
-    alternate_spelling_b: 'Pahari Jhinjhoti',
+    alternate_spelling: 'Pahari Jhinjhoti',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Palas Kafi',
-    alternate_spelling_b: 'Palash Kafi',
+    alternate_spelling: 'Palash Kafi',
+    time: 'Afternoon',
   },
   {
     name: 'Palasi',
-    alternate_spelling_a: 'Palash',
-    alternate_spelling_b: 'Palas',
-    time: 'Late Afternoon\r\nMid-afternoon',
+    alternate_spelling: 'Palash, Palas',
+    time: 'Afternoon',
   },
   {
     name: 'Pancham',
-    time: 'Middle of Night\r\nNight',
+    time: 'Middle of Night',
   },
   {
     name: 'Paraj',
     time: 'Late Night',
-    rasa: 'Heroic (Vira)\r\nPathos (Karuna)',
+    rasa: 'Heroic (Vira)Pathos (Karuna)',
   },
   {
     name: 'Parvat Bhairav',
-    alternate_spelling_b: 'Prabhat Bhairo, Parvat Bhairo',
+    alternate_spelling: 'Prabhat Bhairo, Parvat Bhairo',
   },
   {
     name: 'Pat Bihag',
-    alternate_spelling_b: 'Pata Bihag',
+    alternate_spelling: 'Pata Bihag',
     time: 'Evening',
   },
   {
@@ -1090,112 +1260,118 @@ const ragaData = [
   },
   {
     name: 'Patdip',
-    alternate_spelling_b: 'Patdeep',
+    alternate_spelling: 'Patdeep',
     time: 'Late Afternoon',
   },
   {
     name: 'Pilu',
-    time: 'Evening\r\nLate Afternoon',
-    light: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)',
+    time: 'Evening, Late Afternoon',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)',
   },
   {
     name: 'Pilu Baruwa',
+    time: 'Afternoon, Evening, Night',
   },
   {
     name: 'Prabhakali',
-    alternate_spelling_a: 'Jogi',
-    alternate_spelling_b: 'Prava Kali',
+    alternate_spelling: 'Jogi, Prava Kali',
   },
   {
     name: 'Prabhatashwari',
     time: 'Morning',
   },
   {
+    name: 'Prabhati',
+  },
+  {
     name: 'Prabhati Sarang',
   },
   {
     name: 'Pradipaki',
-    alternate_spelling_a: 'Pradipki',
-    alternate_spelling_b: 'Pradeepaki, Patdipaki',
+    alternate_spelling: 'Pradipki, Pradeepaki, Patdipaki',
+  },
+  {
+    name: 'Prahava Bhatiyar',
+    time: 'Morning',
   },
   {
     name: 'Puriya',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nHeroic (Vira)\r\nDevotion (Bhakti)\r\nDetachment (Tyaga)',
+    rasa: 'Pathos (Karuna)Heroic (Vira)Devotion (Bhakti)Detachment (Tyaga)',
   },
   {
     name: 'Puriya Dhanasri',
-    alternate_spelling_b: 'Puriya Dhanashri',
+    alternate_spelling: 'Puriya Dhanashri',
     time: 'Early Evening',
-    light: 'First Candle',
-    rasa: 'Pathos (Karuna)\r\nPeace (Shanti)\r\nJoy (Shringara)\r\nDevotion (Bhakti)\r\nHeroic (Vira)',
+    rasa: 'Pathos (Karuna)Peace (Shanti)Joy (Shringara)Devotion (Bhakti)Heroic (Vira)',
   },
   {
     name: 'Puriya Kalyan',
-    alternate_spelling_b: 'Purva Kalyan, Purab Kalyan, Purav Kalyan',
+    alternate_spelling: 'Purva Kalyan, Purab Kalyan, Purav Kalyan',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nPeace (Shanti)\r\nJoy (Shringara)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Peace (Shanti)Joy (Shringara)Devotion (Bhakti)',
   },
   {
     name: 'Purvi',
-    alternate_spelling_b: 'Purbi',
+    alternate_spelling: 'Purbi',
     time: 'Early Evening',
-    light: 'First Candle',
-    rasa: 'Devotion (Bhakti)\r\nPeace (Shanti)',
+    rasa: 'Devotion (Bhakti)Peace (Shanti)',
   },
   {
     name: 'Purvi Kalyan',
-    alternate_spelling_b: 'Purbi Kalyan',
-    time: 'Early Evening\r\nAfter Sunset',
-    light: 'Dusk',
-    rasa: 'Devotion (Bhakti)\r\nPathos (Karuna)\r\nPeace (Shanti)',
+    alternate_spelling: 'Purbi Kalyan',
+    time: 'Dusk',
+    rasa: 'Devotion (Bhakti)Pathos (Karuna)Peace (Shanti)',
+  },
+  {
+    name: 'Rag Sagar',
   },
   {
     name: 'Ragesri',
-    alternate_spelling_b: 'Rageshri, Rageshwari',
+    alternate_spelling: 'Rageshri, Rageshwari',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Rajesri',
-    alternate_spelling_b: 'Rajeshri',
+    alternate_spelling: 'Rajeshri',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Ramdasi Malhar',
+    time: 'Night',
   },
   {
     name: 'Ramkali',
-    time: 'Early Morning\r\nMorning\r\n7-11 AM',
-    rasa: 'Devotion (Bhakti)\r\nPathos (Karuna)\r\nJoy (Shringara)',
+    time: 'Early Morning',
+    rasa: 'Devotion (Bhakti)Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Ranjani',
   },
   {
     name: 'Rasaranjani',
-    alternate_spelling_b: 'Rasa Ranjani',
+    alternate_spelling: 'Rasa Ranjani',
   },
   {
     name: 'Rupmanjari Malhar',
-    alternate_spelling_b: 'Roop Manjari Malhar',
-    time: 'Evening\r\nLate Evening',
+    alternate_spelling: 'Roop Manjari Malhar',
+    time: 'Late Evening',
   },
   {
     name: 'Sahana',
-    light: '"Midnight"',
+    time: 'Midnight',
   },
   {
     name: 'Sahana Kanada',
-    alternate_spelling_b: 'Sahana Kanara',
+    alternate_spelling: 'Sahana Kanara',
   },
   {
     name: 'Sajhgiri',
-    alternate_spelling_b: 'Sadjagiri',
-    time: 'Late Night',
-    light: '"Midnight"',
-    rasa: 'Detachment (Tyaga)\r\nPathos (Karuna)',
+    alternate_spelling: 'Sadjagiri',
+    time: 'Midnight',
+    rasa: 'Detachment (Tyaga)Pathos (Karuna)',
   },
   {
     name: 'Samanta Sarang',
@@ -1205,38 +1381,41 @@ const ragaData = [
     name: 'Sarang Megh',
   },
   {
+    name: 'Saraswati',
+    time: 'Evening',
+  },
+  {
     name: 'Sarfarda Bilawal',
-    alternate_spelling_a: 'Sarfarda',
+    alternate_spelling: 'Sarfarda,',
     time: 'Morning',
   },
   {
     name: 'Savani Kalyan',
-    alternate_spelling_b: 'Sayani Kalyan',
+    alternate_spelling: 'Sayani Kalyan',
     time: 'Evening',
   },
   {
     name: 'Shankara',
-    alternate_spelling_a: 'Shankara Ragini',
-    time: 'Late Evening\r\nEvening',
-    light: 'Devotion (Bhakti)\r\nHeroic (Vira)',
+    alternate_spelling: 'Shankara Ragini,',
+    time: 'Late Evening',
+    rasa: 'Devotion (Bhakti)Heroic (Vira)',
   },
   {
     name: 'Shankara Bharan',
   },
   {
     name: 'Shankara Karan',
-    alternate_spelling_b: 'Karan Shankara',
+    alternate_spelling: 'Karan Shankara',
   },
   {
     name: 'Shivamat Bhairav',
-    alternate_spelling_b: 'Shivamat Bhairo, Shiva Bhairav',
+    alternate_spelling: 'Shivamat Bhairo, Shiva Bhairav',
     time: 'Morning',
   },
   {
     name: 'Shivaranjani',
-    time: 'Evening\r\nLate Afternoon\r\nEarly Afternoon',
-    light:
-      'Joy (Shringara)\r\nPathos (Karuna)\r\nDevotion (Bhakti)\r\nDetachment (Tyaga)\r\nPeace (Shanti)',
+    time: 'Late Afternoon',
+    rasa: 'Joy (Shringara)Pathos (Karuna)Devotion (Bhakti)Detachment (Tyaga)Peace (Shanti)',
   },
   {
     name: 'Shobhavati',
@@ -1245,75 +1424,90 @@ const ragaData = [
   {
     name: 'Shyam Kalyan',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Sindhu Bhairavi',
-    alternate_spelling_b: 'Sindh Bhairavi, Sindhi Bhairavi',
-    time: 'Morning or at the end of a concert\r\nMorning',
-    light:
-      'Peace (Shanti)\r\nPathos (Karuna)\r\nJoy (Shringara)\r\nDevotion (Bhakti)',
+    alternate_spelling: 'Sindh Bhairavi, Sindhi Bhairavi',
+    time: 'Morning',
+    rasa: 'Peace (Shanti)Pathos (Karuna)Joy (Shringara)Devotion (Bhakti)',
+  },
+  {
+    name: 'Sindhu Todi',
+    time: 'Morning',
   },
   {
     name: 'Sindhura',
-    time: 'Late Afternoon\r\nEarly Evening',
+    time: 'Late Afternoon, Early Evening',
+  },
+  {
+    name: 'Sindhura Kafi',
+    time: 'Evening',
   },
   {
     name: 'Sohan Basant',
   },
   {
     name: 'Sohini',
-    time: 'Night\r\nMiddle of Night\r\n12am-4am \r\nthe third stage of night',
-    light: '"Midnight"',
-    rasa: 'Heroic (Vira)\r\nJoy (Shringara)\r\nChanchal (Restless)',
+    time: 'Midnight',
+    rasa: 'Heroic (Vira)Joy (Shringara)Chanchal (Restless)',
   },
   {
     name: 'Sorat',
-    alternate_spelling_b: 'Surat',
+    alternate_spelling: 'Surat',
     time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)\r\nPeace (Shanti)\r\nDevotion (Bhakti)',
+    rasa: 'Pathos (Karuna)Joy (Shringara)Peace (Shanti)Devotion (Bhakti)',
+  },
+  {
+    name: 'Sowrastra Tunka Bhairo',
+    time: 'Morning',
   },
   {
     name: 'Sree Rag',
-    alternate_spelling_b: 'Shree, Shri, Sri',
-    time: 'Early Evening',
-    light: 'Sunset',
-    rasa: 'Devotion (Bhakti)\r\nHeroic (Vira)\r\nPathos (Karuna)',
+    alternate_spelling: 'Shree, Shri, Sri',
+    time: 'Sunset',
+    rasa: 'Devotion (Bhakti)Heroic (Vira)Pathos (Karuna)',
   },
   {
     name: 'Subhavati',
-    time: 'Evening\r\nLate Evening',
+    time: 'Late Evening',
   },
   {
     name: 'Suddh Bhairavi',
-    alternate_spelling_b: 'Shuddh Bhairavi',
+    alternate_spelling: 'Shuddh Bhairavi',
+    time: 'Morning',
   },
   {
     name: 'Suddh Kalyan',
-    alternate_spelling_b: 'Shuddh Kalyan',
+    alternate_spelling: 'Shuddh Kalyan',
     time: 'Evening',
-    rasa: 'Peace (Shanti)\r\nDevotion (Bhakti)',
+    rasa: 'Peace (Shanti)Devotion (Bhakti)',
   },
   {
     name: 'Suddh Sarang',
-    alternate_spelling_b: 'Shuddh Sarang',
+    alternate_spelling: 'Shuddh Sarang',
     time: 'Early Afternoon',
   },
   {
+    name: 'Suddh Todi',
+    alternate_spelling: 'Shuddh Todi',
+    time: 'Morning',
+  },
+  {
     name: 'Sughrai',
-    time: 'Noon\r\nEarly Afternoon\r\nMid-afternoon\r\nLate Afternoon\r\nEarly Evening\r\nEvening\r\nLate Evening\r\nNight',
+    time: 'Afternoon, Night',
   },
   {
     name: 'Suha Kanada',
-    alternate_spelling_b: 'Suha Kanara',
-    time: 'Noon\r\nNight',
+    alternate_spelling: 'Suha Kanara',
+    time: 'Afternoon, Night',
   },
   {
     name: 'Suha Sughrai',
   },
   {
     name: 'Suha Todi',
-    time: 'Late Morning\r\nEarly Afternoon',
+    time: 'Late Morning, Early Afternoon',
   },
   {
     name: 'Sukla Bilawal',
@@ -1321,10 +1515,9 @@ const ragaData = [
   },
   {
     name: 'Surdasi Malhar',
-    alternate_spelling_a: 'Surdas Ki Malhar',
-    alternate_spelling_b: 'Surmalhar',
-    time: 'Evening\r\nNight\r\nLate Evening',
-    light: 'Heroic (Vira)',
+    alternate_spelling: 'Surdas Ki Malhar, Surmalhar',
+    time: 'Night',
+    rasa: 'Heroic (Vira)',
   },
   {
     name: 'Tilak Bihari',
@@ -1337,12 +1530,19 @@ const ragaData = [
   {
     name: 'Tilang',
     time: 'Evening',
-    rasa: 'Joy (Shringara)\r\nPathos (Karuna)',
+    rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
   {
     name: 'Todi',
-    time: 'Morning\r\nLate Morning',
-    light: 'Devotion (Bhakti)\r\nPathos (Karuna)\r\nJoy (Shringara)',
+    time: 'Morning',
+    rasa: 'Devotion (Bhakti)Pathos (Karuna)Joy (Shringara)',
+  },
+  {
+    name: 'Todi Bhairavi',
+    time: 'Morning',
+  },
+  {
+    name: 'Un-named Ragas',
   },
   {
     name: 'Vachaspati',
@@ -1350,261 +1550,63 @@ const ragaData = [
   },
   {
     name: 'Vibhas',
-    alternate_spelling_b: 'Bibhas',
+    alternate_spelling: 'Bibhas',
     time: 'Late Morning',
-    light: 'Devotion (Bhakti)\r\nHeroic (Vira)',
+    rasa: 'Devotion (Bhakti)Heroic (Vira)',
   },
   {
     name: 'Yaman',
-    alternate_spelling_b: 'Yeman, Iman, Yemen',
+    alternate_spelling: 'Yeman, Iman, Yemen',
+    time: 'Night',
   },
   {
     name: 'Yaman Kalyan',
-    alternate_spelling_b: 'Yeman Kalyan, Iman Kalyan, Yemen Kalyan',
-    time: '6pmÔøΩ9pm\r\nAfter Sunset\r\nEvening',
-    light:
-      'Devotion (Bhakti)\r\nPeace (Shanti)\r\nPathos (Karuna)\r\nJoy (Shringara)',
+    alternate_spelling: 'Yeman Kalyan, Iman Kalyan, Yemen Kalyan',
+    time: 'Evening',
+    rasa: 'Devotion (Bhakti)Peace (Shanti)Pathos (Karuna)Joy (Shringara)',
   },
   {
     name: 'Yamni',
-    alternate_spelling_b: 'Imni',
+    alternate_spelling: 'Imni',
   },
   {
     name: 'Yamni Bilawal',
-    alternate_spelling_a: 'Yaman Bilawal',
-    alternate_spelling_b: 'Imni Bilawal',
+    alternate_spelling: 'Yaman Bilawal, Imni Bilawal',
+    time: 'Morning',
   },
   {
     name: 'Zilla',
-    alternate_spelling_b: 'Zila',
+    alternate_spelling: 'Zila',
     time: 'Evening',
   },
   {
     name: 'Zilla Kafi',
-    time: 'Early Afternoon\r\nMid-afternoon\r\nLate Afternoon\r\nEarly Evening\r\nEvening\r\nAfternoon till 10pm',
-  },
-  {
-    name: 'Charukeshi',
-    time: 'Morning\r\nEvening',
-  },
-  {
-    name: 'Dhun',
-    time: 'Evening',
-  },
-  {
-    name: 'Bilawali',
-  },
-  {
-    name: 'Sindhura Kafi',
-    time: 'Evening',
-  },
-  {
-    name: 'Madan Manjari Malhar',
-    time: 'Evening',
-  },
-  {
-    name: 'Saraswati',
-    time: 'Evening',
-  },
-  {
-    name: 'Kapi',
-  },
-  {
-    name: 'Hindoli',
-  },
-  {
-    name: 'Ahiri Todi',
-    time: 'Morning',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
-  },
-  {
-    name: 'Chaurang Kalyan',
-    time: 'Evening',
-  },
-  {
-    name: 'Mudra Ki Todi',
-  },
-  {
-    name: 'Natchari Todi',
-    time: 'Morning\r\nLate Morning',
-  },
-  {
-    name: 'Malaya Giri',
-    time: 'Evening',
-  },
-  {
-    name: 'Lom Mand',
-    alternate_spelling_b: 'Loom Mand',
-  },
-  {
-    name: 'Lom Manj',
-    alternate_spelling_b: 'Lome Manj',
-  },
-  {
-    name: 'Dhup Chhao',
-  },
-  {
-    name: 'Hindol Gauri',
-  },
-  {
-    name: 'Lom Shyam',
-  },
-  {
-    name: 'Un-named Ragas',
-  },
-  {
-    name: 'Chandra Mukhi',
-    time: 'Evening\r\nAfter 9',
-  },
-  {
-    name: 'Chhaya Kamodi Kalyan',
-  },
-  {
-    name: 'Dhawalashri',
-    alternate_spelling_b: 'Dhawalasri',
-    time: 'Evening',
-    rasa: 'Pathos (Karuna)\r\nJoy (Shringara)',
-  },
-  {
-    name: 'Hem Lalit',
-  },
-  {
-    name: 'New Maihar Band I',
-    rasa: 'Other',
-  },
-  {
-    name: 'Bhankar Bhatiyari',
-  },
-  {
-    name: 'Prahava Bhatiyar',
-    time: 'Morning',
-  },
-  {
-    name: 'Bilas Todi',
-    time: 'Late Morning',
-  },
-  {
-    name: 'Suddh Todi',
-    alternate_spelling_b: 'Shuddh Todi',
-    time: 'Morning',
-  },
-  {
-    name: 'Kafi Todi',
-    time: 'Noon\r\nEarly Afternoon',
-  },
-  {
-    name: 'Deen Todi',
-    alternate_spelling_a: 'Ahiri Todi, Bageshree Todi,Hira Todi',
-    time: 'Morning',
-  },
-  {
-    name: 'Latungi',
+    time: 'Afternoon, Evening',
   },
   {
     name: 'Zillaf',
     time: 'Morning',
   },
   {
-    name: 'Aroon Malhar',
-    alternate_spelling_b: 'Arun Malhar',
-    time: 'Evening',
+    name: 'Tabla Solo',
   },
   {
-    name: 'Durge Malhar',
+    name: 'Bhup Hemant',
   },
   {
-    name: 'Maluha Gaur Malhar',
+    name: 'Mantra Chanting',
   },
   {
-    name: 'Gunji Kanada',
-    alternate_spelling_b: 'Gunji Kanara',
+    name: 'Unknown',
   },
   {
-    name: 'Sindhu Todi',
-    time: 'Morning\r\nLate Morning',
+    name: 'No Raga Listed',
   },
   {
-    name: 'Mangali Kala',
+    name: 'Megh',
   },
   {
-    name: 'Nata Bhairavi',
-  },
-  {
-    name: 'Narayani Kalyan',
-  },
-  {
-    name: 'Maluha Lom',
-  },
-  {
-    name: 'Charanashree',
-    alternate_spelling_b: 'Charanashri',
-    time: 'Evening',
-    rasa: 'Devotion (Bhakti)\r\nPathos (Karuna)',
-  },
-  {
-    name: 'Bhajans without Raga',
-  },
-  {
-    name: 'Manjari',
-  },
-  {
-    name: 'Khammaji',
-  },
-  {
-    name: 'Kaunsiki Todi',
-    alternate_spelling_b: 'Kaunsi ki Todi',
-  },
-  {
-    name: 'Misra Todi',
-  },
-  {
-    name: 'Bhup Bilawali',
-  },
-  {
-    name: 'Sowrastra Tunka Bhairo',
-    time: 'Morning',
-  },
-  {
-    name: 'Lom Narayani',
-    time: 'Evening',
-  },
-  {
-    name: 'Rag Sagar',
-  },
-  {
-    name: 'Lalita Bhatiyari',
-    alternate_spelling_b: 'Lalit Bhatiyar',
-  },
-  {
-    name: 'Bilawali Durga',
-    time: 'Early Morning;\r\n4:30-7:00 AM\r\nEarly Morning',
-  },
-  {
-    name: 'Adi Bhairav',
-  },
-  {
-    name: 'Kirtan',
-    alternate_spelling_b: 'Bengali Mand, Folk Tune',
-  },
-  {
-    name: 'Chandrakaunsi',
-  },
-  {
-    name: 'Prabhati',
-  },
-  {
-    name: 'Hindol Kalyan',
-    time: 'Night\r\nMiddle of Night\r\nLate Night\r\nEvening\r\nLate Evening',
-  },
-  {
-    name: 'Todi Bhairavi',
-    time: 'Morning',
-  },
-  {
-    name: 'Kaunsi Sindh',
-  },
-  {
-    name: 'Madhukauns',
+    name: 'New Raga',
   },
 ];
 
