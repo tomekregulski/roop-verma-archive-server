@@ -8,10 +8,10 @@ const categoryData = [
     name: 'lesson',
   },
   {
-    name: 'retreat',
+    name: 'nada yoga intensive',
   },
   {
-    name: 'discussion',
+    name: 'retreat',
   },
   {
     name: 'sharing',
@@ -21,6 +21,9 @@ const categoryData = [
   },
   {
     name: 'guided meditation',
+  },
+  {
+    name: 'unknown',
   },
   {
     name: 'interview',

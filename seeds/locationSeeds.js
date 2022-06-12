@@ -2,16 +2,55 @@ const { Location } = require('../models');
 
 const locationData = [
   {
-    name: '',
+    name: 'Unknown',
+  },
+  {
+    name: 'Los Angeles, CA',
+  },
+  {
+    name: 'Fort Collins, CO',
+  },
+  {
+    name: 'Boulder Free School',
   },
   {
     name: 'Ananda Ashram',
   },
   {
-    name: 'Los Angeles',
+    name: 'Boulder, CO',
   },
   {
-    name: 'Fort Collins, CO',
+    name: 'Eckerd College',
+  },
+  {
+    name: 'Kripalu Ashram',
+  },
+  {
+    name: 'Montreal, Canada',
+  },
+  {
+    name: 'Rochester, NY',
+  },
+  {
+    name: 'San Francisco - Brahmananda Ashram',
+  },
+  {
+    name: 'Florida, NY',
+  },
+  {
+    name: 'Victoria Museum',
+  },
+  {
+    name: 'Prema',
+  },
+  {
+    name: 'Watson Homestead',
+  },
+  {
+    name: 'Burlington, VT',
+  },
+  {
+    name: 'Yoga Society of Florida',
   },
 ];
 

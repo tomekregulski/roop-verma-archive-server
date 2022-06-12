@@ -15,19 +15,11 @@ Raga.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    alternate_spelling_a: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    alternate_spelling_b: {
+    alternate_spelling: {
       type: DataTypes.STRING,
       allowNull: true,
     },
     time: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    light: {
       type: DataTypes.STRING,
       allowNull: true,
     },
