@@ -1080,7 +1080,7 @@ const trackData = [
     medium_gat: true,
     fast_gat: false,
     accompanied: true,
-    notes: 'Confirm tape # correct',
+    notes: 'Confirm tape number correct',
     audio_quality: 'Fair',
     master: false,
     media_type_id: '1',
