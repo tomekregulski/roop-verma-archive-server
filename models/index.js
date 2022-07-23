@@ -9,9 +9,18 @@ const Tape = require('./Tape');
 const Track = require('./Track');
 const User = require('./User');
 const TrackArtist = require('./TrackArtist');
+const TrackPlay = require('./TrackPlay');
 const TrackUser = require('./TrackUser');
 
-Artist.belongsToMany(Track, {
+// User.belongsToMany(Track, {
+//   through: 'track_play',
+// });
+
+// Track.belongsToMany(User, {
+//   through: 'track_play',
+// });
+
+User.belongsToMany(Track, {
   through: 'track_artist',
 });
 
@@ -96,4 +105,5 @@ module.exports = {
   User,
   TrackArtist,
   TrackUser,
+  TrackPlay,
 };

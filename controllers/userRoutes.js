@@ -17,8 +17,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
+    const existingUser = await User.findOne({
+      where: {
+        email: req.body.email,
+      },
+    });
+
+    if (existingUser) {
+      res.status(401).send('Email already in use');
+      return;
+    }
+
     const userData = await User.create({
       email: req.body.email,
       password: req.body.password,
@@ -97,6 +108,8 @@ router.post('/register', async (req, res) => {
       },
     });
 
+    console.log(existingUser);
+
     if (existingUser) {
       res
         .status(400)
@@ -104,18 +117,18 @@ router.post('/register', async (req, res) => {
       return;
     }
 
-    const userData = await User.create({
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-      email: req.body.email,
-      password: req.body.password,
-      subscription_active: false,
-      subscription_id: '',
-      stripe_id: '',
-      is_admin: false,
-    });
+    // const userData = await User.create({
+    //   first_name: req.body.first_name,
+    //   last_name: req.body.last_name,
+    //   email: req.body.email,
+    //   password: req.body.password,
+    //   subscription_active: false,
+    //   subscription_id: '',
+    //   stripe_id: '',
+    //   is_admin: false,
+    // });
 
-    res.status(200).json(userData);
+    res.status(200).json(existingUser);
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
@@ -152,6 +165,7 @@ router.post('/login', async (req, res) => {
     }
 
     const tokenData = {
+      id: userData.id,
       first_name: userData.first_name,
       last_name: userData.last_name,
       email: userData.email,

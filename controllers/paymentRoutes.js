@@ -33,17 +33,31 @@ router.post('/charge', async (req, res) => {
 router.post('/subscribe', async (req, res) => {
   console.log('receive subscription request');
 
-  const { id, email, first_name, last_name, payment_method } = req.body;
+  const { id, email, first_name, last_name, payment_method, stripe_id } =
+    req.body;
 
-  const customer = await stripe.customers.create({
-    name: `${first_name} ${last_name}`,
-    email: email,
-    payment_method: payment_method,
-    invoice_settings: {
-      default_payment_method: payment_method,
-    },
-  });
+  let customer;
+
+  if (stripe_id) {
+    const customersList = await stripe.customers.list();
+    customer = customersList.filter((entry) => entry.id === stripe_id);
+  }
+
+  if (!stripe_id) {
+    customer = await stripe.customers.create({
+      name: `${first_name} ${last_name}`,
+      email: email,
+      payment_method: payment_method,
+      invoice_settings: {
+        default_payment_method: payment_method,
+      },
+    });
+  }
+
   console.log(customer);
+  if (!customer) {
+    return;
+  }
 
   const subscription = await stripe.subscriptions.create({
     customer: customer.id,
@@ -67,8 +81,6 @@ router.post('/subscribe', async (req, res) => {
       },
     }
   );
-
-  const user = { id, email, first_name, last_name };
 
   const userData = {
     id,
@@ -95,7 +107,7 @@ router.post('/subscribe', async (req, res) => {
 router.post('/cancel-subscription', async (req, res) => {
   const customer_id = req.body.customer_id;
 
-  let subscriptions = await stripe.subscriptions.list();
+  const subscriptions = await stripe.subscriptions.list();
 
   subscriptions = subscriptions.data;
 
@@ -123,3 +135,36 @@ router.post('/cancel-subscription', async (req, res) => {
 });
 
 module.exports = router;
+
+router.put('/update-payment', async (req, res) => {
+  console.log('attaching payment method...');
+  const { stripe_id, subscription_id, payment_method } = req.body;
+
+  console.log(subscription_id, payment_method);
+  // if (!subscription_id || !payment_method) {
+  //   return;
+  // }
+
+  const paymentMethod = await stripe.paymentMethods.attach(payment_method, {
+    customer: stripe_id,
+  });
+
+  console.log('attached: ', paymentMethod);
+  console.log('updating payment method...');
+
+  const customer = await stripe.customers.update(stripe_id, {
+    invoice_settings: { default_payment_method: paymentMethod.id },
+  });
+
+  console.log(customer);
+
+  // await stripe.subscriptions.update(subscription_id, {
+  //   default_payment_method: payment_method,
+  // });
+
+  console.log('process finish');
+
+  // return user;
+
+  res.json({ message: 'payment method successfully updated', data: customer });
+});

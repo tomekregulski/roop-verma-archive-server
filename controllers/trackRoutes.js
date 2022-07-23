@@ -9,6 +9,7 @@ const {
   Event,
   MediaType,
   Category,
+  TrackPlay,
 } = require('../models');
 
 const authorization = require('../middleware/authorization');
@@ -108,6 +109,38 @@ router.get('/public', async (req, res) => {
     console.log(err);
     res.status(500).json(err);
   }
+});
+
+router.post('/track-plays', async (req, res) => {
+  try {
+    const newTrackPlay = await TrackPlay.create({
+      user_id: req.body.userId,
+      track_id: req.body.trackId,
+      seconds_listened: req.body.secondsListened,
+    });
+
+    res.status(200).json(newTrackPlay);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+  // try {
+  //   const trackData = await Track.increment(
+  //     {
+  //       plays: 1,
+  //     },
+  //     {
+  //       where: {
+  //         id: req.body.id,
+  //       },
+  //     }
+  //   );
+
+  //   res.status(200).json(trackData);
+  // } catch (err) {
+  //   console.log(err);
+  //   res.status(500).json(err);
+  // }
 });
 
 module.exports = router;
