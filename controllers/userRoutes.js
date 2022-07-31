@@ -48,27 +48,52 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+// router.put('/:id', async (req, res) => {
+//   try {
+//     const userData = await User.update(
+//       {
+//         email: req.body.email,
+//         password: req.body.password,
+//         first_name: req.body.first_name,
+//         last_name: req.body.last_name,
+//         subscription_active: req.body.subscription_active,
+//         subscription_id: "''",
+//         stripe_id: "''",
+//         is_admin: req.body.is_admin,
+//       },
+//       {
+//         where: {
+//           id: req.params.id,
+//         },
+//         individualHooks: true,
+//       }
+//     );
+//     res.status(200).json(userData);
+//   } catch (err) {
+//     console.log(err);
+//     res.status(400).json(err);
+//   }
+// });
+
+router.put('/update-password', async (req, res) => {
+  console.log(req.body);
   try {
-    const userData = await User.update(
+    if (!req.body.password) {
+      return;
+    }
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    console.log(hashedPassword);
+    await User.update(
       {
-        email: req.body.email,
-        password: req.body.password,
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        subscription_active: req.body.subscription_active,
-        subscription_id: "''",
-        stripe_id: "''",
-        is_admin: req.body.is_admin,
+        password: hashedPassword,
       },
       {
         where: {
-          id: req.params.id,
+          id: req.body.userId,
         },
-        individualHooks: true,
       }
     );
-    res.status(200).json(userData);
+    res.status(200).json('Password successfully updated');
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
@@ -148,16 +173,7 @@ router.post('/login', async (req, res) => {
       return;
     }
 
-    // if (userData.subscription_active != true) {
-    //   res.status(400).json('Your subscription is not active. Please contact support to re');
-    //   return;
-    // }
-
-    console.log(userData);
-
     const passwordData = await userData.checkPassword(req.body.password);
-
-    console.log(passwordData);
 
     if (!passwordData) {
       res.status(400).json({ message: 'Incorrect username or password...' });
