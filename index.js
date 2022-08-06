@@ -19,17 +19,12 @@ app.use(cookieParser());
 
 // app.use(cors(corsOptions));
 app.use(cors());
-
 app.use(bodyParser.json());
-
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/api/v1', require('./routes/v1/index'));
 app.use(routes);
-
 app.use(errorHandler);
 
 sequelize.sync().then(() => {
