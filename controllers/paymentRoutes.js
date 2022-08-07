@@ -103,7 +103,7 @@ router.post('/subscribe', async (req, res) => {
 router.post('/cancel-subscription', async (req, res) => {
   const customer_id = req.body.customer_id;
 
-  const subscriptions = await stripe.subscriptions.list();
+  let subscriptions = await stripe.subscriptions.list();
 
   subscriptions = subscriptions.data;
 
@@ -129,8 +129,6 @@ router.post('/cancel-subscription', async (req, res) => {
   console.log(userData);
   res.json({ message: 'cancelled', userData: userData });
 });
-
-module.exports = router;
 
 router.put('/update-payment', async (req, res) => {
   console.log('attaching payment method...');
@@ -168,3 +166,5 @@ router.put('/update-payment', async (req, res) => {
     res.json(error.message);
   }
 });
+
+module.exports = router;

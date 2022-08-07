@@ -1,4 +1,4 @@
-const isValidApiKey = async (req, res, next) => {
+const isValidApiKey = (req, res, next) => {
   const { key } = req.params;
 
   if (key !== process.env.API_KEY) {

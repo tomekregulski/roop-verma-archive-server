@@ -26,7 +26,6 @@ module.exports = {
       console.log('updated');
       res.status(200).json({ message: 'Password successfully updated' });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   },

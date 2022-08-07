@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-const authorization = (req, res, next) => {
+const isValidJwt = (req, res, next) => {
   const token = req.headers.jwt;
   if (!token) {
-    return res.sendStatus(403);
+    const error = new Error('Not authorized - could not find a token');
+    error.status = 403;
+    next(error);
   }
   try {
     const data = jwt.verify(token, 'YOUR_SECRET_KEY');
@@ -11,9 +13,8 @@ const authorization = (req, res, next) => {
     req.userRole = data.role;
     return next();
   } catch (err) {
-    console.log(err);
-    return res.sendStatus(403);
+    next(err);
   }
 };
 
-module.exports = authorization;
+module.exports = isValidJwt;

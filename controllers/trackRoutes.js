@@ -12,9 +12,9 @@ const {
   TrackPlay,
 } = require('../models');
 
-const authorization = require('../middleware/authorization');
+const isValidJwt = require('../middleware/isValidJwt');
 
-router.get('/', authorization, async (req, res) => {
+router.get('/', isValidJwt, async (req, res) => {
   try {
     const allTracks = await Track.findAll({
       include: [
@@ -124,23 +124,6 @@ router.post('/track-plays', async (req, res) => {
     console.log(err);
     res.status(400).json(err);
   }
-  // try {
-  //   const trackData = await Track.increment(
-  //     {
-  //       plays: 1,
-  //     },
-  //     {
-  //       where: {
-  //         id: req.body.id,
-  //       },
-  //     }
-  //   );
-
-  //   res.status(200).json(trackData);
-  // } catch (err) {
-  //   console.log(err);
-  //   res.status(500).json(err);
-  // }
 });
 
 module.exports = router;
