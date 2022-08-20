@@ -7,6 +7,9 @@ const userRouter = router;
 
 userRouter
   .route('/subscribe/:key')
+  .post(isValidApiKey, controllers.post.subscribe);
+userRouter
+  .route('/resubscribe/:key')
   .post(isValidApiKey, isValidJwt, controllers.post.subscribe);
 userRouter
   .route('/cancel-subscription/:key')
