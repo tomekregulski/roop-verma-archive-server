@@ -1,7 +1,7 @@
 const { TrackPlay } = require('../../models');
 
 module.exports = {
-  trackPlay: async (req, res) => {
+  trackPlay: async (req, res, next) => {
     try {
       const newTrackPlay = await TrackPlay.create({
         user_id: req.body.userId,
