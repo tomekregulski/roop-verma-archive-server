@@ -26,7 +26,7 @@ module.exports = {
         is_admin: req.body.is_admin || false,
       });
 
-      res.status(200).json({ message: 'successfully created new user' });
+      res.status(200).json({ userData });
     } catch (err) {
       next(err);
     }
