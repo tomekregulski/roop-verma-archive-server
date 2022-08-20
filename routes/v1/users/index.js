@@ -12,7 +12,7 @@ userRouter
 userRouter
   .route('/check-existing/:key')
   .get(isValidApiKey, controllers.get.checkExistingUser);
-userRouter.route('/').post(isValidApiKey, controllers.post.newUser);
+userRouter.route('/:key').post(isValidApiKey, controllers.post.newUser);
 userRouter
   .route('/update-password/:key')
   .put(isValidApiKey, isValidJwt, controllers.put.updatePassword);
