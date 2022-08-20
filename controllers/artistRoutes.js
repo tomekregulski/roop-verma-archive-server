@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     const artistData = allArtists.map((artist) => artist.get({ plain: true }));
     res.status(200).json(artistData);
   } catch (err) {
-    console.log(err);
+    console.log('Artists get: ', err);
     res.status(500).json(err);
   }
 });

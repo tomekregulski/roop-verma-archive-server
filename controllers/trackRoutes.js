@@ -58,7 +58,7 @@ router.get('/', isValidJwt, async (req, res) => {
     const trackData = allTracks.map((track) => track.get({ plain: true }));
     res.status(200).json(trackData);
   } catch (err) {
-    console.log(err);
+    console.log('Private track get error: ', err);
     res.status(500).json(err);
   }
 });
@@ -106,7 +106,7 @@ router.get('/public', async (req, res) => {
     const trackData = allTracks.map((track) => track.get({ plain: true }));
     res.status(200).json(trackData);
   } catch (err) {
-    console.log(err);
+    console.log('Public track get error: ', err);
     res.status(500).json(err);
   }
 });
@@ -121,7 +121,7 @@ router.post('/track-plays', async (req, res) => {
 
     res.status(200).json(newTrackPlay);
   } catch (err) {
-    console.log(err);
+    console.log('Track play post error: ', err);
     res.status(400).json(err);
   }
 });

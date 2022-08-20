@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const controllers = require('../../../controllers/auth');
 const isValidApiKey = require('../../../middleware/isValidateApiKey');
-// const authMiddleware = require('../../middleware/middleware.verifyUserCookie');
 
 const authRoutes = router;
 

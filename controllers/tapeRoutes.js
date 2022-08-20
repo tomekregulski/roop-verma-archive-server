@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
     const tapeData = allTapes.map((tape) => tape.get({ plain: true }));
     res.status(200).json(tapeData);
   } catch (err) {
-    console.log(err);
+    console.log('Tape get error: ', err);
     res.status(500).json(err);
   }
 });

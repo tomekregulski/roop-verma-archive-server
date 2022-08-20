@@ -11,8 +11,25 @@ module.exports = {
         error.status = 500;
         throw error;
       }
+      const user = await User.findOne({
+        where: {
+          id: req.body.userId,
+        },
+      });
+
+      const passwordsMatch = await bcrypt.compare(
+        req.body.currentPassword,
+        user.password
+      );
+      console.log(passwordsMatch);
+      if (!passwordsMatch) {
+        const error = new Error('Incorrect current password');
+        error.status = 500;
+        throw error;
+      }
+
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
-      console.log(hashedPassword);
+      console.log('hashedPassword: ', hashedPassword);
       await User.update(
         {
           password: hashedPassword,
@@ -23,7 +40,7 @@ module.exports = {
           },
         }
       );
-      console.log('updated');
+      console.log('password updated');
       res.status(200).json({ message: 'Password successfully updated' });
     } catch (err) {
       next(err);

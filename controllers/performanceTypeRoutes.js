@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
     );
     res.status(200).json(performanceTypeData);
   } catch (err) {
-    console.log(err);
+    console.log('Performance Type error: ', err);
     res.status(500).json(err);
   }
 });

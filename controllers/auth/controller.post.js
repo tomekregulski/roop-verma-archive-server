@@ -29,16 +29,17 @@ module.exports = {
         first_name: userData.first_name,
         last_name: userData.last_name,
         email: userData.email,
-        password: userData.password,
         subscription_active: userData.subscription_active,
-        subscription_id: userData.subscription_id,
-        stripe_id: userData.stripe_id,
+        // subscription_id: userData.subscription_id,
+        // stripe_id: userData.stripe_id,
         is_admin: userData.is_admin,
       };
 
       const token = jwt.sign(tokenData, 'YOUR_SECRET_KEY', {
-        expiresIn: '100h',
+        expiresIn: '24h',
       });
+
+      // res.cookie('roop-verma-library', token);
 
       res.status(200).json({
         userData,

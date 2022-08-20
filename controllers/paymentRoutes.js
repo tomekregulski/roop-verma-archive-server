@@ -125,8 +125,8 @@ router.post('/cancel-subscription', async (req, res) => {
     }
   );
 
-  console.log(deleted);
-  console.log(userData);
+  console.log('Cancel subscription deleted value: ', deleted);
+  console.log('Cancel subscription userData: ', userData);
   res.json({ message: 'cancelled', userData: userData });
 });
 
