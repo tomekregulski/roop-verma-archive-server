@@ -2,7 +2,7 @@ require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 module.exports = {
-  updatePaymentMethod: async (req, res) => {
+  updatePaymentMethod: async (req, res, next) => {
     console.log('attaching payment method...');
     const { stripe_id, subscription_id, payment_method } = req.body;
 

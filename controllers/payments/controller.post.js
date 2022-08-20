@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../../models');
 
 module.exports = {
-  charge: async (req, res) => {
+  charge: async (req, res, next) => {
     const { amount, id } = req.body;
     try {
       const payment = await stripe.paymentIntents.create({
@@ -23,7 +23,7 @@ module.exports = {
     }
   },
 
-  subscribe: async (req, res) => {
+  subscribe: async (req, res, next) => {
     const { id, email, first_name, last_name, payment_method, stripe_id } =
       req.body;
     let customer;
@@ -101,7 +101,7 @@ module.exports = {
     }
   },
 
-  cancelSubscription: async (req, res) => {
+  cancelSubscription: async (req, res, next) => {
     const customer_id = req.body.customer_id;
 
     let subscriptions = await stripe.subscriptions.list();

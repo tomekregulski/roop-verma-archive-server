@@ -11,7 +11,7 @@ const {
 } = require('../../models');
 
 module.exports = {
-  allTracks: async (_req, res) => {
+  allTracks: async (_req, res, next) => {
     try {
       const allTracks = await Track.findAll({
         include: [
@@ -59,7 +59,7 @@ module.exports = {
       next(err);
     }
   },
-  publicTracks: async (_req, res) => {
+  publicTracks: async (_req, res, next) => {
     try {
       const allTracks = await Track.findAll({
         include: [

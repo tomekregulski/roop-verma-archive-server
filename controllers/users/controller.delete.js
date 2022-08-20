@@ -1,7 +1,7 @@
 const { User } = require('../../models');
 
 module.exports = {
-  deleteUser: async (req, res) => {
+  deleteUser: async (req, res, next) => {
     try {
       const userData = await User.destroy({
         where: {
