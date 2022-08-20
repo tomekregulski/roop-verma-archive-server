@@ -9,11 +9,12 @@ const {
   Event,
   MediaType,
   Category,
+  TrackPlay,
 } = require('../models');
 
-const authorization = require('../middleware/authorization');
+const isValidJwt = require('../middleware/isValidJwt');
 
-router.get('/', authorization, async (req, res) => {
+router.get('/', isValidJwt, async (req, res) => {
   try {
     const allTracks = await Track.findAll({
       include: [
@@ -57,7 +58,7 @@ router.get('/', authorization, async (req, res) => {
     const trackData = allTracks.map((track) => track.get({ plain: true }));
     res.status(200).json(trackData);
   } catch (err) {
-    console.log(err);
+    console.log('Private track get error: ', err);
     res.status(500).json(err);
   }
 });
@@ -105,8 +106,23 @@ router.get('/public', async (req, res) => {
     const trackData = allTracks.map((track) => track.get({ plain: true }));
     res.status(200).json(trackData);
   } catch (err) {
-    console.log(err);
+    console.log('Public track get error: ', err);
     res.status(500).json(err);
+  }
+});
+
+router.post('/track-plays', async (req, res) => {
+  try {
+    const newTrackPlay = await TrackPlay.create({
+      user_id: req.body.userId,
+      track_id: req.body.trackId,
+      seconds_listened: req.body.secondsListened,
+    });
+
+    res.status(200).json(newTrackPlay);
+  } catch (err) {
+    console.log('Track play post error: ', err);
+    res.status(400).json(err);
   }
 });
 

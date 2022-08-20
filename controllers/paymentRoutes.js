@@ -5,9 +5,7 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
 router.post('/charge', async (req, res) => {
-  console.log('stripe-routes.js 9 | route reached', req.body);
-  let { amount, id } = req.body;
-  console.log('stripe-routes.js 10 | amount and id', amount, id);
+  const { amount, id } = req.body;
   try {
     const payment = await stripe.paymentIntents.create({
       amount: amount,
@@ -16,80 +14,90 @@ router.post('/charge', async (req, res) => {
       payment_method: id,
       confirm: true,
     });
-    console.log('stripe-routes.js 19 | payment', payment);
     res.json({
       message: 'Payment Successful',
       success: true,
     });
   } catch (error) {
-    console.log('stripe-routes.js 17 | error', error);
     res.json({
-      message: 'Payment Failed',
+      message: `Payment Failed: ${error}`,
       success: false,
     });
   }
 });
 
 router.post('/subscribe', async (req, res) => {
-  console.log('receive subscription request');
+  const { id, email, first_name, last_name, payment_method, stripe_id } =
+    req.body;
+  let customer;
 
-  const { id, email, first_name, last_name, payment_method } = req.body;
+  try {
+    if (stripe_id) {
+      const customersList = await stripe.customers.list();
+      customer = customersList.filter((entry) => entry.id === stripe_id);
+    }
 
-  const customer = await stripe.customers.create({
-    name: `${first_name} ${last_name}`,
-    email: email,
-    payment_method: payment_method,
-    invoice_settings: {
-      default_payment_method: payment_method,
-    },
-  });
-  console.log(customer);
+    if (!stripe_id) {
+      customer = await stripe.customers.create({
+        name: `${first_name} ${last_name}`,
+        email: email,
+        payment_method: payment_method,
+        invoice_settings: {
+          default_payment_method: payment_method,
+        },
+      });
+    }
 
-  const subscription = await stripe.subscriptions.create({
-    customer: customer.id,
-    items: [{ plan: 'price_1KJRMLBlr8UFcXJyfuwrkYVC' }],
-    expand: ['latest_invoice.payment_intent'],
-  });
+    if (!customer) {
+      return;
+    }
 
-  const status = subscription['latest_invoice']['payment_intent']['status'];
-  const client_secret =
-    subscription['latest_invoice']['payment_intent']['client_secret'];
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ plan: 'price_1KJRMLBlr8UFcXJyfuwrkYVC' }],
+      expand: ['latest_invoice.payment_intent'],
+    });
 
-  await User.update(
-    {
+    const status = subscription['latest_invoice']['payment_intent']['status'];
+    const client_secret =
+      subscription['latest_invoice']['payment_intent']['client_secret'];
+
+    await User.update(
+      {
+        stripe_id: customer.id,
+        subscription_id: subscription.id,
+        subscription_active: true,
+      },
+      {
+        where: {
+          email: email,
+        },
+      }
+    );
+
+    const userData = {
+      id,
+      first_name,
+      last_name,
+      email,
       stripe_id: customer.id,
       subscription_id: subscription.id,
       subscription_active: true,
-    },
-    {
-      where: {
-        email: email,
-      },
-    }
-  );
+      is_admin: false,
+    };
 
-  const user = { id, email, first_name, last_name };
+    const token = jwt.sign(userData, 'YOUR_SECRET_KEY', { expiresIn: '100h' });
 
-  const userData = {
-    id,
-    first_name,
-    last_name,
-    email,
-    stripe_id: customer.id,
-    subscription_id: subscription.id,
-    subscription_active: true,
-    is_admin: false,
-  };
-
-  const token = jwt.sign(userData, 'YOUR_SECRET_KEY', { expiresIn: '100h' });
-
-  res.status(200).json({
-    message: 'Logged in successfully',
-    token,
-    client_secret,
-    status,
-    userData,
-  });
+    res.status(200).json({
+      message: 'Logged in successfully',
+      token,
+      client_secret,
+      status,
+      userData,
+    });
+  } catch (error) {
+    res.json(error.message);
+  }
 });
 
 router.post('/cancel-subscription', async (req, res) => {
@@ -117,9 +125,46 @@ router.post('/cancel-subscription', async (req, res) => {
     }
   );
 
-  console.log(deleted);
-  console.log(userData);
+  console.log('Cancel subscription deleted value: ', deleted);
+  console.log('Cancel subscription userData: ', userData);
   res.json({ message: 'cancelled', userData: userData });
+});
+
+router.put('/update-payment', async (req, res) => {
+  console.log('attaching payment method...');
+  const { stripe_id, subscription_id, payment_method } = req.body;
+
+  if (!subscription_id) {
+    res.json({
+      message: 'Did not receive a valid subscription ID',
+      data: customer,
+    });
+    return;
+  }
+  if (!payment_method) {
+    res.json({
+      message: 'Did not receive a valid payment method',
+      data: customer,
+    });
+    return;
+  }
+
+  try {
+    const paymentMethod = await stripe.paymentMethods.attach(payment_method, {
+      customer: stripe_id,
+    });
+
+    const customer = await stripe.customers.update(stripe_id, {
+      invoice_settings: { default_payment_method: paymentMethod.id },
+    });
+
+    res.json({
+      message: 'payment method successfully updated',
+      data: customer,
+    });
+  } catch (error) {
+    res.json(error.message);
+  }
 });
 
 module.exports = router;

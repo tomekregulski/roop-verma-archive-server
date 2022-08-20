@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
     const ragaData = allRagas.map((raga) => raga.get({ plain: true }));
     res.status(200).json(ragaData);
   } catch (err) {
-    console.log(err);
+    console.log('Raga get error: ', err);
     res.status(500).json(err);
   }
 });

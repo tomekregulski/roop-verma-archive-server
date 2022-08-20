@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
     );
     res.status(200).json(locationData);
   } catch (err) {
-    console.log(err);
+    console.log('Locations get: ', err);
     res.status(500).json(err);
   }
 });

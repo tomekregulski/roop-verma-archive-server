@@ -1,9 +1,10 @@
 const { Model, DataTypes } = require('sequelize');
+
 const sequelize = require('../config/connection');
 
-class Event extends Model {}
+class TrackPlay extends Model {}
 
-Event.init(
+TrackPlay.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -11,41 +12,31 @@ Event.init(
       primaryKey: true,
       autoIncrement: true,
     },
-    event_name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    date: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    location_id: {
+    user_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
-        model: 'location',
+        model: 'user',
         key: 'id',
       },
     },
-    category_id: {
+    track_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
-        model: 'category',
+        model: 'track',
         key: 'id',
       },
     },
-    notes: {
-      type: DataTypes.STRING,
-      allowNull: true,
+    seconds_listened: {
+      type: DataTypes.INTEGER,
     },
   },
   {
     sequelize,
+    timestamps: true,
     freezeTableName: true,
     underscored: true,
-    modelName: 'event',
+    modelName: 'track_play',
   }
 );
 
-module.exports = Event;
+module.exports = TrackPlay;

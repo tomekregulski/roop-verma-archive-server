@@ -32,6 +32,11 @@ Track.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    plays: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
     alap: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
