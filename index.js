@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-const sequelize = require('./config/connection');
+const sequelize = require('./config/config');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const errorHandler = require('./handlers/error');
@@ -27,8 +27,8 @@ app.use('/api/v1', require('./routes/v1/index'));
 app.use(routes);
 app.use(errorHandler);
 
-sequelize.sync().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}!`);
-  });
+// sequelize.sync({ force: true }).then(() => {
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}!`);
 });
+// });

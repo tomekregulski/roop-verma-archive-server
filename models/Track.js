@@ -1,115 +1,55 @@
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/connection');
-const { TrackArtist } = require('./TrackArtist');
-
-class Track extends Model {}
-
-Track.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    tape_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'tape',
-        key: 'id',
-      },
-    },
-    raga_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'raga',
-        key: 'id',
-      },
-    },
-    primary_artist_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    plays: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    alap: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    jor: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    jhalla: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    slow_gat: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    medium_gat: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    fast_gat: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    accompanied: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    notes: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    audio_quality: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    master: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    media_type_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'media_type',
-        key: 'id',
-      },
-    },
-    public: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    url: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  // {
-  //   hooks: {
-  //     afterCreate: (track) => {
-  //       return sequelize.models.TrackArtists.create({
-  //         artist_id: track.artist_id,
-  //         track_id: track.id,
-  //       });
-  //     },
-  //   },
-  // },
-  {
-    sequelize: sequelize,
-    freezeTableName: true,
-    underscored: true,
-    modelName: 'track',
+'use strict';
+const { Model } = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Track extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
   }
-);
-
-module.exports = Track;
+  Track.init(
+    {
+      tape_id: DataTypes.INTEGER,
+      raga_id: DataTypes.INTEGER,
+      primary_artist_id: DataTypes.INTEGER,
+      plays: DataTypes.INTEGER,
+      alap: DataTypes.BOOLEAN,
+      jor: DataTypes.BOOLEAN,
+      jhalla: DataTypes.BOOLEAN,
+      slow_gat: DataTypes.BOOLEAN,
+      medium_gat: DataTypes.BOOLEAN,
+      fast_gat: DataTypes.BOOLEAN,
+      accompanied: DataTypes.BOOLEAN,
+      notes: DataTypes.STRING,
+      audio_quality: DataTypes.STRING,
+      master: DataTypes.BOOLEAN,
+      media_type_id: DataTypes.INTEGER,
+      public: DataTypes.BOOLEAN,
+      url: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: 'Track',
+    }
+  );
+  Track.associate = function (models) {
+    // associations can be defined here
+    Track.belongsToMany(models.Artist, {
+      through: 'track_artist',
+    });
+    Track.belongsTo(models.Tape, {
+      foreignKey: 'tape_id',
+    });
+    Track.belongsTo(models.MediaType, {
+      foreignKey: 'media_type_id',
+    });
+    Track.belongsTo(models.Raga, {
+      foreignKey: 'raga_id',
+    });
+  };
+  return Track;
+};

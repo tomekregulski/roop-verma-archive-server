@@ -1,31 +1,30 @@
-const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/connection');
-
-class Artist extends Model {}
-
-Artist.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    // instrument: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false,
-    // },
-  },
-  {
-    sequelize,
-    freezeTableName: true,
-    underscored: true,
-    modelName: 'artist',
+'use strict';
+const { Model } = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class Artist extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
   }
-);
-
-module.exports = Artist;
+  Artist.init(
+    {
+      name: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: 'Artist',
+    }
+  );
+  Artist.associate = function (models) {
+    // associations can be defined here
+    Artist.belongsToMany(models.Track, {
+      through: 'track_artist',
+    });
+  };
+  return Artist;
+};
