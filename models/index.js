@@ -1,109 +1,47 @@
-const Artist = require('./Artist');
-const Event = require('./Event');
-const Location = require('./Location');
-const Category = require('./Category');
-const MediaType = require('./MediaType');
-const NonMusicalItem = require('./NonMusicalItem');
-const Raga = require('./Raga');
-const Tape = require('./Tape');
-const Track = require('./Track');
-const User = require('./User');
-const TrackArtist = require('./TrackArtist');
-const TrackPlay = require('./TrackPlay');
-const TrackUser = require('./TrackUser');
+'use strict';
 
-// User.belongsToMany(Track, {
-//   through: 'track_play',
-// });
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const process = require('process');
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.js')[env];
+const db = {};
 
-// Track.belongsToMany(User, {
-//   through: 'track_play',
-// });
+let sequelize;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config
+  );
+}
 
-User.belongsToMany(Track, {
-  through: 'track_artist',
+fs.readdirSync(__dirname)
+  .filter((file) => {
+    return (
+      file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js'
+    );
+  })
+  .forEach((file) => {
+    const model = require(path.join(__dirname, file))(
+      sequelize,
+      Sequelize.DataTypes
+    );
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
 });
 
-Track.belongsToMany(Artist, {
-  through: 'track_artist',
-});
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-User.belongsToMany(Track, {
-  through: 'track_user',
-});
-
-Track.belongsToMany(User, {
-  through: 'track_user',
-});
-
-Tape.belongsTo(Event, {
-  foreignKey: 'event_id',
-});
-
-Event.hasMany(Tape, {
-  foreignKey: 'event_id',
-});
-
-NonMusicalItem.belongsTo(Event, {
-  foreignKey: 'event_id',
-});
-
-Event.hasMany(NonMusicalItem, {
-  foreignKey: 'event_id',
-});
-
-Track.belongsTo(Tape, {
-  foreignKey: 'tape_id',
-});
-
-Tape.hasMany(Track, {
-  foreignKey: 'tape_id',
-});
-
-Event.belongsTo(Location, {
-  foreignKey: 'location_id',
-});
-
-Location.hasMany(Event, {
-  foreignKey: 'location_id',
-});
-
-Event.belongsTo(Category, {
-  foreignKey: 'category_id',
-});
-
-Category.hasMany(Event, {
-  foreignKey: 'category_id',
-});
-
-Track.belongsTo(MediaType, {
-  foreignKey: 'media_type_id',
-});
-
-MediaType.hasMany(Track, {
-  foreignKey: 'media_type_id',
-});
-
-Track.belongsTo(Raga, {
-  foreignKey: 'raga_id',
-});
-
-Raga.hasMany(Track, {
-  foreignKey: 'raga_id',
-});
-
-module.exports = {
-  Artist,
-  Event,
-  Location,
-  MediaType,
-  NonMusicalItem,
-  Category,
-  Raga,
-  Tape,
-  Track,
-  User,
-  TrackArtist,
-  TrackUser,
-  TrackPlay,
-};
+module.exports = db;

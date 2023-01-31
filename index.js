@@ -27,7 +27,7 @@ app.use('/api/v1', require('./routes/v1/index'));
 app.use(routes);
 app.use(errorHandler);
 
-sequelize.sync().then(() => {
+sequelize.sync({ force: true }).then(() => {
   app.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}!`);
   });
