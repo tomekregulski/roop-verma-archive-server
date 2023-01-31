@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
     Track.belongsTo(models.MediaType, {
       foreignKey: 'media_type_id',
     });
-    Track.belongsTo(Raga, {
+    Track.belongsTo(models.Raga, {
       foreignKey: 'raga_id',
     });
   };
