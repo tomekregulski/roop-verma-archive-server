@@ -16,7 +16,43 @@ module.exports = {
       'Categories',
       [
         {
-          name: 'concert',
+          name: 'lesson',
+        },
+        {
+          name: 'nada yoga intensive',
+        },
+        {
+          name: 'retreat',
+        },
+        {
+          name: 'sharing',
+        },
+        {
+          name: 'meditation',
+        },
+        {
+          name: 'guided meditation',
+        },
+        {
+          name: 'unknown',
+        },
+        {
+          name: 'interview',
+        },
+        {
+          name: 'lecture',
+        },
+        {
+          name: 'seminar',
+        },
+        {
+          name: 'course',
+        },
+        {
+          name: 'demo',
+        },
+        {
+          name: 'class',
         },
       ],
       {}
