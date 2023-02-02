@@ -1,7 +1,7 @@
 'use strict';
 const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Artist extends Model {
+  class TrackPlay extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,23 +11,19 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Artist.init(
+  TrackPlay.init(
     {
-      name: DataTypes.STRING,
+      user_id: DataTypes.INTEGER,
+      track_id: DataTypes.INTEGER,
+      seconds_listened: DataTypes.INTEGER,
     },
     {
       sequelize,
       timestamps: true,
       freezeTableName: true,
       underscored: true,
-      modelName: 'Artist',
+      modelName: 'TrackPlay',
     }
   );
-  Artist.associate = function (models) {
-    // associations can be defined here
-    Artist.belongsToMany(models.Track, {
-      through: 'track_artist',
-    });
-  };
-  return Artist;
+  return TrackPlay;
 };

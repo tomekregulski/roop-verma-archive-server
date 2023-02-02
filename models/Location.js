@@ -23,6 +23,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
+      timestamps: true,
+      freezeTableName: true,
+      underscored: true,
       modelName: 'Location',
     }
   );

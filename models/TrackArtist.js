@@ -1,7 +1,5 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class TrackArtist extends Model {
     /**
@@ -13,12 +11,18 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  TrackArtist.init({
-    artist_id: DataTypes.INTEGER,
-    track_id: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'TrackArtist',
-  });
+  TrackArtist.init(
+    {
+      artist_id: DataTypes.INTEGER,
+      track_id: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      timestamps: true,
+      freezeTableName: true,
+      underscored: true,
+      modelName: 'TrackArtist',
+    }
+  );
   return TrackArtist;
 };
