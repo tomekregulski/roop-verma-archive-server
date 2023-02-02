@@ -44,7 +44,6 @@ User.init(
     },
     subscription_id: {
       type: DataTypes.STRING,
-
       allowNull: true,
     },
     stripe_id: {

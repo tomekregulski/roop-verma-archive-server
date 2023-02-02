@@ -12,6 +12,10 @@ Track.init(
       primaryKey: true,
       autoIncrement: true,
     },
+    track_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     tape_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

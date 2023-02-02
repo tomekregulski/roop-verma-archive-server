@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Track.init(
     {
+      track_id: DataTypes.INTEGER,
       tape_id: DataTypes.INTEGER,
       raga_id: DataTypes.INTEGER,
       primary_artist_id: DataTypes.INTEGER,
@@ -33,6 +34,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
+      timestamps: true,
+      freezeTableName: true,
+      underscored: true,
       modelName: 'Track',
     }
   );
@@ -42,13 +46,16 @@ module.exports = (sequelize, DataTypes) => {
       through: 'track_artist',
     });
     Track.belongsTo(models.Tape, {
-      foreignKey: 'tape_id',
+      foreignKey: 'id',
     });
     Track.belongsTo(models.MediaType, {
-      foreignKey: 'media_type_id',
+      foreignKey: 'id',
     });
     Track.belongsTo(models.Raga, {
-      foreignKey: 'raga_id',
+      foreignKey: 'id',
+    });
+    Track.belongsToMany(models.User, {
+      through: 'track_play',
     });
   };
   return Track;
