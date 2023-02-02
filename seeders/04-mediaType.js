@@ -18,6 +18,15 @@ module.exports = {
         {
           name: 'audio',
         },
+        {
+          name: 'video',
+        },
+        {
+          name: 'image',
+        },
+        {
+          name: 'text',
+        },
       ],
       {}
     );
