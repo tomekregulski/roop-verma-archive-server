@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      timestamps: true,
+      timestamps: false,
       freezeTableName: true,
       underscored: true,
       modelName: 'Tape',
@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
   Event.associate = function (models) {
     // associations can be defined here
     Tape.belongsTo(models.Event, {
-      foreignKey: 'event_id',
+      foreignKey: 'id',
     });
     Tape.hasMany(models.Track, {
       foreignKey: 'tape_id',

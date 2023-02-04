@@ -13,7 +13,7 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'MediaTypes',
+      'MediaType',
       [
         {
           name: 'audio',

@@ -13,7 +13,7 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'Artists',
+      'Artist',
       [
         {
           name: 'Roop Verma',

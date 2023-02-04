@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const controllers = require('../../../controllers/payments');
+const controllers = require('../../../controllers/payment');
 const isValidApiKey = require('../../../middleware/isValidateApiKey');
 const isValidJwt = require('../../../middleware/isValidJwt');
 

@@ -36,10 +36,8 @@ module.exports = (sequelize, DataTypes) => {
           return updatedUserData;
         },
       },
-    },
-    {
       sequelize,
-      timestamps: true,
+      timestamps: false,
       freezeTableName: true,
       underscored: true,
       modelName: 'User',

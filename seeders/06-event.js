@@ -13,7 +13,7 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'Events',
+      'Event',
       [
         {
           event_name: 'n/a',

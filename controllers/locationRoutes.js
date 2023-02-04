@@ -12,31 +12,31 @@ const {
 router.get('/', async (req, res) => {
   try {
     const allLocations = await Location.findAll({
-      include: {
-        model: Track,
-        as: 'tracks',
-        include: [
-          {
-            model: Tape,
-            as: 'tape',
-          },
-          {
-            model: Category,
-            as: 'category',
-          },
-          {
-            model: Raga,
-            as: 'raga',
-          },
-          {
-            model: Artist,
-            as: 'artists',
-            through: {
-              model: TrackArtist,
-            },
-          },
-        ],
-      },
+      // include: {
+      //   model: Track,
+      //   as: 'tracks',
+      //   include: [
+      //     {
+      //       model: Tape,
+      //       as: 'tape',
+      //     },
+      //     {
+      //       model: Category,
+      //       as: 'category',
+      //     },
+      //     {
+      //       model: Raga,
+      //       as: 'raga',
+      //     },
+      //     {
+      //       model: Artist,
+      //       as: 'artists',
+      //       through: {
+      //         model: TrackArtist,
+      //       },
+      //     },
+      //   ],
+      // },
     });
     const locationData = allLocations.map((location) =>
       location.get({ plain: true })

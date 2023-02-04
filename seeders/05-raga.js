@@ -12,7 +12,7 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
      */
-    await queryInterface.bulkInsert('Ragas', [
+    await queryInterface.bulkInsert('Raga', [
       {
         name: 'Abheri',
         alternate_spelling: 'Avhiri',

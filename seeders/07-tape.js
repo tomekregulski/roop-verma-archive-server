@@ -13,7 +13,7 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'Tapes',
+      'Tape',
       [
         {
           tape_id: '1',

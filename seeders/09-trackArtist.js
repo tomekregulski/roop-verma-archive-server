@@ -13,7 +13,7 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'TrackArtists',
+      'TrackArtist',
       [
         {
           artist_id: '4',

@@ -13,7 +13,7 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'Categories',
+      'Category',
       [
         {
           name: 'lesson',

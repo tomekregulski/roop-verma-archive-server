@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const controllers = require('../../../controllers/tracks');
+const controllers = require('../../../controllers/track');
 const isValidApiKey = require('../../../middleware/isValidateApiKey');
 const isValidJwt = require('../../../middleware/isValidJwt');
 

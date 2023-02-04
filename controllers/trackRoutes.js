@@ -69,31 +69,31 @@ router.get('/public', async (req, res) => {
       include: [
         {
           model: Tape,
-          as: 'tape',
-          include: [
-            {
-              model: Event,
-              as: 'event',
-              include: [
-                {
-                  model: Location,
-                  as: 'location',
-                },
-              ],
-            },
-          ],
+          as: 'Tape',
+          // include: [
+          //   {
+          //     model: Event,
+          //     as: 'Event',
+          //     include: [
+          //       {
+          //         model: Location,
+          //         as: 'Location',
+          //       },
+          //     ],
+          //   },
+          // ],
         },
         {
           model: MediaType,
-          as: 'media_type',
+          as: 'MediaType',
         },
         {
           model: Raga,
-          as: 'raga',
+          as: 'Raga',
         },
         {
           model: Artist,
-          as: 'artists',
+          as: 'Artists',
           through: {
             model: TrackArtist,
           },

@@ -13,10 +13,10 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'Locations',
+      'Location',
       [
         {
-          name: 'Unknown'
+          name: 'Unknown',
         },
         {
           name: 'Los Angeles, CA',
