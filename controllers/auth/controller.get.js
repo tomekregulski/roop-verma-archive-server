@@ -1,6 +1,15 @@
 const { User } = require('../../models');
 
 module.exports = {
+  test: async (req, res, next) => {
+    try {
+      res.status(200).json({
+        msg: 'hello',
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
   newToken: async (req, res, next) => {
     try {
       const userData = await User.findOne({

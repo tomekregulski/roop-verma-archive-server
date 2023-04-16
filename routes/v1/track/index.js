@@ -12,7 +12,7 @@ userRouter
   .route('/public/:key')
   .get(isValidApiKey, controllers.get.publicTracks);
 userRouter
-  .route('/track-plays/:key')
+  .route('/track-play/:key')
   .post(isValidApiKey, controllers.post.trackPlay);
 
 module.exports = userRouter;

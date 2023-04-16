@@ -9,7 +9,7 @@ const errorHandler = require('./handlers/error');
 const { Artist } = require('./models');
 
 const routes = require('./controllers');
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3008;
 
 const app = express();
 

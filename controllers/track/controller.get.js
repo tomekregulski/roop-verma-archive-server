@@ -19,20 +19,20 @@ module.exports = {
             model: Tape,
             as: 'Tape',
             // include: [
-            // {
-            //   model: Event,
-            //   as: 'Event',
-            //   include: [
-            //     {
-            //       model: Location,
-            //       as: 'Location',
-            //     },
-            //     {
-            //       model: Category,
-            //       as: 'Category',
-            //     },
-            //   ],
-            // },
+            //   {
+            //     model: Event,
+            //     as: 'Event',
+            //     include: [
+            //       {
+            //         model: Location,
+            //         as: 'Location',
+            //       },
+            //       {
+            //         model: Category,
+            //         as: 'Category',
+            //       },
+            //     ],
+            //   },
             // ],
           },
           {
@@ -69,11 +69,15 @@ module.exports = {
             // include: [
             //   {
             //     model: Event,
-            //     as: 'event',
+            //     as: 'Event',
             //     include: [
             //       {
             //         model: Location,
-            //         as: 'location',
+            //         as: 'Location',
+            //       },
+            //       {
+            //         model: Category,
+            //         as: 'Category',
             //       },
             //     ],
             //   },

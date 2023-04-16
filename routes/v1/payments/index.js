@@ -6,14 +6,13 @@ const isValidJwt = require('../../../middleware/isValidJwt');
 const userRouter = router;
 
 userRouter
-  .route('/subscribe/:key')
-  .post(isValidApiKey, controllers.post.subscribe);
+  .route('/checkout-session/:key/:stripeId')
+  .get(isValidApiKey, controllers.get.checkoutSession);
+
 userRouter
-  .route('/resubscribe/:key')
-  .post(isValidApiKey, isValidJwt, controllers.post.subscribe);
-userRouter
-  .route('/cancel-subscription/:key')
-  .post(isValidApiKey, isValidJwt, controllers.post.cancelSubscription);
+  .route('/checkout-session-object/:key')
+  .post(isValidApiKey, controllers.post.sessionObject);
+
 userRouter
   .route('/update-payment/:key')
   .put(isValidApiKey, isValidJwt, controllers.put.updatePaymentMethod);

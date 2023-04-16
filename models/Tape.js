@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
   Event.associate = function (models) {
     // associations can be defined here
     Tape.belongsTo(models.Event, {
-      foreignKey: 'id',
+      foreignKey: 'event_id',
     });
     Tape.hasMany(models.Track, {
       foreignKey: 'tape_id',

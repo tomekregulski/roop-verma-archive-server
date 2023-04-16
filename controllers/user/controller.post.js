@@ -1,13 +1,22 @@
+require('dotenv').config();
 const { User } = require('../../models');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 module.exports = {
   newUser: async (req, res, next) => {
+    const { firstName, lastName, email, isAdmin = false } = req.body;
+
     try {
-      const existingUser = await User.findOne({
+      const existingUser = await prisma.user.findUnique({
         where: {
-          email: req.body.email,
+          email: email,
         },
       });
+
+      console.log('existingUser', existingUser);
 
       if (existingUser) {
         const error = new Error('A user with that email already exists');
@@ -15,18 +24,34 @@ module.exports = {
         throw error;
       }
 
-      const userData = await User.create({
-        email: req.body.email,
-        password: req.body.password,
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        subscription_active: req.body.subscription_active || false,
-        subscription_id: "''",
-        stripe_id: "''",
-        is_admin: req.body.is_admin || false,
+      // // should we check for existing stripe user for _reasons_?
+
+      const stripeCustomer = await stripe.customers.create({
+        name: `${firstName} ${lastName}`,
+        email: email,
       });
 
-      res.status(200).json({ userData });
+      if (!stripeCustomer) {
+        const error = new Error('Server Error: Could not create customer.');
+        error.status = 500;
+        next(error);
+      }
+
+      const userData = {
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        subscriptionActive: false,
+        stripeId: stripeCustomer.id,
+        isAdmin: isAdmin,
+      };
+
+      console.log('userData', userData);
+      const user = await prisma.user.create({ data: { ...userData } });
+      console.log(user);
+      console.log('end of  newUser endpoint');
+
+      res.status(200).json({ ...userData, token: '123456' });
     } catch (err) {
       next(err);
     }
