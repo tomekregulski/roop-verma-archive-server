@@ -69,9 +69,8 @@ model Category {
 
 model Event {
   id                  Int       @id @default(autoincrement())
-  name                String
   eventName           String
-  date                DateTime
+  date                String
   location            Location @relation(fields: [locationId], references: [id])
   locationId          Int
   category            Category @relation(fields: [categoryId], references: [id])
@@ -95,9 +94,9 @@ model MediaType {
 model Raga {
   id                  Int       @id @default(autoincrement())
   name                String
-  alternateSpelling   String
-  time                String
-  rasa                String
+  alternateSpelling   String?
+  time                String?
+  rasa                String?
   tracks              Track[]
 }
 

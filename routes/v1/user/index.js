@@ -9,5 +9,6 @@ userRouter.route('/:key').post(isValidApiKey, controllers.post.newUser);
 userRouter
   .route('/:key')
   .delete(isValidApiKey, controllers.del.TESTING_ONLY_deleteAllUsers);
+userRouter.route('/get-all').get(controllers.get.getAll);
 
 module.exports = userRouter;

@@ -18,4 +18,12 @@ module.exports = {
       next(err);
     }
   },
+  getAll: async (req, res, next) => {
+    try {
+      const user = await prisma.tape.findMany({});
+      res.status(200).json({ user });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
