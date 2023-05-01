@@ -1,111 +1,53 @@
-const {
-  Track,
-  Tape,
-  Location,
-  Raga,
-  Artist,
-  TrackArtist,
-  Event,
-  MediaType,
-  Category,
-} = require('../../models');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 module.exports = {
   allTracks: async (_req, res, next) => {
     try {
-      const allTracks = await Track.findAll({
-        include: [
-          {
-            model: Tape,
-            as: 'Tape',
-            // include: [
-            //   {
-            //     model: Event,
-            //     as: 'Event',
-            //     include: [
-            //       {
-            //         model: Location,
-            //         as: 'Location',
-            //       },
-            //       {
-            //         model: Category,
-            //         as: 'Category',
-            //       },
-            //     ],
-            //   },
-            // ],
-          },
-          {
-            model: MediaType,
-            as: 'MediaType',
-          },
-          {
-            model: Raga,
-            as: 'Raga',
-          },
-          {
-            model: Artist,
-            as: 'Artists',
-            through: {
-              model: TrackArtist,
+      const allTracks = await prisma.track.findMany({
+        include: {
+          tape: {
+            include: {
+              event: {
+                location: true,
+                category: true,
+              },
             },
           },
-        ],
+          mediaType: true,
+          raga: true,
+          // artist: true // as trackArtist ??
+        },
       });
 
-      const trackData = allTracks.map((track) => track.get({ plain: true }));
-      res.status(200).json(trackData);
+      res.status(200).json(allTracks);
     } catch (err) {
       next(err);
     }
   },
   publicTracks: async (_req, res, next) => {
     try {
-      const allTracks = await Track.findAll({
-        include: [
-          {
-            model: Tape,
-            as: 'Tape',
-            // include: [
-            //   {
-            //     model: Event,
-            //     as: 'Event',
-            //     include: [
-            //       {
-            //         model: Location,
-            //         as: 'Location',
-            //       },
-            //       {
-            //         model: Category,
-            //         as: 'Category',
-            //       },
-            //     ],
-            //   },
-            // ],
-          },
-          {
-            model: MediaType,
-            as: 'MediaType',
-          },
-          {
-            model: Raga,
-            as: 'Raga',
-          },
-          {
-            model: Artist,
-            as: 'Artists',
-            through: {
-              model: TrackArtist,
-            },
-          },
-        ],
+      const allTracks = await prisma.track.findMany({
         where: {
           public: true,
         },
+        include: {
+          tape: {
+            include: {
+              event: {
+                location: true,
+                category: true,
+              },
+            },
+          },
+          mediaType: true,
+          raga: true,
+          // artist: true // as trackArtist ??
+        },
       });
 
-      const trackData = allTracks.map((track) => track.get({ plain: true }));
-      res.status(200).json(trackData);
+      res.status(200).json(allTracks);
     } catch (err) {
       next(err);
     }

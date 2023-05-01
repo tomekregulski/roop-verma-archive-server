@@ -1,4 +1,3 @@
-const { User } = require('../../models');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
@@ -20,7 +19,7 @@ module.exports = {
   },
   getAll: async (req, res, next) => {
     try {
-      const user = await prisma.tape.findMany({});
+      const user = await prisma.track.findMany({});
       res.status(200).json({ user });
     } catch (err) {
       next(err);

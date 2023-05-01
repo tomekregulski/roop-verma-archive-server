@@ -38,7 +38,7 @@ model Track {
   ragaId              Int
   primaryArtist       Artist    @relation(fields: [primaryArtistId], references: [id])
   primaryArtistId     Int
-  plays               Int
+  plays               Int?       @default(0)
   alap                Boolean
   jor                 Boolean
   jhalla              Boolean
@@ -46,8 +46,8 @@ model Track {
   mediumGat           Boolean
   fastGat             Boolean
   accompanied         Boolean
-  notes               String
-  audioQuality        String
+  notes               String?
+  audioQuality        String?
   master              Boolean
   mediaType           MediaType @relation(fields: [mediaTypeId], references: [id])
   mediaTypeId         Int
