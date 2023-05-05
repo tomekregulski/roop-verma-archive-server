@@ -1,4 +1,4 @@
-const { TrackPlay } = require('../../models');
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 

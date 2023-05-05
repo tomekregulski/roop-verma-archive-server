@@ -10,8 +10,10 @@ module.exports = {
           tape: {
             include: {
               event: {
-                location: true,
-                category: true,
+                include: {
+                  category: true,
+                  location: true,
+                },
               },
             },
           },
@@ -36,8 +38,10 @@ module.exports = {
           tape: {
             include: {
               event: {
-                location: true,
-                category: true,
+                include: {
+                  category: true,
+                  location: true,
+                },
               },
             },
           },
