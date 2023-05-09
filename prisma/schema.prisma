@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -31,7 +31,7 @@ model Token {
 }
 model Track {
   id                  Int       @id @default(autoincrement())
-  trackId             Int       @unique
+  trackId             Int       
   tape                Tape      @relation(fields: [tapeId], references: [id])
   tapeId              Int
   raga                Raga      @relation(fields: [ragaId], references: [id])

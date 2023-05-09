@@ -43,7 +43,7 @@ const artists = [
   },
 ];
 
-async function main() {
+export async function main() {
   artists.forEach(async (artist) => {
     await prisma.artist.create({
       data: artist,
