@@ -1,9 +1,9 @@
 module.exports = {
   development: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PW,
-    database: process.env.DB_NAME,
-    host: process.env.MYSQL_DB_HOST,
+    username: 'root',
+    password: '5itarn44d',
+    database: 'roop_verma_db',
+    host: '127.0.0.1',
     dialect: 'mysql',
   },
   test: {

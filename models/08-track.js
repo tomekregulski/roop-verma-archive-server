@@ -13,7 +13,7 @@ module.exports = {
      * }], {});
      */
     await queryInterface.bulkInsert(
-      'Tracks',
+      'Track',
       [
         {
           track_id: '1',

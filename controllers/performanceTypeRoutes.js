@@ -12,31 +12,31 @@ const {
 router.get('/', async (req, res) => {
   try {
     const allPerformanceTypes = await Category.findAll({
-      include: {
-        model: Track,
-        as: 'tracks',
-        include: [
-          {
-            model: Tape,
-            as: 'tape',
-          },
-          {
-            model: Location,
-            as: 'location',
-          },
-          {
-            model: Raga,
-            as: 'raga',
-          },
-          {
-            model: Artist,
-            as: 'artists',
-            through: {
-              model: TrackArtist,
-            },
-          },
-        ],
-      },
+      // include: {
+      //   model: Track,
+      //   as: 'tracks',
+      //   include: [
+      //     {
+      //       model: Tape,
+      //       as: 'tape',
+      //     },
+      //     {
+      //       model: Location,
+      //       as: 'location',
+      //     },
+      //     {
+      //       model: Raga,
+      //       as: 'raga',
+      //     },
+      //     {
+      //       model: Artist,
+      //       as: 'artists',
+      //       through: {
+      //         model: TrackArtist,
+      //       },
+      //     },
+      //   ],
+      // },
     });
     const performanceTypeData = allPerformanceTypes.map((performanceType) =>
       performanceType.get({ plain: true })

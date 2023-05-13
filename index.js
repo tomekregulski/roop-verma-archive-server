@@ -1,13 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-const sequelize = require('./config/config');
+// const sequelize = require('./config/config');
+// const models = require('./models');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const errorHandler = require('./handlers/error');
+const { Artist } = require('./models');
 
 const routes = require('./controllers');
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3008;
 
 const app = express();
 
@@ -27,8 +29,6 @@ app.use('/api/v1', require('./routes/v1/index'));
 app.use(routes);
 app.use(errorHandler);
 
-// sequelize.sync({ force: true }).then(() => {
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}!`);
 });
-// });

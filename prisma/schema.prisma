@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int     @id @default(autoincrement())
+  email               String  @unique
+  firstName           String
+  lastName            String
+  subscriptionActive  Boolean
+  stripeId            String
+  isAdmin             Boolean
+}
+
+model Token { 
+  id                  Int       @id @default(autoincrement())
+  createdAt           DateTime  @default(now())
+  emailToken          String
+  type                String
+  expirationDate      DateTime
+  userId              Int
+  expiration          Int
+}
+model Track {
+  id                  Int       @id @default(autoincrement())
+  trackId             Int       
+  tape                Tape      @relation(fields: [tapeId], references: [id])
+  tapeId              Int
+  raga                Raga      @relation(fields: [ragaId], references: [id])
+  ragaId              Int
+  primaryArtist       Artist    @relation(fields: [primaryArtistId], references: [id])
+  primaryArtistId     Int
+  plays               Int?       @default(0)
+  alap                Boolean
+  jor                 Boolean
+  jhalla              Boolean
+  slowGat             Boolean
+  mediumGat           Boolean
+  fastGat             Boolean
+  accompanied         Boolean
+  notes               String?
+  audioQuality        String?
+  master              Boolean
+  mediaType           MediaType @relation(fields: [mediaTypeId], references: [id])
+  mediaTypeId         Int
+  public              Boolean
+  url                 String
+}
+
+model Artist {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  primaryTracks       Track[]
+}
+
+model Category {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  events              Event[]
+}
+
+model Event {
+  id                  Int       @id @default(autoincrement())
+  eventName           String
+  date                String
+  location            Location @relation(fields: [locationId], references: [id])
+  locationId          Int
+  category            Category @relation(fields: [categoryId], references: [id])
+  categoryId          Int
+  notes               String
+  tapes               Tape[]
+}
+
+model Location {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  events              Event[]
+}
+
+model MediaType {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  tracks              Track[]
+}
+
+model Raga {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  alternateSpelling   String?
+  time                String?
+  rasa                String?
+  tracks              Track[]
+}
+
+model Tape {
+  id                  Int       @id @default(autoincrement())
+  tapeId              Int
+  event               Event @relation(fields: [eventId], references: [id])
+  eventId             Int
+  tracks              Track[]
+}
+
+model TrackArtist {
+  id                  Int       @id @default(autoincrement())
+  artistId            Int
+  trackId             Int 
+}
+
+model TrackPlay {
+  id                  Int       @id @default(autoincrement())
+  userId              Int
+  trackId             Int 
+  secondsListened     Int
+}

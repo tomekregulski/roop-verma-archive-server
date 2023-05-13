@@ -3,6 +3,7 @@ const { Artist, Track, TrackArtist } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
+    // const allArtists = await Artist.findAll();
     const allArtists = await Artist.findAll({
       include: {
         model: Track,

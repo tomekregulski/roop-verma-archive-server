@@ -7,6 +7,7 @@ const tapeRoutes = require('./tapeRoutes');
 const trackRoutes = require('./trackRoutes');
 // const userRoutes = require('./userRoutes');
 const paymentRuotes = require('./paymentRoutes');
+const eventRoutes = require('./eventRoutes');
 
 router.use('/api/artists', artistRoutes);
 router.use('/api/locations', locationRoutes);
@@ -16,5 +17,6 @@ router.use('/api/tapes', tapeRoutes);
 router.use('/api/tracks', trackRoutes);
 // router.use('/api/users', userRoutes);
 router.use('/api/payments', paymentRuotes);
+router.use('/api/events', eventRoutes);
 
 module.exports = router;

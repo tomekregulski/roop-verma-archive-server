@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Tracks', {
+    await queryInterface.createTable('Track', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -17,7 +17,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Tapes',
+          model: 'Tape',
           key: 'id',
         },
       },
@@ -25,7 +25,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Ragas',
+          model: 'Raga',
           key: 'id',
         },
       },
@@ -82,7 +82,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'MediaTypes',
+          model: 'MediaType',
           key: 'id',
         },
       },
@@ -97,6 +97,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Tracks');
+    await queryInterface.dropTable('Track');
   },
 };

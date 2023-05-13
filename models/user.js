@@ -1,5 +1,6 @@
 'use strict';
 const { Model } = require('sequelize');
+const bcrypt = require('bcrypt');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -7,6 +8,10 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
+    checkPassword(password, userDataPassword) {
+      console.log(bcrypt.compareSync(password, userDataPassword));
+      return bcrypt.compareSync(password, userDataPassword);
+    }
     static associate(models) {
       // define association here
     }
@@ -36,10 +41,8 @@ module.exports = (sequelize, DataTypes) => {
           return updatedUserData;
         },
       },
-    },
-    {
       sequelize,
-      timestamps: true,
+      timestamps: false,
       freezeTableName: true,
       underscored: true,
       modelName: 'User',
