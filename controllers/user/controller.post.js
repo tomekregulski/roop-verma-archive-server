@@ -1,5 +1,4 @@
 require('dotenv').config();
-const { User } = require('../../models');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { PrismaClient } = require('@prisma/client');
 
@@ -55,5 +54,19 @@ module.exports = {
     } catch (err) {
       next(err);
     }
+  },
+
+  createPortalSession: async (req, res, next) => {
+    console.log('portal');
+    console.log(req.body.customerId);
+    const session = await stripe.billingPortal.sessions.create({
+      customer: req.body.customerId,
+      return_url: 'http://127.0.0.1:3000/account',
+    });
+
+    console.log(session);
+
+    // return session;
+    res.status(200).json({ session });
   },
 };

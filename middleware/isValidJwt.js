@@ -10,7 +10,7 @@ const isValidJwt = (req, res, next) => {
     next(error);
   }
   try {
-    jwt.verify(token, 'YOUR_SECRET_KEY');
+    jwt.verify(token, process.env.JWT_SECRET);
     console.log('jwt verification successful');
     return next();
   } catch (err) {
