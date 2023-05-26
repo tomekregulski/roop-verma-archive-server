@@ -10,5 +10,8 @@ userRouter
   .route('/:key')
   .delete(isValidApiKey, controllers.del.TESTING_ONLY_deleteAllUsers);
 userRouter.route('/get-all').get(controllers.get.getAll);
+userRouter
+  .route('/create-portal-session/:key')
+  .post(isValidApiKey, controllers.post.createPortalSession);
 
 module.exports = userRouter;
