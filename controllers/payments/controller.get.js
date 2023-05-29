@@ -3,7 +3,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // const jwt = require('jsonwebtoken');
 // const { User } = require('../../models');
 
-const YOUR_DOMAIN = 'http://localhost:5173';
+const YOUR_DOMAIN = process.env.CLIENT_URL;
 
 module.exports = {
   checkoutSession: async (req, res, next) => {
