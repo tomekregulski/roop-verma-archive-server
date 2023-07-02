@@ -13,5 +13,8 @@ userRouter.route('/get-all').get(controllers.get.getAll);
 userRouter
   .route('/create-portal-session/:key')
   .post(isValidApiKey, controllers.post.createPortalSession);
+userRouter
+  .route('/update-subscription-status/:key')
+  .post(isValidApiKey, controllers.post.updateSubscriptionStatus);
 
 module.exports = userRouter;
