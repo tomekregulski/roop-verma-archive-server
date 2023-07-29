@@ -8,10 +8,17 @@ const userRouter = router;
 userRouter
   .route('/checkout-session/:key/:stripeId')
   .get(isValidApiKey, controllers.get.checkoutSession);
+userRouter
+  .route('/checkout-session-resubscribe/:key/:stripeId')
+  .get(isValidApiKey, controllers.get.checkoutSessionResubscribe);
 
 userRouter
   .route('/checkout-session-object/:key')
   .post(isValidApiKey, controllers.post.sessionObject);
+
+userRouter
+  .route('/webhooks')
+  .post(/*isValidApiKey, */ controllers.post.webhooks);
 
 userRouter
   .route('/update-payment/:key')

@@ -33,4 +33,31 @@ module.exports = {
       next(error);
     }
   },
+  checkoutSessionResubscribe: async (req, res, next) => {
+    const { stripeId } = req.params;
+
+    console.log('get checkout resubscribe session');
+    try {
+      const session = await stripe.checkout.sessions.create({
+        customer: stripeId,
+        line_items: [
+          {
+            price: 'price_1MdMKqBlr8UFcXJy83qKfDmx',
+            // price: product,
+            // For metered billing, do not pass quantity
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${YOUR_DOMAIN}/manage-account?account-updated`,
+        cancel_url: `${YOUR_DOMAIN}/manage-account`,
+      });
+
+      console.log(session);
+      console.log('end resubscribe checkout session');
+      res.status(200).json({ ...session });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

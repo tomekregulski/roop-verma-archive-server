@@ -11,5 +11,8 @@ authRoutes
 authRoutes
   .route('/session-token/:key/:email/:emailToken')
   .get(isValidApiKey, controllers.get.sessionToken);
+authRoutes
+  .route('/account-update-token/:key/:email/:accoutUpdateKey')
+  .get(isValidApiKey, controllers.get.accountUpdateToken);
 
 module.exports = authRoutes;

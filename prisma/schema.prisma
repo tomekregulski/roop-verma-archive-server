@@ -17,7 +17,7 @@ model User {
   firstName           String
   lastName            String
   subscriptionActive  Boolean
-  stripeId            String
+  stripeId            String  @unique
   isAdmin             Boolean
 }
 

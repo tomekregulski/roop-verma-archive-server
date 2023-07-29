@@ -62,34 +62,13 @@ module.exports = {
     console.log(req.body.customerId);
     const session = await stripe.billingPortal.sessions.create({
       customer: req.body.customerId,
-      return_url: 'http://127.0.0.1:3000/account',
+      // add param with session id
+      return_url: 'http://localhost:3000/manage-account',
     });
 
     console.log(session);
 
     // return session;
     res.status(200).json({ session });
-  },
-
-  updateSubscriptionStatus: async (req, res, next) => {
-    const { email, isSubscriptionActive } = req.body;
-    try {
-      const res = await prisma.user.update({
-        where: {
-          email,
-        },
-        data: {
-          subscriptionActive: isSubscriptionActive,
-        },
-      });
-      res.status(200).json({
-        message: `Subscription successfully ${
-          isSubscriptionActive ? 'activated' : 'deactivated'
-        }.`,
-        data: res,
-      });
-    } catch (err) {
-      next(err);
-    }
   },
 };
