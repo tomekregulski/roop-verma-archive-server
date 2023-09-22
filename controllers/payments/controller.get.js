@@ -1,7 +1,9 @@
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { PrismaClient } = require('@prisma/client');
 // const jwt = require('jsonwebtoken');
 // const { User } = require('../../models');
+const prisma = new PrismaClient();
 
 const YOUR_DOMAIN = process.env.CLIENT_URL;
 
@@ -56,6 +58,15 @@ module.exports = {
       console.log(session);
       console.log('end resubscribe checkout session');
       res.status(200).json({ ...session });
+    } catch (error) {
+      next(error);
+    }
+  },
+  webhookLogs: async (req, res, next) => {
+    try {
+      const logs = await prisma.webhookLog.findMany({});
+      console.log(logs);
+      res.status(200).json({ data: logs });
     } catch (error) {
       next(error);
     }

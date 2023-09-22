@@ -22,48 +22,204 @@ module.exports = {
     }
   },
   webhooks: async (req, res, next) => {
+    console.log('webhook');
     const event = req.body;
+    console.log(event);
     switch (event.type) {
+      case 'product.created': {
+        console.log('PRODUCT_CREATED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
+      }
+      case 'product.updated': {
+        console.log('PRODUCT_UPDATED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
+      }
+      case 'customer.created': {
+        console.log('CUSTOMER_CREATED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
+        break;
+      }
       case 'customer.updated': {
-        console.log('customer.updated');
-        const stripeId = event.data.object.id;
+        console.log('CUSTOMER_UPDATED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
+        break;
+      }
+      case 'customer.deleted': {
+        console.log('CUSTOMER_DELETED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
         console.log(stripeId);
 
+        const logData = {
+          requestId: requestInfo.id,
+          idempotencyKey: requestInfo.idempotency_key,
+          type: event.type,
+        };
+        console.log(logData);
+
+        const logEntry = await prisma.webhookLog.create({
+          data: logData,
+        });
+        console.log(logEntry);
         break;
       }
       case 'payment_method.updated': {
+        console.log('PAYMENT_METHOD_UPDATED');
         const data = event.data.object;
-        console.log('payment_method.updated');
-        // console.timeLog(data);
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
         break;
       }
+      case 'customer.subscription.created': {
+        console.log('SUBSCRIPTION_CREATED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
+
+        // const prismaUser = await prisma.user.findUnique({
+        //   where: {
+        //     stripeId: stripeId,
+        //   },
+        // });
+
+        // const newSubscription = {
+        //   userId: prismaUser.id,
+        //   stripeId,
+        //   priceId: '1234567',
+        //   productId: '123456',
+        //   status: data.status,
+        //   cancelAt: data.cancelAt,
+        // };
+
+        // console.log('NEW_SUBSCRIPTION')
+        // console.log(newSubscription);
+
+        // prisma.subscription.create({
+        //   data: newSubscription,
+        // });
+
+        // prisma.user.update({
+        //   where: {
+        //     stripeId: stripeId,
+        //   },
+        //   data: {
+        //     subscriptions: [newSubscription],
+        //     // TODO: what status levels are available?
+        //     subscriptionActive: data.status === 'active',
+        //   },
+        // });
+        break;
+      }
+
       case 'customer.subscription.updated': {
-        const data = event.data;
-        // console.timeLog(data);
+        console.log('SUBSCRIPTION_UPDATED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
+
+        // const prismaUser = await prisma.user.findUnique({
+        //   where: {
+        //     stripeId: stripeId,
+        //   },
+        // });
+
+        // const subscriptionData = {
+        //   userId: prismaUser.id,
+        //   stripeId: stripeUser.id,
+        //   priceId: '1234567',
+        //   productId: '123456',
+        //   status: data.status,
+        //   cancelAt: data.cancelAt,
+        // };
+
+        // console.log('SUBSCRIPTION_DATA');
+        // console.log(subscriptionData);
+
+        // prisma.subscription.update({
+        //   data: subscriptionData,
+        // });
+
+        // prisma.user.update({
+        //   where: {
+        //     stripeId,
+        //   },
+        //   data: {
+        //     subscriptions: [newSubscription],
+        //     // TODO: what status levels are available?
+        //     subscriptionActive: data.status === 'active',
+        //   },
+        // });
         break;
       }
       case 'customer.subscription.paused': {
-        const data = event.data;
-        // console.timeLog(data);
+        console.log('SUBSCRIPTION_PAUSED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
         break;
       }
       case 'customer.subscription.resumed': {
-        const data = event.data;
-        // console.timeLog(data);
+        console.log('SUBSCRIPTION_RESUMED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
         break;
       }
       case 'customer.subscription.deleted': {
-        console.log('customer.subscription.deleted');
-        const stripeId = event.data.object.id;
+        console.log('SUBSCRIPTION_DELETED');
+        const data = event.data.object;
+        const requestInfo = event.request;
+        const stripeId = data.id;
+        console.log(data);
+        console.log(requestInfo);
+        console.log(stripeId);
 
-        const userData = await prisma.user.update({
-          where: {
-            stripeId,
-          },
-          data: {
-            subscriptionActive: false,
-          },
-        });
+        // const userData = await prisma.user.update({
+        //   where: {
+        //     stripeId,
+        //   },
+        //   data: {
+        //     subscriptionActive: false,
+        //   },
+        // });
         break;
       }
       // ... handle other event types

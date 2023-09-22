@@ -24,4 +24,6 @@ userRouter
   .route('/update-payment/:key')
   .put(isValidApiKey, isValidJwt, controllers.put.updatePaymentMethod);
 
+userRouter.route('/webhookLogs').get(controllers.get.webhookLogs);
+
 module.exports = userRouter;

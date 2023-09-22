@@ -11,14 +11,34 @@ datasource db {
   shadowDatabaseUrl = env("HEROKU_POSTGRESQL_BROWN_URL")
 }
 
+model WebhookLog {
+  id                  Int     @id @default(autoincrement())
+  requestId           String
+  idempotencyKey      String
+  type                String
+}
+
 model User {
   id                  Int     @id @default(autoincrement())
   email               String  @unique
   firstName           String
   lastName            String
+  subscriptions       Subscription[]
   subscriptionActive  Boolean
   stripeId            String  @unique
   isAdmin             Boolean
+}
+
+model Subscription {
+  id                  String  @unique
+  name                String
+  user                User @relation(fields: [userId], references: [id])
+  userId              Int
+  stripeId            String  @unique
+  priceId             String
+  productId           String
+  status              String
+  cancelAt            String?
 }
 
 model Token { 
