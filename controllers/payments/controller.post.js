@@ -52,6 +52,21 @@ module.exports = {
         console.log(data);
         console.log(requestInfo);
         console.log(stripeId);
+
+        const user = {
+          email: data.email,
+          firstName: 'Tomek',
+          lastName: 'Regulski',
+          stripeId,
+          isAdmin: false,
+        };
+
+        await prisma.user.create({
+          data: user,
+        });
+
+        // console.log(user);
+        // console.log(newUser);
         break;
       }
       case 'customer.updated': {
@@ -100,43 +115,52 @@ module.exports = {
         console.log('SUBSCRIPTION_CREATED');
         const data = event.data.object;
         const requestInfo = event.request;
-        const stripeId = data.id;
+        const stripeId = data.customer;
         console.log(data);
         console.log(requestInfo);
         console.log(stripeId);
 
-        // const prismaUser = await prisma.user.findUnique({
-        //   where: {
-        //     stripeId: stripeId,
-        //   },
-        // });
+        const prismaUser = await prisma.user.findUnique({
+          where: {
+            stripeId: stripeId,
+          },
+        });
 
-        // const newSubscription = {
-        //   userId: prismaUser.id,
-        //   stripeId,
-        //   priceId: '1234567',
-        //   productId: '123456',
-        //   status: data.status,
-        //   cancelAt: data.cancelAt,
-        // };
+        console.log(prismaUser);
+        // STOP THIS
+        // JUST ADD
+        // subscriptionId, cancelAt, and status to user model
+        const newSubscription = {
+          id: data.id,
+          name: data.plan.product,
+          userId: prismaUser.id,
+          stripeId,
+          priceId: '1234567',
+          productId: '123456',
+          status: data.status,
+          // figure out cancel_at
+          cancelAt: data.cancel_at,
+        };
 
-        // console.log('NEW_SUBSCRIPTION')
-        // console.log(newSubscription);
+        console.log('NEW_SUBSCRIPTION');
+        console.log(newSubscription);
 
-        // prisma.subscription.create({
-        //   data: newSubscription,
-        // });
+        const newSub = await prisma.subscription.create({
+          data: newSubscription,
+        });
+        console.log(newSub);
 
-        // prisma.user.update({
-        //   where: {
-        //     stripeId: stripeId,
-        //   },
-        //   data: {
-        //     subscriptions: [newSubscription],
-        //     // TODO: what status levels are available?
-        //     subscriptionActive: data.status === 'active',
-        //   },
-        // });
+        const updatedUser = await prisma.user.update({
+          where: {
+            stripeId: stripeId,
+          },
+          data: {
+            // subscriptions: newSubscription,
+            // TODO: what status levels are available?
+            subscriptionActive: data.status === 'active',
+          },
+        });
+        console.log(updatedUser);
         break;
       }
 
@@ -144,30 +168,32 @@ module.exports = {
         console.log('SUBSCRIPTION_UPDATED');
         const data = event.data.object;
         const requestInfo = event.request;
-        const stripeId = data.id;
+        const stripeId = data.customer;
         console.log(data);
         console.log(requestInfo);
         console.log(stripeId);
 
-        // const prismaUser = await prisma.user.findUnique({
-        //   where: {
-        //     stripeId: stripeId,
-        //   },
-        // });
+        const prismaUser = await prisma.user.findUnique({
+          where: {
+            stripeId: stripeId,
+          },
+        });
 
-        // const subscriptionData = {
-        //   userId: prismaUser.id,
-        //   stripeId: stripeUser.id,
-        //   priceId: '1234567',
-        //   productId: '123456',
-        //   status: data.status,
-        //   cancelAt: data.cancelAt,
-        // };
+        const subscriptionData = {
+          userId: prismaUser.id,
+          stripeId,
+          priceId: '1234567',
+          productId: '123456',
+          status: data.status,
+          cancelAt: data.cancel_at,
+        };
 
-        // console.log('SUBSCRIPTION_DATA');
-        // console.log(subscriptionData);
+        console.log('SUBSCRIPTION_DATA');
+        console.log(subscriptionData);
 
-        // prisma.subscription.update({
+        console.log(prismaUser);
+
+        // await prisma.subscription.update({
         //   data: subscriptionData,
         // });
 
@@ -183,43 +209,58 @@ module.exports = {
         // });
         break;
       }
-      case 'customer.subscription.paused': {
-        console.log('SUBSCRIPTION_PAUSED');
-        const data = event.data.object;
-        const requestInfo = event.request;
-        const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
-        break;
-      }
-      case 'customer.subscription.resumed': {
-        console.log('SUBSCRIPTION_RESUMED');
-        const data = event.data.object;
-        const requestInfo = event.request;
-        const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
-        break;
-      }
+      // case 'customer.subscription.paused': {
+      //   console.log('SUBSCRIPTION_PAUSED');
+      //   const data = event.data.object;
+      //   const requestInfo = event.request;
+      //   const stripeId = data.id;
+      //   console.log(data);
+      //   console.log(requestInfo);
+      //   console.log(stripeId);
+      //   break;
+      // }
+      // case 'customer.subscription.resumed': {
+      //   console.log('SUBSCRIPTION_RESUMED');
+      //   const data = event.data.object;
+      //   const requestInfo = event.request;
+      //   const stripeId = data.id;
+      //   console.log(data);
+      //   console.log(requestInfo);
+      //   console.log(stripeId);
+      //   break;
+      // }
       case 'customer.subscription.deleted': {
         console.log('SUBSCRIPTION_DELETED');
         const data = event.data.object;
         const requestInfo = event.request;
-        const stripeId = data.id;
+        const stripeId = data.customer;
         console.log(data);
         console.log(requestInfo);
         console.log(stripeId);
 
-        // const userData = await prisma.user.update({
-        //   where: {
-        //     stripeId,
-        //   },
-        //   data: {
-        //     subscriptionActive: false,
-        //   },
-        // });
+        const prismaUser = await prisma.user.findUnique({
+          where: {
+            stripeId: stripeId,
+          },
+        });
+        console.log(prismaUser);
+
+        const deletedSub = await prisma.subscription.deleteMany({
+          where: {
+            stripeId: stripeId,
+          },
+        });
+        console.log(deletedSub);
+
+        const userData = await prisma.user.update({
+          where: {
+            stripeId,
+          },
+          data: {
+            subscriptionActive: false,
+          },
+        });
+        console.log(userData);
         break;
       }
       // ... handle other event types
