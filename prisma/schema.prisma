@@ -23,7 +23,7 @@ model User {
   email               String  @unique
   firstName           String
   lastName            String
-  subscriptions       Subscription[]
+  subscription        Subscription?
   subscriptionActive  Boolean?
   stripeId            String  @unique
   isAdmin             Boolean
@@ -33,7 +33,7 @@ model Subscription {
   id                  String  @unique
   name                String
   user                User @relation(fields: [userId], references: [id]) 
-  userId              Int
+  userId              Int @unique
   stripeId            String
   priceId             String
   productId           String

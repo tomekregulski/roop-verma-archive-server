@@ -8,7 +8,8 @@ module.exports = {
     try {
       console.log('attempting delete...');
       await prisma.user.deleteMany({});
-      res.status(200).json(`Successfully deleted all users`);
+      await prisma.subscription.deleteMany({});
+      res.status(200).json(`Successfully deleted all users and subscriptions`);
     } catch (err) {
       next(err);
     }

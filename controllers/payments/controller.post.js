@@ -5,6 +5,17 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+const subscriptionStatuses = {
+  TRIALING: 'trialing', // N/A
+  ACTIVE: 'active',
+  INCOMPLETE: 'incomplete',
+  INCOMEPLETE_EXPIRED: 'incomplete_expired',
+  PAST_DUE: 'past_due',
+  CANCELLED: 'cancelled',
+  UNPAID: 'unpaid',
+  PAUSED: 'paused',
+};
+
 module.exports = {
   sessionObject: async (req, res, next) => {
     const { firstName, lastName, email, isAdmin = false, sessionId } = req.body;
@@ -26,57 +37,41 @@ module.exports = {
     const event = req.body;
     console.log(event);
     switch (event.type) {
-      case 'product.created': {
-        console.log('PRODUCT_CREATED');
-        const data = event.data.object;
-        const requestInfo = event.request;
-        const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
-      }
-      case 'product.updated': {
-        console.log('PRODUCT_UPDATED');
-        const data = event.data.object;
-        const requestInfo = event.request;
-        const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
-      }
       case 'customer.created': {
-        console.log('CUSTOMER_CREATED');
         const data = event.data.object;
         const requestInfo = event.request;
         const stripeId = data.id;
         console.log(data);
         console.log(requestInfo);
         console.log(stripeId);
+
+        const splitName = data.name.split(' ');
+        const firstName = splitName[0];
+        const lastName = splitName[1];
 
         const user = {
           email: data.email,
-          firstName: 'Tomek',
-          lastName: 'Regulski',
+          firstName,
+          lastName,
           stripeId,
           isAdmin: false,
         };
-
-        await prisma.user.create({
-          data: user,
-        });
-
-        // console.log(user);
-        // console.log(newUser);
+        console.log(user);
+        try {
+          await prisma.user.create({
+            data: user,
+          });
+          console.log('CUSTOMER_CREATED');
+        } catch (e) {
+          // DISPATCH EMAIL WITH ERROR AND USER INFO
+          // LOG ERROR
+          console.log(`error creating user ${data.name} - ${stripeId}`);
+          console.log(e);
+        }
         break;
       }
       case 'customer.updated': {
-        console.log('CUSTOMER_UPDATED');
-        const data = event.data.object;
-        const requestInfo = event.request;
-        const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
+        console.log('customer updated');
         break;
       }
       case 'customer.deleted': {
@@ -87,30 +82,43 @@ module.exports = {
         console.log(data);
         console.log(requestInfo);
         console.log(stripeId);
+        try {
+          const prismaUser = await prisma.user.findUnique({
+            where: {
+              stripeId: stripeId,
+            },
+          });
+          console.log('prismaUser');
+          console.log(prismaUser);
 
-        const logData = {
-          requestId: requestInfo.id,
-          idempotencyKey: requestInfo.idempotency_key,
-          type: event.type,
-        };
-        console.log(logData);
-
-        const logEntry = await prisma.webhookLog.create({
-          data: logData,
-        });
-        console.log(logEntry);
+          if (prismaUser) {
+            try {
+              const deleted = await prisma.user.delete({
+                where: {
+                  stripeId: stripeId,
+                },
+              });
+              console.log('deleted');
+              console.log(deleted);
+              console.log(`successfully deleted user ${stripeId}`);
+            } catch (e) {
+              console.log(`error deleting user ${stripeId}`);
+              console.log(e);
+            }
+          } else {
+            console.log(`user ${stripeId} does not exist in DB`);
+          }
+        } catch (e) {
+          // DISPATCH EMAIL WITH ERROR AND USER INFO
+          // LOG ERROR
+          console.log(e);
+        }
         break;
       }
-      case 'payment_method.updated': {
-        console.log('PAYMENT_METHOD_UPDATED');
-        const data = event.data.object;
-        const requestInfo = event.request;
-        const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
-        break;
-      }
+      // case 'payment_method.updated': {
+      //   // N/A ATM
+      //   break;
+      // }
       case 'customer.subscription.created': {
         console.log('SUBSCRIPTION_CREATED');
         const data = event.data.object;
@@ -173,60 +181,57 @@ module.exports = {
         console.log(requestInfo);
         console.log(stripeId);
 
-        const prismaUser = await prisma.user.findUnique({
-          where: {
-            stripeId: stripeId,
-          },
-        });
+        try {
+          const prismaUser = await prisma.user.findUnique({
+            where: {
+              stripeId: stripeId,
+            },
+          });
 
-        const subscriptionData = {
-          userId: prismaUser.id,
-          stripeId,
-          priceId: '1234567',
-          productId: '123456',
-          status: data.status,
-          cancelAt: data.cancel_at,
-        };
+          const subscriptionData = {
+            userId: prismaUser.id,
+            stripeId,
+            priceId: '1234567',
+            productId: '123456',
+            status: data.status,
+            cancelAt: data.cancel_at,
+          };
 
-        console.log('SUBSCRIPTION_DATA');
-        console.log(subscriptionData);
+          console.log('SUBSCRIPTION_DATA');
+          console.log(subscriptionData);
 
-        console.log(prismaUser);
+          console.log(prismaUser);
 
-        // await prisma.subscription.update({
-        //   data: subscriptionData,
-        // });
+          const updatedSub = await prisma.subscription.update({
+            data: subscriptionData,
+          });
 
-        // prisma.user.update({
-        //   where: {
-        //     stripeId,
-        //   },
-        //   data: {
-        //     subscriptions: [newSubscription],
-        //     // TODO: what status levels are available?
-        //     subscriptionActive: data.status === 'active',
-        //   },
-        // });
+          console.log(updatedSub);
+
+          const updatedUser = await prisma.user.update({
+            where: {
+              stripeId,
+            },
+            data: {
+              subscriptions: [newSubscription],
+              // TODO: what status levels are available?
+              subscriptionActive: data.status === 'active',
+            },
+          });
+
+          console.log(updatedUser);
+        } catch (e) {
+          // DISPATCH EMAIL WITH ERROR AND USER INFO
+          // LOG ERROR
+        }
         break;
       }
       // case 'customer.subscription.paused': {
-      //   console.log('SUBSCRIPTION_PAUSED');
-      //   const data = event.data.object;
-      //   const requestInfo = event.request;
-      //   const stripeId = data.id;
-      //   console.log(data);
-      //   console.log(requestInfo);
-      //   console.log(stripeId);
+      //   // N/A ATM
       //   break;
       // }
       // case 'customer.subscription.resumed': {
-      //   console.log('SUBSCRIPTION_RESUMED');
-      //   const data = event.data.object;
-      //   const requestInfo = event.request;
-      //   const stripeId = data.id;
-      //   console.log(data);
-      //   console.log(requestInfo);
-      //   console.log(stripeId);
+      //   // N/A ATM
       //   break;
       // }
       case 'customer.subscription.deleted': {
@@ -238,31 +243,42 @@ module.exports = {
         console.log(requestInfo);
         console.log(stripeId);
 
-        const prismaUser = await prisma.user.findUnique({
-          where: {
-            stripeId: stripeId,
-          },
-        });
-        console.log(prismaUser);
+        try {
+          const prismaUser = await prisma.user.findUnique({
+            where: {
+              stripeId: stripeId,
+            },
+          });
+          console.log(prismaUser);
 
-        const deletedSub = await prisma.subscription.deleteMany({
-          where: {
-            stripeId: stripeId,
-          },
-        });
-        console.log(deletedSub);
+          const deletedSub = await prisma.subscription.delete({
+            where: {
+              userId: prismaUser.id,
+            },
+          });
+          console.log(deletedSub);
 
-        const userData = await prisma.user.update({
-          where: {
-            stripeId,
-          },
-          data: {
-            subscriptionActive: false,
-          },
-        });
-        console.log(userData);
+          const userData = await prisma.user.update({
+            where: {
+              stripeId,
+            },
+            data: {
+              subscriptionActive: false,
+            },
+          });
+          console.log(userData);
+        } catch (e) {
+          // DISPATCH EMAIL WITH ERROR AND USER INFO
+          // LOG ERROR
+          console.log(e);
+        }
         break;
       }
+      // case 'invoice.payment_action_required':
+      // case 'invoice.payment_failed':
+      // case 'subscription_schedule.aborted':
+      // case 'subscription_schedule.canceled':
+      // case 'subscription_schedule.expiring	':
       // ... handle other event types
       default:
         console.log(`Unhandled event type ${event.type}`);
