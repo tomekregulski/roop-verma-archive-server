@@ -1,6 +1,10 @@
 require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { PrismaClient } = require('@prisma/client');
+// const { getUserByStripeId } = require('../../prisma/queries/user');
+// const {
+//   getSubscriptionByStripeId,
+// } = require('../../prisma/queries/subscription');
 // const bodyParser = require('body-parser');
 
 const prisma = new PrismaClient();
@@ -101,6 +105,8 @@ module.exports = {
               console.log('deleted');
               console.log(deleted);
               console.log(`successfully deleted user ${stripeId}`);
+              // need to cascade up to subscriptions
+              // need to emit event to client to log out
             } catch (e) {
               console.log(`error deleting user ${stripeId}`);
               console.log(e);
@@ -165,7 +171,7 @@ module.exports = {
           data: {
             // subscriptions: newSubscription,
             // TODO: what status levels are available?
-            subscriptionActive: data.status === 'active',
+            subscriptionActive: data.status,
           },
         });
         console.log(updatedUser);
@@ -174,12 +180,14 @@ module.exports = {
 
       case 'customer.subscription.updated': {
         console.log('SUBSCRIPTION_UPDATED');
-        const data = event.data.object;
+        const resData = event.data.object;
         const requestInfo = event.request;
-        const stripeId = data.customer;
-        console.log(data);
+        const stripeId = resData.customer;
+        console.log(resData);
         console.log(requestInfo);
         console.log(stripeId);
+        console.log('subscription status');
+        console.log(resData.status);
 
         try {
           const prismaUser = await prisma.user.findUnique({
@@ -188,34 +196,36 @@ module.exports = {
             },
           });
 
-          const subscriptionData = {
-            userId: prismaUser.id,
-            stripeId,
-            priceId: '1234567',
-            productId: '123456',
-            status: data.status,
-            cancelAt: data.cancel_at,
-          };
+          // const subscriptionData = {
+          //   userId: prismaUser.id,
+          //   stripeId,
+          //   priceId: '1234567',
+          //   productId: '123456',
+          //   status: resData.status,
+          //   cancelAt: resData.cancel_at,
+          // };
 
-          console.log('SUBSCRIPTION_DATA');
-          console.log(subscriptionData);
+          // console.log('SUBSCRIPTION_DATA');
+          // console.log(subscriptionData);
 
+          console.log('CURRENT USER STATUS');
           console.log(prismaUser);
+          console.log(resData.status);
 
-          const updatedSub = await prisma.subscription.update({
-            data: subscriptionData,
-          });
+          // const updatedSub = await prisma.subscription.update({
+          //   data: subscriptionData,
+          // });
 
-          console.log(updatedSub);
+          // console.log(updatedSub);
+          // console.log('STATUS');
+          // console.log(daresDatata.status);
 
           const updatedUser = await prisma.user.update({
             where: {
               stripeId,
             },
             data: {
-              subscriptions: [newSubscription],
-              // TODO: what status levels are available?
-              subscriptionActive: data.status === 'active',
+              subscriptionActive: resData.status,
             },
           });
 
@@ -263,10 +273,11 @@ module.exports = {
               stripeId,
             },
             data: {
-              subscriptionActive: false,
+              subscriptionActive: data.status,
             },
           });
           console.log(userData);
+          // need to emit event to client to log out
         } catch (e) {
           // DISPATCH EMAIL WITH ERROR AND USER INFO
           // LOG ERROR

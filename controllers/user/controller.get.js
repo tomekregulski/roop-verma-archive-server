@@ -1,4 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
+const { getUserByStripeId } = require('../../prisma/queries/user');
+const {
+  getSubscriptionByStripeId,
+} = require('../../prisma/queries/subscription');
 
 const prisma = new PrismaClient();
 
@@ -8,18 +12,10 @@ module.exports = {
     // console.log(req);
     console.log(stripeId);
     try {
-      const existingUser = await prisma.user.findUnique({
-        where: {
-          stripeId: stripeId,
-        },
-      });
+      const existingUser = await getUserByStripeId(stripeId);
       console.log(existingUser);
 
-      const existingSubscription = await prisma.subscription.findMany({
-        where: {
-          stripeId: stripeId,
-        },
-      });
+      const existingSubscription = await getSubscriptionByStripeId(stripeId);
       console.log(existingSubscription);
 
       res.status(200).json({ existingUser, existingSubscription });
