@@ -8,16 +8,19 @@ function generateEmailToken() {
   return Math.floor(10000000 + Math.random() * 90000000).toString();
 }
 
-const EMAIL_TOKEN_EXPIRATION_MINUTES = 100000;
+// const EMAIL_TOKEN_EXPIRATION_MINUTES = 100000;
 
 module.exports = {
   emailToken: async (req, res, next) => {
     const { email } = req.params;
+    console.log(email);
     console.log('creating email token');
     try {
       const userData = await prisma.user.findUnique({
         where: { email },
       });
+
+      console.log(userData);
 
       if (!userData) {
         const error = new Error('No user found with that email');
@@ -26,7 +29,7 @@ module.exports = {
       }
 
       const emailToken = jwt.sign(userData, process.env.JWT_SECRET, {
-        expiresIn: '1h',
+        expiresIn: '1000h',
       });
 
       // const emailToken = generateEmailToken();
@@ -111,6 +114,44 @@ module.exports = {
       // await prisma.token.delete({
       //   where: { emailToken },
       // });
+
+      res.status(200).json({
+        userData,
+        authToken,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+  accountUpdateToken: async (req, res, next) => {
+    const { email, accoutUpdateKey } = req.params;
+    console.log(req.params);
+    console.log(email);
+    console.log(accoutUpdateKey);
+    console.log(accoutUpdateKey !== '09876');
+    if (accoutUpdateKey !== '09876') {
+      res.status(500).json({ message: 'Received incorrect update key' });
+      return;
+    }
+    try {
+      console.log('checking email token');
+      const userData = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!userData) {
+        const error = new Error('No user found with that email');
+        error.status = 500;
+        throw error;
+      }
+
+      console.log(userData);
+
+      const authToken = jwt.sign(userData, process.env.JWT_SECRET, {
+        expiresIn: '100h',
+      });
+
+      console.log('authToken', authToken);
 
       res.status(200).json({
         userData,

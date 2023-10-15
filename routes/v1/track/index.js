@@ -7,7 +7,7 @@ const userRouter = router;
 
 userRouter
   .route('/:key')
-  .get(isValidApiKey, isValidJwt, controllers.get.allTracks);
+  .get(isValidApiKey, /* isValidJwt,*/ controllers.get.allTracks);
 userRouter
   .route('/public/:key')
   .get(isValidApiKey, controllers.get.publicTracks);

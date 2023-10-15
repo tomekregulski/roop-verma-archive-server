@@ -6,6 +6,8 @@ const isValidJwt = (req, res, next) => {
   // next();
   if (!token) {
     const error = new Error('Not authorized - could not find a token');
+    console.log('error');
+    console.log(error);
     error.status = 403;
     next(error);
   }

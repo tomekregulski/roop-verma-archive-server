@@ -31,7 +31,8 @@
     "nodemon": "^2.0.20",
     "sequelize": "^6.28.0",
     "sequelize-cli": "^6.6.0",
-    "stripe": "^8.199.0"
+    "stripe": "^8.199.0",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "@types/node": "^18.16.3",
