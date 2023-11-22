@@ -9,7 +9,7 @@ const errorHandler = require('./handlers/error');
 // const http = require('http');
 
 const routes = require('./controllers');
-const PORT = process.env.PORT || 3008;
+const PORT = process.env.PORT || 8080;
 
 const app = express();
 

@@ -54,8 +54,7 @@ module.exports = {
     console.log(req.body.customerId);
     const session = await stripe.billingPortal.sessions.create({
       customer: req.body.customerId,
-      // add param with session id
-      return_url: 'http://localhost:3000/manage-account',
+      return_url: `${process.env.CLIENT_URL}/manage-account`,
     });
 
     console.log(session);
