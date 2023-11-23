@@ -6,6 +6,9 @@ const isValidJwt = require('../../../middleware/isValidJwt');
 const authRoutes = router;
 
 authRoutes
+  .route('/admin-token/:key')
+  .get(isValidApiKey, controllers.get.adminToken);
+authRoutes
   .route('/email-token/:key/:email')
   .get(isValidApiKey, controllers.get.emailToken);
 authRoutes

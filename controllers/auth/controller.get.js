@@ -11,6 +11,21 @@ function generateEmailToken() {
 // const EMAIL_TOKEN_EXPIRATION_MINUTES = 100000;
 
 module.exports = {
+  adminToken: async (_req, res, next) => {
+    console.log('admin token');
+    try {
+      const adminToken = jwt.sign({ admin: true }, process.env.JWT_SECRET, {
+        expiresIn: '1000h',
+      });
+      console.log(adminToken);
+      res.status(200).json({
+        token: adminToken,
+      });
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  },
   emailToken: async (req, res, next) => {
     const { email } = req.params;
     console.log(email);
