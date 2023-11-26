@@ -5,11 +5,11 @@ const isValidApiKey = require('../../../middleware/isValidateApiKey');
 
 const userRouter = router;
 
+userRouter.route('/:key').get(isValidApiKey, controllers.get.getAll);
 userRouter.route('/:key').post(isValidApiKey, controllers.post.newUser);
 userRouter
   .route('/:key')
   .delete(isValidApiKey, controllers.del.TESTING_ONLY_deleteAllUsers);
-userRouter.route('/get-all').get(controllers.get.getAll);
 userRouter.route('/find-by-stripe-id').get(controllers.get.checkExisting);
 userRouter
   .route('/create-portal-session/:key')
