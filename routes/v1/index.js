@@ -6,9 +6,13 @@ const trackRouter = require('./track');
 const locationRouter = require('./location');
 const eventRouter = require('./event');
 const tapeRouter = require('./tape');
+const ragaRouter = require('./raga');
+const artistRouter = require('./artist');
 
 const v1Router = express.Router();
 
+v1Router.use('/artist', artistRouter);
+v1Router.use('/raga', ragaRouter);
 v1Router.use('/tape', tapeRouter);
 v1Router.use('/event', eventRouter);
 v1Router.use('/location', locationRouter);
