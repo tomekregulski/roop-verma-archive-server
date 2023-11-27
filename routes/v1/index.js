@@ -4,9 +4,13 @@ const authRouter = require('./auth');
 const paymentRouter = require('./payments');
 const trackRouter = require('./track');
 const locationRouter = require('./location');
+const eventRouter = require('./event');
+const tapeRouter = require('./tape');
 
 const v1Router = express.Router();
 
+v1Router.use('/tape', tapeRouter);
+v1Router.use('/event', eventRouter);
 v1Router.use('/location', locationRouter);
 v1Router.use('/user', userRouter);
 v1Router.use('/auth', authRouter);
