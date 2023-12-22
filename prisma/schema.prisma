@@ -141,3 +141,10 @@ model TrackPlay {
   trackId             Int 
   secondsListened     Int
 }
+
+model Tribute {
+  id                  Int       @id @default(autoincrement())
+  submittedBy         String
+  type                String
+  content             String
+}

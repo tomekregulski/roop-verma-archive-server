@@ -8,6 +8,7 @@ const eventRouter = require('./event');
 const tapeRouter = require('./tape');
 const ragaRouter = require('./raga');
 const artistRouter = require('./artist');
+const tributeRouter = require('./tribute');
 
 const v1Router = express.Router();
 
@@ -20,5 +21,6 @@ v1Router.use('/user', userRouter);
 v1Router.use('/auth', authRouter);
 v1Router.use('/payment', paymentRouter);
 v1Router.use('/track', trackRouter);
+v1Router.use('/tribute', tributeRouter);
 
 module.exports = v1Router;
