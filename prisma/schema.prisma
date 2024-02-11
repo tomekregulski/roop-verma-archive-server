@@ -112,7 +112,7 @@ model Location {
 // TODO: mediaType routes?
 model MediaType {
   id                  Int       @id @default(autoincrement())
-  name                String
+  name                String    @unique
   tracks              Track[]
 }
 

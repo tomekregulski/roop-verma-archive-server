@@ -10,6 +10,7 @@ const ragaRouter = require('./raga');
 const artistRouter = require('./artist');
 const tributeRouter = require('./tribute');
 const networkErrorRouter = require('./networkError');
+const mediaTypeRouter = require('./mediaType');
 
 const v1Router = express.Router();
 
@@ -24,5 +25,6 @@ v1Router.use('/payment', paymentRouter);
 v1Router.use('/track', trackRouter);
 v1Router.use('/tribute', tributeRouter);
 v1Router.use('/network-error', networkErrorRouter);
+v1Router.use('/media-type', mediaTypeRouter);
 
 module.exports = v1Router;
