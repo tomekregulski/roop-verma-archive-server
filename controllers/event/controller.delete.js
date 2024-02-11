@@ -3,18 +3,16 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 module.exports = {
-  update: async (req, res, next) => {
+  delete: async (req, res, next) => {
     try {
-      const { id, name } = req.body;
+      const { id } = req.body;
 
-      const updatedArtist = await prisma.artist.update({
+      const deletedEvent = await prisma.event.delete({
         where: {
           id,
         },
-        data: { name },
       });
-
-      res.status(200).json({ data: updatedArtist });
+      res.status(200).json({ data: deletedEvent });
     } catch (err) {
       next(err);
     }
