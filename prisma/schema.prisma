@@ -29,6 +29,7 @@ model User {
   isAdmin             Boolean
 }
 
+// TODO: subscription routes?
 model Subscription {
   id                  String  @unique
   name                String
@@ -41,6 +42,7 @@ model Subscription {
   cancelAt            String?
 }
 
+// TODO: token routes?
 model Token { 
   id                  Int       @id @default(autoincrement())
   createdAt           DateTime  @default(now())
@@ -52,7 +54,7 @@ model Token {
 }
 model Track {
   id                  Int       @id @default(autoincrement())
-  trackId             Int       
+  trackId             Int       @unique
   tape                Tape      @relation(fields: [tapeId], references: [id])
   tapeId              Int
   raga                Raga      @relation(fields: [ragaId], references: [id])
@@ -82,6 +84,7 @@ model Artist {
   primaryTracks       Track[]
 }
 
+// TODO: category routes?
 model Category {
   id                  Int       @id @default(autoincrement())
   name                String
@@ -106,6 +109,7 @@ model Location {
   events              Event[]
 }
 
+// TODO: mediaType routes?
 model MediaType {
   id                  Int       @id @default(autoincrement())
   name                String

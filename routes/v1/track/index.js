@@ -9,6 +9,15 @@ userRouter
   .route('/:key')
   .get(isValidApiKey, /* isValidJwt,*/ controllers.get.allTracks);
 userRouter
+  .route('/:key')
+  .post(isValidApiKey, /* isValidJwt,*/ controllers.post.createTrack);
+userRouter
+  .route('/:key')
+  .put(isValidApiKey, /* isValidJwt,*/ controllers.put.update);
+userRouter
+  .route('/:key')
+  .delete(isValidApiKey, /* isValidJwt,*/ controllers.del.delete);
+userRouter
   .route('/public/:key')
   .get(isValidApiKey, controllers.get.publicTracks);
 userRouter
