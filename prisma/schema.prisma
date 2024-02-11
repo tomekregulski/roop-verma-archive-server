@@ -78,7 +78,7 @@ model Track {
 
 model Artist {
   id                  Int       @id @default(autoincrement())
-  name                String
+  name                String    @unique
   primaryTracks       Track[]
 }
 
@@ -123,8 +123,8 @@ model Raga {
 
 model Tape {
   id                  Int       @id @default(autoincrement())
-  tapeId              Int
-  event               Event @relation(fields: [eventId], references: [id])
+  tapeId              Int       @unique
+  event               Event     @relation(fields: [eventId], references: [id])
   eventId             Int
   tracks              Track[]
 }

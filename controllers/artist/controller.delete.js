@@ -12,7 +12,6 @@ module.exports = {
           id,
         },
       });
-      console.log(deletedArtist);
       res.status(200).json({ data: deletedArtist });
     } catch (err) {
       next(err);
