@@ -148,3 +148,11 @@ model Tribute {
   type                String
   content             String
 }
+
+model NetworkError {
+  id                  Int     @id @default(autoincrement())
+  errorCode           Int
+  errorMessage        String
+  isRegisteredUser    Boolean
+  userId              Int?
+}

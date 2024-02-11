@@ -6,16 +6,14 @@ module.exports = {
   delete: async (req, res, next) => {
     try {
       const { id } = req.body;
-      console.log('delete');
-      console.log(id);
 
-      const deletedTribute = await prisma.tribute.delete({
+      const deletedArtist = await prisma.artist.delete({
         where: {
           id,
         },
       });
-      console.log(deletedTribute);
-      res.status(200).json({ data: deletedTribute });
+      console.log(deletedArtist);
+      res.status(200).json({ data: deletedArtist });
     } catch (err) {
       next(err);
     }
