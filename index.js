@@ -5,7 +5,6 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const errorHandler = require('./handlers/error');
 
-const routes = require('./controllers');
 const PORT = process.env.PORT || 8080;
 
 const app = express();
@@ -18,7 +17,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/v1', require('./routes/v1/index'));
-app.use(routes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
