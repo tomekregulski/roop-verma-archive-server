@@ -6,7 +6,7 @@ module.exports = {
   create: async (req, res, next) => {
     try {
       const { name } = req.body;
-      console.log(name);
+
       const existingLocation = await prisma.location.findUnique({
         where: { name },
       });
@@ -17,7 +17,6 @@ module.exports = {
         throw error;
       }
 
-      console.log('attempting create');
       const newLocation = await prisma.location.create({
         data: { name },
       });
