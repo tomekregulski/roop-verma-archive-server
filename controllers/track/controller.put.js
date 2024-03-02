@@ -5,17 +5,15 @@ const prisma = new PrismaClient();
 module.exports = {
   update: async (req, res, next) => {
     try {
-      const { id, name } = req.body;
-
-      const updatedLocation = await prisma.location.update({
+      const { id, ...rest } = req.body;
+      const updatedEvent = await prisma.track.update({
         where: {
           id,
         },
-        data: {
-          name,
-        },
+        data: { ...rest },
       });
-      res.status(200).json({ data: updatedLocation });
+
+      res.status(200).json({ data: updatedEvent });
     } catch (err) {
       next(err);
     }

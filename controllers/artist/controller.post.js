@@ -1,27 +1,26 @@
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-
 module.exports = {
   create: async (req, res, next) => {
     try {
       const { name } = req.body;
 
-      const existingLocation = await prisma.location.findUnique({
+      const existingArtist = await prisma.artist.findUnique({
         where: { name },
       });
 
-      if (existingLocation) {
-        const error = new Error('A location with that name already exists');
+      if (existingArtist) {
+        const error = new Error('An artist with that name already exists');
         error.status = 401;
         throw error;
       }
 
-      const newLocation = await prisma.location.create({
+      const newArtist = await prisma.artist.create({
         data: { name },
       });
 
-      res.status(200).json({ data: newLocation });
+      res.status(200).json({ data: newArtist });
     } catch (err) {
       next(err);
     }

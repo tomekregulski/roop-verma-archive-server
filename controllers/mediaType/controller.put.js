@@ -7,7 +7,7 @@ module.exports = {
     try {
       const { id, name } = req.body;
 
-      const updatedLocation = await prisma.location.update({
+      const updatedMediaType = await prisma.location.update({
         where: {
           id,
         },
@@ -15,7 +15,7 @@ module.exports = {
           name,
         },
       });
-      res.status(200).json({ data: updatedLocation });
+      res.status(200).json({ data: updatedMediaType });
     } catch (err) {
       next(err);
     }

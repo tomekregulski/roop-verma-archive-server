@@ -7,15 +7,14 @@ module.exports = {
     try {
       const { id, name } = req.body;
 
-      const updatedLocation = await prisma.location.update({
+      const updatedArtist = await prisma.artist.update({
         where: {
           id,
         },
-        data: {
-          name,
-        },
+        data: { name },
       });
-      res.status(200).json({ data: updatedLocation });
+
+      res.status(200).json({ data: updatedArtist });
     } catch (err) {
       next(err);
     }

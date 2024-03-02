@@ -29,6 +29,7 @@ model User {
   isAdmin             Boolean
 }
 
+// TODO: subscription routes?
 model Subscription {
   id                  String  @unique
   name                String
@@ -41,6 +42,7 @@ model Subscription {
   cancelAt            String?
 }
 
+// TODO: token routes?
 model Token { 
   id                  Int       @id @default(autoincrement())
   createdAt           DateTime  @default(now())
@@ -52,7 +54,7 @@ model Token {
 }
 model Track {
   id                  Int       @id @default(autoincrement())
-  trackId             Int       
+  trackId             Int       @unique
   tape                Tape      @relation(fields: [tapeId], references: [id])
   tapeId              Int
   raga                Raga      @relation(fields: [ragaId], references: [id])
@@ -78,10 +80,11 @@ model Track {
 
 model Artist {
   id                  Int       @id @default(autoincrement())
-  name                String
+  name                String    @unique
   primaryTracks       Track[]
 }
 
+// TODO: category routes?
 model Category {
   id                  Int       @id @default(autoincrement())
   name                String
@@ -96,7 +99,7 @@ model Event {
   locationId          Int
   category            Category @relation(fields: [categoryId], references: [id])
   categoryId          Int
-  notes               String
+  notes               String?
   tapes               Tape[]
 }
 
@@ -108,13 +111,13 @@ model Location {
 
 model MediaType {
   id                  Int       @id @default(autoincrement())
-  name                String
+  name                String    @unique
   tracks              Track[]
 }
 
 model Raga {
   id                  Int       @id @default(autoincrement())
-  name                String
+  name                String    @unique
   alternateSpelling   String?
   time                String?
   rasa                String?
@@ -123,8 +126,8 @@ model Raga {
 
 model Tape {
   id                  Int       @id @default(autoincrement())
-  tapeId              Int
-  event               Event @relation(fields: [eventId], references: [id])
+  tapeId              Int       @unique
+  event               Event     @relation(fields: [eventId], references: [id])
   eventId             Int
   tracks              Track[]
 }
@@ -147,4 +150,13 @@ model Tribute {
   submittedBy         String
   type                String
   content             String
+}
+
+model NetworkError {
+  id                  Int     @id @default(autoincrement())
+  errorCode           Int
+  errorMessage        String
+  isRegisteredUser    Boolean
+  userId              Int?
+  userEmailAddress    String?
 }
