@@ -109,7 +109,6 @@ model Location {
   events              Event[]
 }
 
-// TODO: mediaType routes?
 model MediaType {
   id                  Int       @id @default(autoincrement())
   name                String    @unique
@@ -118,7 +117,7 @@ model MediaType {
 
 model Raga {
   id                  Int       @id @default(autoincrement())
-  name                String
+  name                String    @unique
   alternateSpelling   String?
   time                String?
   rasa                String?
@@ -159,4 +158,5 @@ model NetworkError {
   errorMessage        String
   isRegisteredUser    Boolean
   userId              Int?
+  userEmailAddress    String?
 }
