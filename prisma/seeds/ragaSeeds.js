@@ -121,7 +121,7 @@ const ragas = [
   },
   {
     name: 'Bagesri',
-    alternateSpelling: 'Bageswari, Bageshwari',
+    alternateSpelling: 'Bageswari, Bageshwari, Bageshree, Bageshwari',
     time: 'Late Evening',
     rasa: 'Joy (Shringara)Pathos (Karuna)',
   },
