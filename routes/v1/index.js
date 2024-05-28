@@ -8,6 +8,7 @@ const eventRouter = require('./event');
 const tapeRouter = require('./tape');
 const ragaRouter = require('./raga');
 const artistRouter = require('./artist');
+const categoryRouter = require('./category');
 const tributeRouter = require('./tribute');
 const networkErrorRouter = require('./networkError');
 const mediaTypeRouter = require('./mediaType');
@@ -15,6 +16,7 @@ const mediaTypeRouter = require('./mediaType');
 const v1Router = express.Router();
 
 v1Router.use('/artist', artistRouter);
+v1Router.use('/category', categoryRouter);
 v1Router.use('/raga', ragaRouter);
 v1Router.use('/tape', tapeRouter);
 v1Router.use('/event', eventRouter);
