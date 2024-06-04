@@ -6,7 +6,7 @@ module.exports = {
     try {
       const { name } = req.body;
 
-      const existingCategory = await prisma.artist.findUnique({
+      const existingCategory = await prisma.category.findUnique({
         where: { name },
       });
 

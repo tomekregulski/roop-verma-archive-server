@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const controllers = require('../../../controllers/artist');
+const controllers = require('../../../controllers/category');
 const isValidApiKey = require('../../../middleware/isValidateApiKey');
 
 const artistRouter = router;
