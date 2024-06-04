@@ -7,22 +7,24 @@ module.exports = {
     try {
       const { eventName, date, locationId, categoryId, notes } = req.body;
 
-      const existingEvents = await prisma.event.findMany({
-        // TODO: can this be more specific i.e. date and location?
-        where: { date },
-      });
+      // const existingEvents = await prisma.event.findMany({
+      //   // TODO: can this be more specific i.e. date and location?
+      //   where: { date },
+      // });
 
-      const existingEventIds = existingEvents.map((event) => event.id);
+      // console.log(existingEvents);
+      // const existingEventIds = existingEvents.map((event) => event.id);
+      // console.log(existingEventIds);
 
-      if (existingEventIds) {
-        const error = new Error(
-          `This event seems to already exist, see event id(s): ${existingEventIds.join(
-            ', '
-          )}`
-        );
-        error.status = 401;
-        throw error;
-      }
+      // if (existingEventIds) {
+      //   const error = new Error(
+      //     `This event seems to already exist, see event id(s): ${existingEventIds.join(
+      //       ', '
+      //     )}`
+      //   );
+      //   error.status = 401;
+      //   throw error;
+      // }
 
       const newEvenet = await prisma.event.create({
         data: { eventName, date, locationId, categoryId, notes },
