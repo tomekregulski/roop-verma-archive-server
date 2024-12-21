@@ -10,7 +10,9 @@ userRouter.route('/:key').post(isValidApiKey, controllers.post.newUser);
 userRouter
   .route('/:key')
   .delete(isValidApiKey, controllers.del.TESTING_ONLY_deleteAllUsers);
-userRouter.route('/find-by-stripe-id').get(controllers.get.checkExisting);
+userRouter
+  .route('/find-by-stripe-id/:key')
+  .get(isValidApiKey, controllers.get.checkExisting);
 userRouter
   .route('/create-portal-session/:key')
   .post(isValidApiKey, controllers.post.createPortalSession);
