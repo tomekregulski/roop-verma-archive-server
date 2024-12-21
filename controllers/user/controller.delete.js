@@ -13,4 +13,15 @@ module.exports = {
       next(err);
     }
   },
+  deleteById: async (req, res, next) => {
+    try {
+      const { id } = req.query;
+      console.log(`Attempting to delete user ${id}`);
+      await prisma.user.delete({
+        where: id,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
