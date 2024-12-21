@@ -17,9 +17,12 @@ module.exports = {
     try {
       const { id } = req.query;
       console.log(`Attempting to delete user ${id}`);
-      await prisma.user.delete({
-        where: id,
+      const user = await prisma.user.delete({
+        where: { id: parseInt(id) },
       });
+      console.log('deleted user:');
+      console.log(user);
+      res.status(200).json(`deleted user with id: ${id}`);
     } catch (err) {
       next(err);
     }
