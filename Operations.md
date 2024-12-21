@@ -19,3 +19,13 @@ Test Login
 
 - Enter email address
 - If "invalid grant" error - reconnect Gmail service in MailJS
+
+Confirmed Customer Lifecycle:
+
+- Regitration through Stripe sessions
+- Local DB creates customer through Stripe webhooks
+- Daily subscription runs
+- Customer can pause/resume
+- WHAT HAPPENS WHEN CUSTOMER PAUSES?
+  - Expected: upon next refresh, loses access to private tracks but can still log in
+- If customer is deleted from Stripe Dashboard, DB updates accordingly and customer is logged out upon next refresh
