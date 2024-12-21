@@ -2,7 +2,6 @@ require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { PrismaClient } = require('@prisma/client');
 // const jwt = require('jsonwebtoken');
-// const { User } = require('../../models');
 const prisma = new PrismaClient();
 
 const YOUR_DOMAIN = process.env.CLIENT_URL;
