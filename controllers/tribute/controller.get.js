@@ -10,7 +10,7 @@ module.exports = {
   getAll: async (req, res, next) => {
     try {
       const allTributes = await prisma.tribute.findMany({});
-      res.status(200).json({ allTributes });
+      res.status(200).json(allTributes);
     } catch (err) {
       next(err);
     }
