@@ -10,6 +10,7 @@ module.exports = {
         isRegisteredUser,
         userId,
         emailAddress,
+        timestamp,
       } = req.body;
 
       const newNetworkError = await prisma.networkError.create({
@@ -19,6 +20,7 @@ module.exports = {
           isRegisteredUser,
           userId,
           emailAddress,
+          timestamp,
         },
       });
 
