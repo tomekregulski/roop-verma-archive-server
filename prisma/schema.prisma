@@ -154,9 +154,11 @@ model Tribute {
 
 model NetworkError {
   id                  Int     @id @default(autoincrement())
-  errorCode           Int
+  errorCode           Int?
   errorMessage        String
   isRegisteredUser    Boolean
   userId              Int?
   userEmailAddress    String?
+  timestamp           DateTime
+  errorType           String?
 }

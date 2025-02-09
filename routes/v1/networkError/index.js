@@ -7,5 +7,8 @@ const networkErrorRouter = router;
 networkErrorRouter.route('/:key').get(isValidApiKey, controllers.get.getAll);
 networkErrorRouter.route('/:key').post(isValidApiKey, controllers.post.create);
 networkErrorRouter.route('/:key').delete(isValidApiKey, controllers.del.delete);
+networkErrorRouter
+  .route('/:key')
+  .put(isValidApiKey, controllers.put.updateMany);
 
 module.exports = networkErrorRouter;
