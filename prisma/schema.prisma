@@ -27,6 +27,44 @@ model User {
   subscriptionActive  String?
   stripeId            String  @unique
   isAdmin             Boolean
+  loginProofs         LoginProof[]
+  identitySessions    IdentitySession[]
+  checkoutOwnerships  CheckoutOwnership[]
+}
+
+model LoginProof {
+  tokenHash  String   @id
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email      String
+  expiresAt  DateTime
+  delivered  Boolean  @default(false)
+  consumedAt DateTime?
+  @@index([expiresAt])
+}
+
+model IdentitySession {
+  tokenHash String   @id
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  expiresAt DateTime
+  revokedAt DateTime?
+  @@index([expiresAt])
+}
+
+model CheckoutOwnership {
+  sessionId  String @id
+  userId     Int
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId String
+}
+
+model IdentityRateLimit {
+  key       String   @id
+  count     Int
+  expiresAt DateTime
+  @@index([expiresAt])
 }
 
 // TODO: subscription routes?

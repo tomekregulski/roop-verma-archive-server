@@ -9,20 +9,20 @@ module.exports = {
     if (!subscription_id) {
       const error = new Error('Did not receive a valid subscription ID');
       error.status = 500;
-      next(error);
+      return next(error);
     }
     if (!payment_method) {
       const error = new Error('Did not receive a valid payment method');
       error.status = 500;
-      next(error);
+      return next(error);
     }
 
     try {
       const paymentMethod = await stripe.paymentMethods.attach(payment_method, {
-        customer: stripe_id,
+        customer: req.identity.user.stripeId,
       });
 
-      const customer = await stripe.customers.update(stripe_id, {
+      const customer = await stripe.customers.update(req.identity.user.stripeId, {
         invoice_settings: { default_payment_method: paymentMethod.id },
       });
 
@@ -30,7 +30,7 @@ module.exports = {
         message: 'payment method successfully updated',
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 };

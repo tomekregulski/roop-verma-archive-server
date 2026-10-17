@@ -1,3 +1,21 @@
+# Current backend identity handoff — 2026-10-17
+
+The owner approved the backend design checkpoint: Resend server delivery, 15-minute single-use proofs, seven-day revocable opaque-cookie sessions, authenticated account ownership including portal/payment routes, persisted Checkout ownership, and a future shared-domain browser arrangement. Frontend edits, DNS/hosting changes, production data and remote migrations remain unauthorized.
+
+**Implemented locally:** email-proof/session lifecycle; hashed database storage; transactional one-time consumption and browser-session rotation; current identity and server logout; public-key/admin and account-update bypass replacement; self/admin account guards; permanent testing-only bulk-delete removal; CSRF/CORS, validation and shared database abuse counters; server-derived Stripe customers and pre-Stripe ownership checks. See [IDENTITY_API.md](IDENTITY_API.md) for the contract, configuration names, manual curl/Postman walkthrough, and remaining frontend work.
+
+**Evidence:** the baseline was reproduced on Node 24.19.0 (2 smoke passed; 8 security assertions failed). Current synthetic regression suite: **51 passed**, including all eight original assertions and an automated curl walkthrough. Independent identity assessment: **8 passed**. Real PostgreSQL 18.4/Prisma 4.12 identity suite: **6 passed**, including 24 concurrent HTTP exchanges with exactly one winner, rollback on session-insert failure, expiry/logout/cascade, atomic rate counters and persisted Checkout ownership. Fresh replay of all 25 local migrations and repeated deploy are successful. Prisma schema validation/client generation, all 123 JavaScript syntax checks and git diff --check passed. Mail and Stripe remain fake in every automated HTTP test.
+
+**Additional assessment still fails:** strict full-schema comparison reports NetworkError.errorCode required in migration history versus nullable in the pre-existing Prisma model. No identity-table drift is reported. The strict no-drift assertion remains separately runnable as `npm run assess:schema:local` (6 passing identity checks plus 1 failing full-schema check, nonzero exit). Telemetry schema repair is outside identity scope; passing identity checks are not a clean whole-schema assessment.
+
+**Limits and blockers:** no real email sent; provider account/sender setup and an explicitly designated test inbox are pending. Browser/frontend integration, shared-domain setup, deployment/proxy behavior, real Stripe calls, existing/production data and remote migrations remain unverified. Unsigned webhooks can still corrupt account/customer mappings; ownership middleware alone does not fix this. Private audio/media entitlement, catalog/admin mutations and subscription synchronization remain open. Registration still distinguishes existing addresses. No complete-priority-#1 or beta-readiness claim is warranted. New additive schema is local/test-verified only; deployed migration history/readiness must be reviewed separately.
+
+**Next session:** learning/review of the backend flow and walkthrough, then separately authorized frontend integration. Preserve the ranked assessment below as historical evidence and remaining backlog, not a description of current login behavior. See `test/README.md` for commands and verification boundaries. The frontend worktree remains unchanged.
+
+---
+
+## Historical assessment and original preparation proposal (superseded where noted above)
+
 # Backend baseline — 2026-10-17
 
 Status: assessment and local HTTP test foundation only. The earlier temporary identity containment was withdrawn at the owner's request; original application behavior is restored. No security blocker is fixed by this branch. Authentication, authorization, and Stripe integrity issues remain open. No real subscribers exist per owner; the application is unreleased, but deployed reachability/access restrictions have not been established. No production data accessed, deployed credentials loaded, remote migrations run, or infrastructure changed.
