@@ -13,7 +13,7 @@ module.exports = {
     console.log('get checkout session');
     try {
       const session = await stripe.checkout.sessions.create({
-        customer: stripeId,
+        customer: req.identity.user.stripeId,
         line_items: [
           {
             price: 'price_1MdMKqBlr8UFcXJy83qKfDmx',
@@ -27,7 +27,7 @@ module.exports = {
         cancel_url: `${YOUR_DOMAIN}/complete-registration?canceled=true`,
       });
 
-      console.log(session);
+      await prisma.checkoutOwnership.create({ data: { sessionId: session.id, userId: req.identity.user.id, customerId: req.identity.user.stripeId } });
       console.log('end get checkout session');
       res.status(200).json({ ...session });
     } catch (error) {
@@ -40,7 +40,7 @@ module.exports = {
     console.log('get checkout resubscribe session');
     try {
       const session = await stripe.checkout.sessions.create({
-        customer: stripeId,
+        customer: req.identity.user.stripeId,
         line_items: [
           {
             price: 'price_1MdMKqBlr8UFcXJy83qKfDmx',
@@ -54,7 +54,7 @@ module.exports = {
         cancel_url: `${YOUR_DOMAIN}/manage-account`,
       });
 
-      console.log(session);
+      await prisma.checkoutOwnership.create({ data: { sessionId: session.id, userId: req.identity.user.id, customerId: req.identity.user.stripeId } });
       console.log('end resubscribe checkout session');
       res.status(200).json({ ...session });
     } catch (error) {
@@ -64,7 +64,6 @@ module.exports = {
   webhookLogs: async (req, res, next) => {
     try {
       const logs = await prisma.webhookLog.findMany({});
-      console.log(logs);
       res.status(200).json({ data: logs });
     } catch (error) {
       next(error);

@@ -1,30 +1,11 @@
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
-
+const { db } = require('../../identity/runtime');
+const { failure } = require('../../identity/service');
+const { wrap } = require('../../identity/http');
 module.exports = {
-  TESTING_ONLY_deleteAllUsers: async (req, res, next) => {
-    try {
-      console.log('attempting delete...');
-      await prisma.user.deleteMany({});
-      await prisma.subscription.deleteMany({});
-      res.status(200).json(`Successfully deleted all users and subscriptions`);
-    } catch (err) {
-      next(err);
-    }
-  },
-  deleteById: async (req, res, next) => {
-    try {
-      const { id } = req.query;
-      console.log(`Attempting to delete user ${id}`);
-      const user = await prisma.user.delete({
-        where: { id: parseInt(id) },
-      });
-      console.log('deleted user:');
-      console.log(user);
-      res.status(200).json(`deleted user with id: ${id}`);
-    } catch (err) {
-      next(err);
-    }
-  },
+  deleteById: wrap(async (req, res) => {
+    const value = req.query.id;
+    if (typeof value !== 'string' || !/^[1-9][0-9]*$/.test(value) || !Number.isSafeInteger(Number(value))) throw failure(400, 'Invalid user ID');
+    await db.user.delete({ where: { id: Number(value) } });
+    res.status(204).end();
+  }),
 };

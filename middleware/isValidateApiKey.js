@@ -1,13 +1,6 @@
-const isValidApiKey = (req, res, next) => {
-  const { key } = req.params;
-
-  if (key !== process.env.API_KEY) {
-    const error = new Error('Server Error: Incorrect API key');
-    error.status = 500;
-    next(error);
+module.exports = (req, _res, next) => {
+  if (!process.env.API_KEY || req.params.key !== process.env.API_KEY) {
+    return next(Object.assign(new Error('Invalid API key'), { status: 403 }));
   }
-
   return next();
 };
-
-module.exports = isValidApiKey;

@@ -1,3 +1,11 @@
+# Current identity operations
+
+Use [IDENTITY_API.md](IDENTITY_API.md) and [test/README.md](test/README.md) for configuration, local checks and the manual walkthrough. Provider sender setup and a designated test inbox remain pending; no real delivery has been verified. The local demo never loads real service credentials. No remote migration or cleanup has been run.
+
+The notes below are historical and include obsolete commands and the former browser EmailJS flow.
+
+---
+
 Start server: npm run sstart
 Start client: pnpm run dev
 Stat HTTPS forwarding: ngrok http http://localhost:8080

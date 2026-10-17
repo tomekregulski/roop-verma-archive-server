@@ -1,6 +1,5 @@
-// Desired security behavior, deliberately separate from the passing smoke suite.
-// Run `npm run assess:identity`. Known failures exit nonzero; do not mark them
-// skipped/TODO or interpret `npm test` as authentication acceptance.
+// Original desired-security assertions, retained without weakening their checks.
+// Also loaded by the normal regression suite after the backend identity fix.
 const assert = require('node:assert/strict');
 const { test, before, after, mock } = require('node:test');
 const createFixture = require('../support/identity-http');
