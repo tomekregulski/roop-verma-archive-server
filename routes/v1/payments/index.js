@@ -2,7 +2,7 @@ const router = require('express').Router();
 const controllers = require('../../../controllers/payments');
 const isValidApiKey = require('../../../middleware/isValidateApiKey');
 const { noStore, browserGuard, requireSession, requireAdmin, customerOwner, checkoutOwner, subscriptionOwner } = require('../../../identity/http');
-// Webhook signature verification is a separate, explicitly unresolved blocker.
+// Raw body is preserved in app.js; the controller authenticates before dispatch.
 router.post('/webhooks', controllers.post.webhooks);
 router.use(noStore);
 const protectedRoute = [requireSession, browserGuard, isValidApiKey];

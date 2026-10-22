@@ -1,4 +1,51 @@
-# Current backend identity handoff — 2026-10-17
+# Current backend handoff — webhook authenticity, 2026-10-22
+
+**Bounded outcome:** `POST /api/v1/payment/webhooks` now preserves the raw body
+before global JSON parsing and uses Stripe SDK `constructEvent` with
+`Stripe-Signature` and server-only `STRIPE_WEBHOOK_SECRET`. Only the verified
+event reaches the existing billing switch. Missing/blank secret returns 503;
+missing/invalid/stale/body-mismatched signatures return 400 before any database
+read/write or downstream Stripe call. Webhook payload/customer/error logging
+was removed; existing billing operations and acknowledgement behavior remain.
+Official Stripe documentation and the locked 17.5.0 SDK behavior were checked.
+
+**Local evidence:** `node --test test/stripe-webhook.test.js`: **19 passed**.
+`npm test`: **70 passed** (all 51 existing synthetic checks plus 19 new checks),
+on available Node v26.3.0/npm 11.16.0. The actual app middleware composition is
+used with real offline SDK signature verification, a test-only secret and fake
+database/Stripe services. Valid events prove expected stored customer fields
+and deletion; rejected requests prove zero service calls and unchanged storage.
+Ordinary JSON registration still passes parsed fields to fake Stripe. This does
+not establish Node 26 compatibility for real startup or providers. Pinned Node
+24.19.0 was unavailable; earlier local PostgreSQL/schema results were not rerun.
+All five changed/new JavaScript files passed `node --check`; `git diff --check`
+passed. A source comparison confirmed the existing billing switch is unchanged
+beyond removal of logging. The initial sandbox test attempt could not bind
+loopback; the permitted rerun produced the passing HTTP results above.
+
+**Still required:** configure the correct endpoint/environment signing secret
+through server secret management, then separately verify deployed reachability,
+HTTPS/proxy/header/raw-body behavior, clock accuracy, deployed runtime and
+snapshot event/API-version compatibility, and designated test-mode delivery and
+rejection outcomes. Deployed accessibility remains unknown. No production data,
+real Stripe events, hosted webhook settings, infrastructure or remote migrations
+were accessed or changed. See [Operations.md](Operations.md) and `.env.example`
+for setup using placeholder values only.
+
+**Remaining ranked blockers:** #2 authenticity is enforced and locally tested;
+deployed enforcement is unverified. #1 is not fully closed: catalog/admin
+mutations and browser/deployed identity integration remain open despite completed
+local identity/account guards. #3 private audio/media entitlement remains open.
+#4 duplicate-event handling, ordering, synchronization/retries/reconciliation,
+partial writes and account deletion versus billing, plus other lifecycle concerns
+remain explicitly deferred. Existing swallowed failures, async error handling,
+null-name/payload compatibility and placeholder billing fields are unchanged.
+#5 safe deployment/operations, runtime/provider checks and the known
+NetworkError.errorCode schema drift remain open. Registration email enumeration
+also remains open. Signature verification does not establish lifecycle correctness
+or backend/billing beta readiness. Preserve the historical ranked assessment below.
+
+## Prior backend identity handoff — 2026-10-17
 
 The owner approved the backend design checkpoint: Resend server delivery, 15-minute single-use proofs, seven-day revocable opaque-cookie sessions, authenticated account ownership including portal/payment routes, persisted Checkout ownership, and a future shared-domain browser arrangement. Frontend edits, DNS/hosting changes, production data and remote migrations remain unauthorized.
 
@@ -8,11 +55,19 @@ The owner approved the backend design checkpoint: Resend server delivery, 15-min
 
 **Additional assessment still fails:** strict full-schema comparison reports NetworkError.errorCode required in migration history versus nullable in the pre-existing Prisma model. No identity-table drift is reported. The strict no-drift assertion remains separately runnable as `npm run assess:schema:local` (6 passing identity checks plus 1 failing full-schema check, nonzero exit). Telemetry schema repair is outside identity scope; passing identity checks are not a clean whole-schema assessment.
 
-**Limits and blockers:** no real email sent; provider account/sender setup and an explicitly designated test inbox are pending. Browser/frontend integration, shared-domain setup, deployment/proxy behavior, real Stripe calls, existing/production data and remote migrations remain unverified. Unsigned webhooks can still corrupt account/customer mappings; ownership middleware alone does not fix this. Private audio/media entitlement, catalog/admin mutations and subscription synchronization remain open. Registration still distinguishes existing addresses. No complete-priority-#1 or beta-readiness claim is warranted. New additive schema is local/test-verified only; deployed migration history/readiness must be reviewed separately.
+**Limits and blockers (at that handoff):** no real email sent; provider account/sender setup and an explicitly designated test inbox are pending. Browser/frontend integration, shared-domain setup, deployment/proxy behavior, real Stripe calls, existing/production data and remote migrations remain unverified. Unsigned webhook corruption was unresolved then; see the 2026-10-22 local authenticity fix above. Private audio/media entitlement, catalog/admin mutations and subscription synchronization remain open. Registration still distinguishes existing addresses. No complete-priority-#1 or beta-readiness claim is warranted. New additive schema is local/test-verified only; deployed migration history/readiness must be reviewed separately.
 
 **Next session:** learning/review of the backend flow and walkthrough, then separately authorized frontend integration. Preserve the ranked assessment below as historical evidence and remaining backlog, not a description of current login behavior. See `test/README.md` for commands and verification boundaries. The frontend worktree remains unchanged.
 
 ---
+
+## Deferred backlog
+
+### Test readability and organization pass
+
+- **Status and priority:** deferred maintainability work. Schedule as a separate, focused task after the learning/review session, using that session to identify unclear areas. This does not displace unresolved security blockers or change their priority.
+- **Scope:** improve test and variable names, group related tests, split cases covering independent behaviors, and consistently use Arrange → Act → Assert.
+- **Acceptance:** preserve all security assertions and behavior coverage; rerun affected tests and record results and verification limits. Do not weaken assertions or change application behavior as part of this task.
 
 ## Historical assessment and original preparation proposal (superseded where noted above)
 

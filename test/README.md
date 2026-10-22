@@ -7,8 +7,9 @@ service credentials. These commands need loopback binding permission.
 
 ## Synthetic HTTP regression and retained acceptance targets
 
-- `npm test`: **51 passed**, including the two updated smoke checks, all eight
-  original vulnerability assertions, and the automated curl walkthrough.
+- `npm test`: **70 passed** (2026-10-22), including the 51 existing checks and 19
+  webhook authenticity/middleware checks. Includes the two updated smoke checks,
+  all eight original vulnerability assertions, and the automated curl walkthrough.
 - `npm run assess:identity`: **8 passed** independently. The original assertions
   remain in test/assessment/identity.assessment.js and are also loaded by normal
   regression tests. None is skipped, inverted, weakened or declared out of scope.
@@ -21,9 +22,27 @@ reached those assertions.
 The fixture mounts the **full actual Express app**, including parsers, CORS,
 cookies, routers and error handling. It injects a stateful in-memory Prisma
 double, a fake HTTP transport beneath the actual Resend adapter, and synthetic
-Stripe clients. It prevents dotenv and actual service-client construction.
+Stripe API clients. Webhook signing and verification use the real locked Stripe
+SDK offline. It prevents dotenv and actual service-client construction.
 The application identity service and HTTP middleware are real. Tests isolate
 module injection by creating one fixture per Node test process.
+
+`node --test test/stripe-webhook.test.js`: **19 passed**. Exercises the actual
+app/parser/router/controller composition with a test-only signing secret,
+synthetic payloads and fake services. Checks persisted customer fields and actual
+deletion for valid signed events, unhandled-event acknowledgement, missing and
+invalid signatures, payload/whitespace tampering, stale timestamps, absent/empty/
+blank configuration, non-JSON content and signed malformed JSON. Each rejected
+request asserts zero service calls (including database reads), unchanged tables,
+generic errors and no logs. Ordinary registration JSON is checked by asserting the
+exact parsed parameters received by fake Stripe. No production credentials,
+network Stripe calls, real events or hosted webhook settings are used.
+
+These two commands passed on available Node v26.3.0/npm 11.16.0; this is evidence
+for the synthetic paths only. Node 24.19.0 remains the pinned runtime; it was not
+available for this session's rerun. Prior PostgreSQL/schema evidence below was
+not rerun. Real startup/provider/deployment compatibility remains unverified.
+Signing-secret setup and deployment checks are in [Operations.md](../Operations.md).
 
 Coverage: server-controlled initiation and generic known/unknown responses;
 successful verification; stored hashes and cookie attributes; invalid/expired/

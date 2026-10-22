@@ -3,6 +3,8 @@ const { createIdentity } = require('../../identity/service');
 const configuration = require('../../identity/config');
 const createMailer = require('../../identity/mail');
 const memoryDatabase = require('./memory-db');
+// Real offline SDK verification; all API resources below remain synthetic.
+const { webhooks } = require('stripe');
 
 // One fixture per isolated test process: imported controllers retain these doubles.
 module.exports = async function createIdentityFixture(options = {}) {
@@ -27,6 +29,7 @@ module.exports = async function createIdentityFixture(options = {}) {
   const record = (name, result) => async (...args) => { calls.push(name); return typeof result === 'function' ? result(...args) : result; };
   let checkoutSequence = 0;
   const stripe = {
+    webhooks,
     customers: {
       create: record('stripe.customers.create', { id: 'cus_test_new' }),
       update: record('stripe.customers.update', {}),
@@ -38,9 +41,11 @@ module.exports = async function createIdentityFixture(options = {}) {
       retrieve: record('stripe.checkout.retrieve', id => ({ id, customer: 'cus_test_a' })),
     } },
   };
-  const priorEnv = { API_KEY: process.env.API_KEY, CLIENT_URL: process.env.CLIENT_URL };
+  const priorEnv = { API_KEY: process.env.API_KEY, CLIENT_URL: process.env.CLIENT_URL,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET };
   process.env.API_KEY = 'synthetic-public-key';
   process.env.CLIENT_URL = config.clientOrigin;
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_synthetic_fixture_only';
   const originalLoad = Module._load;
   let app;
   try {
