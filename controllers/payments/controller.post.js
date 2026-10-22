@@ -32,17 +32,28 @@ module.exports = {
     }
   },
   webhooks: async (req, res, next) => {
-    console.log('webhook');
-    const event = req.body;
-    console.log(event);
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (typeof secret !== 'string' || !secret.trim()) {
+      return res.status(503).json({ error: { message: 'Webhook is not configured' } });
+    }
+    const signature = req.headers['stripe-signature'];
+    if (!Buffer.isBuffer(req.body) || typeof signature !== 'string') {
+      return res.status(400).json({ error: { message: 'Invalid webhook' } });
+    }
+    let event;
+    try {
+      // SDK verifies the signature and timestamp (default tolerance: 300 seconds)
+      // before parsing. Dispatch only the event returned by verification.
+      event = stripe.webhooks.constructEvent(req.body, signature, secret);
+    } catch (_error) {
+      // SDK errors can contain the signature and payload; never log/return them.
+      return res.status(400).json({ error: { message: 'Invalid webhook' } });
+    }
     switch (event.type) {
       case 'customer.created': {
         const data = event.data.object;
         const requestInfo = event.request;
         const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
 
         const splitName = data.name.split(' ');
         const firstName = splitName[0];
@@ -55,40 +66,29 @@ module.exports = {
           stripeId,
           isAdmin: false,
         };
-        console.log(user);
         try {
           await prisma.user.create({
             data: user,
           });
-          console.log('CUSTOMER_CREATED');
         } catch (e) {
           // DISPATCH EMAIL WITH ERROR AND USER INFO
           // LOG ERROR
-          console.log(`error creating user ${data.name} - ${stripeId}`);
-          console.log(e);
         }
         break;
       }
       case 'customer.updated': {
-        console.log('customer updated');
         break;
       }
       case 'customer.deleted': {
-        console.log('CUSTOMER_DELETED');
         const data = event.data.object;
         const requestInfo = event.request;
         const stripeId = data.id;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
         try {
           const prismaUser = await prisma.user.findUnique({
             where: {
               stripeId: stripeId,
             },
           });
-          console.log('prismaUser');
-          console.log(prismaUser);
 
           if (prismaUser) {
             try {
@@ -97,22 +97,15 @@ module.exports = {
                   stripeId: stripeId,
                 },
               });
-              console.log('deleted');
-              console.log(deleted);
-              console.log(`successfully deleted user ${stripeId}`);
               // need to cascade up to subscriptions
               // need to emit event to client to log out
             } catch (e) {
-              console.log(`error deleting user ${stripeId}`);
-              console.log(e);
             }
           } else {
-            console.log(`user ${stripeId} does not exist in DB`);
           }
         } catch (e) {
           // DISPATCH EMAIL WITH ERROR AND USER INFO
           // LOG ERROR
-          console.log(e);
         }
         break;
       }
@@ -121,13 +114,9 @@ module.exports = {
       //   break;
       // }
       case 'customer.subscription.created': {
-        console.log('SUBSCRIPTION_CREATED');
         const data = event.data.object;
         const requestInfo = event.request;
         const stripeId = data.customer;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
 
         const prismaUser = await prisma.user.findUnique({
           where: {
@@ -135,7 +124,6 @@ module.exports = {
           },
         });
 
-        console.log(prismaUser);
         // STOP THIS
         // JUST ADD
         // subscriptionId, cancelAt, and status to user model
@@ -151,13 +139,10 @@ module.exports = {
           cancelAt: data.cancel_at,
         };
 
-        console.log('NEW_SUBSCRIPTION');
-        console.log(newSubscription);
 
         const newSub = await prisma.subscription.create({
           data: newSubscription,
         });
-        console.log(newSub);
 
         const updatedUser = await prisma.user.update({
           where: {
@@ -169,20 +154,13 @@ module.exports = {
             subscriptionActive: data.status,
           },
         });
-        console.log(updatedUser);
         break;
       }
 
       case 'customer.subscription.updated': {
-        console.log('SUBSCRIPTION_UPDATED');
         const resData = event.data.object;
         const requestInfo = event.request;
         const stripeId = resData.customer;
-        console.log(resData);
-        console.log(requestInfo);
-        console.log(stripeId);
-        console.log('subscription status');
-        console.log(resData.status);
 
         try {
           const prismaUser = await prisma.user.findUnique({
@@ -200,20 +178,12 @@ module.exports = {
           //   cancelAt: resData.cancel_at,
           // };
 
-          // console.log('SUBSCRIPTION_DATA');
-          // console.log(subscriptionData);
 
-          console.log('CURRENT USER STATUS');
-          console.log(prismaUser);
-          console.log(resData.status);
 
           // const updatedSub = await prisma.subscription.update({
           //   data: subscriptionData,
           // });
 
-          // console.log(updatedSub);
-          // console.log('STATUS');
-          // console.log(daresDatata.status);
 
           const updatedUser = await prisma.user.update({
             where: {
@@ -224,7 +194,6 @@ module.exports = {
             },
           });
 
-          console.log(updatedUser);
         } catch (e) {
           // DISPATCH EMAIL WITH ERROR AND USER INFO
           // LOG ERROR
@@ -240,13 +209,9 @@ module.exports = {
       //   break;
       // }
       case 'customer.subscription.deleted': {
-        console.log('SUBSCRIPTION_DELETED');
         const data = event.data.object;
         const requestInfo = event.request;
         const stripeId = data.customer;
-        console.log(data);
-        console.log(requestInfo);
-        console.log(stripeId);
 
         try {
           const prismaUser = await prisma.user.findUnique({
@@ -254,14 +219,12 @@ module.exports = {
               stripeId: stripeId,
             },
           });
-          console.log(prismaUser);
 
           const deletedSub = await prisma.subscription.delete({
             where: {
               userId: prismaUser.id,
             },
           });
-          console.log(deletedSub);
 
           const userData = await prisma.user.update({
             where: {
@@ -271,12 +234,10 @@ module.exports = {
               subscriptionActive: data.status,
             },
           });
-          console.log(userData);
           // need to emit event to client to log out
         } catch (e) {
           // DISPATCH EMAIL WITH ERROR AND USER INFO
           // LOG ERROR
-          console.log(e);
         }
         break;
       }
@@ -287,7 +248,6 @@ module.exports = {
       // case 'subscription_schedule.expiring	':
       // ... handle other event types
       default:
-        console.log(`Unhandled event type ${event.type}`);
     }
     //     // Return a response to acknowledge receipt of the event
     res.status(200).json({ received: true });

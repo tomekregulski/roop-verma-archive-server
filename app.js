@@ -12,6 +12,9 @@ module.exports = function createApp() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   }));
   app.use(cookieParser());
+  // This route must consume the original bytes before the shared JSON parser.
+  // The payment controller verifies them before dispatching any event.
+  app.post('/api/v1/payment/webhooks', express.raw({ type: 'application/json', limit: '16kb', inflate: false }));
   app.use(express.json({ limit: '16kb' }));
   app.use(express.urlencoded({ extended: false, limit: '16kb' }));
   app.use(express.static(require('path').join(__dirname, 'public')));
