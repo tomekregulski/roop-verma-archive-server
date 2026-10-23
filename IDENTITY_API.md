@@ -1,6 +1,6 @@
 # Backend email login and account identity — 2026-10-17
 
-Status: implemented locally after the owner's design agreement. Backend only. The original baseline was reproduced: 2 smoke checks passed; 8 desired-security assertions failed. Those eight assertions now pass, unchanged in substance, and are included in normal regression tests. This does **not** close the whole security assessment.
+Status: implemented locally after the owner's design agreement. Local React/browser integration verified 2026-10-22 with synthetic mail, Stripe and storage; real email and deployed behavior remain unverified. The original baseline was reproduced: 2 smoke checks passed; 8 desired-security assertions failed. Those eight assertions now pass, unchanged in substance, and are included in normal regression tests. This does **not** close the whole security assessment.
 
 ## Identity and credential lifecycle
 
@@ -79,11 +79,11 @@ JWT_SECRET is no longer used by this identity flow; the old library dependency r
 
 Resend account creation, domain verification, sender setup, sending limits, and an explicitly designated test inbox remain pending. Disable provider click tracking for credential links. No real email was sent, and no provider account/settings were changed.
 
-## Shared-domain plan and future frontend work
+## Shared-domain plan and frontend integration
 
 Intended browser arrangement: HTTPS frontend and API on subdomains of the same registrable domain, for example library.example.org and api.example.org. Cookies remain host-only to the API; sibling origins still need credentialed requests and explicit CORS. Existing Netlify/Heroku sites are cross-site and need SameSite=None; Secure, but browser third-party-cookie policies may still block sessions. No DNS, hosting, certificate or proxy changes were made. Verify the actual domain arrangement and proxy path before deployed use.
 
-Future authorized client integration must:
+The authorized React integration now implements:
 - Replace EmailJS issuance/sending in Login and CompleteRegistration with POST /auth/login.
 - Read the proof from /login-gate#token=..., remove it immediately from browser history, then POST /auth/verify once. Do not log it or forward it into analytics/error reports. Do not auto-consume proof on a backend GET (mail scanners may follow links).
 - Use Axios withCredentials/fetch credentials: include and the CSRF header. Remove JWT decoding and document.cookie login checks; initialize identity with GET /auth/session.
@@ -92,7 +92,7 @@ Future authorized client integration must:
 - Use self identity for account UI; treat 401 as logged out and refresh account state after portal return.
 - Test browser cookie acceptance, CORS, CSRF, duplicate React effects, email links, expiry, logout and Checkout/portal return behavior.
 
-These client changes are documented only. Browser integration and deployed behavior are explicitly unverified. The existing frontend is incompatible with the replacement login API until that later integration session.
+These client changes are implemented in the separate frontend checkout. See its `IDENTITY_HANDOFF.md` for tested working-tree hashes, 18 automated in-browser contract checks plus a wrong-origin check, manual-style React browser checks, and local reproduction. Signup requests login at most three times over 40 seconds while waiting for customer.created provisioning, then offers manual retry/help; no account-readiness endpoint or delivery guarantee is introduced. The standalone `test/support/browser-fixture.js` is test-only and exposes synthetic mail controls outside the application. Browser evidence uses HTTP/non-Secure loopback cookies, fake mail/Stripe and memory storage. Production HTTPS cookie/proxy behavior, real delivery and deployed behavior are unverified.
 
 ## Manual API walkthrough — no real services
 
@@ -159,10 +159,10 @@ Before deploying, review existing migration history/state separately. This branc
 Run `npm run cleanup:identity` only against an explicitly selected database to remove expired proofs, sessions and rate counters. It prints no rows or credentials. No remote cleanup was run and no hosting schedule was installed. Checkout ownership rows remain until account deletion; lifecycle/retention beyond that is future work.
 
 Still unresolved:
-- Unsigned Stripe webhooks can change account/customer mappings or delete users. Route ownership checks do not establish the trustworthiness of those mappings. Webhook authentication and synchronization/retry integrity remain security blockers.
+- Webhook signatures are enforced and locally tested as of 2026-10-22 (see the current BACKEND_BASELINE.md handoff). Deployed enforcement and synchronization/retry integrity remain unverified; route ownership does not establish lifecycle correctness.
 - Private audio entitlement, media URL access and catalog/admin write authorization remain outside this backend identity task. Those endpoints must not be assumed protected by the new session system.
 - Stripe provider integration, registration webhook timing, resubscription integrity, admin local deletion versus ongoing Stripe billing, deployment/proxy behavior and production data remain unverified.
 - Registration still distinguishes an already registered address with 409. Login initiation itself has the generic response contract; broader signup enumeration policy remains a follow-up.
-- Real mail delivery, browser integration, frontend changes and shared-domain configuration remain pending.
+- Real mail delivery, deployed browser behavior and shared-domain configuration remain pending; local frontend/browser integration is verified as described above.
 
 Sources: [OWASP token guidance](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html), [OWASP session management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html), [MDN cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie), [Resend send API](https://resend.com/docs/api-reference/emails/send-email).

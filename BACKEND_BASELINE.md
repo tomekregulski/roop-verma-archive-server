@@ -1,3 +1,17 @@
+# Current integration handoff — browser identity, 2026-10-22
+
+The owner authorized frontend implementation and narrowly necessary backend fixes. The React email-proof/session flow now works against the isolated local backend. Frontend base HEAD: `baefaf4ddf8d2f0797cbf8073fb18e861b9b79a7`; backend base HEAD: `f6a91da98a7b21ac7745bb9441b151afa9b17b01`, with uncommitted changes in each separate repository. No backend application code, dependencies or migrations changed here: only `test/support/browser-fixture.js` and handoff/contract documentation. Verification results, historical source fingerprints, reproduction steps and limits are recorded in the sibling frontend's `IDENTITY_HANDOFF.md`. Local test captures are ignored and are not required to read that handoff or run the tests.
+
+Server-only email initiation, single proof exchange with immediate URL scrubbing, cookie restoration, credentialed CSRF requests, current account identity, ownership-compatible portal/Checkout, server logout and 401/expiry/revocation recovery were exercised in an actual browser. Frontend type-check/build/lint and three proof-capture regression tests pass. The browser assertion page passed 18 allowed-origin checks; a separate wrong-origin check reported a pass, but accepts any network failure and therefore needs a reachability control before being treated as conclusive CORS evidence; browser UI checks covered login/reload, invalid/expired/reused proofs, logout, revocation and expiry. Backend `npm test`: 70 passed on available Node v26.3.0, after permitting loopback binding. Real PostgreSQL checks were not rerun; historical schema-drift failure remains open. No backend application fix was needed.
+
+Registration now waits for email verification before Checkout. It makes at most three generic login requests over 40 seconds, then exposes manual retry/help. A ten-second delayed, signed synthetic customer.created event was followed through login, owned Checkout creation and return. Missing-webhook behavior stops without mail/session/Checkout. There is no public readiness endpoint: provisioning or email failure cannot be distinguished by the client. Webhook failure/reconciliation remains a blocker to guaranteeing real registration completion; no billing lifecycle guarantee was added.
+
+All providers and storage were fake; test-only mail/clock/control surfaces are confined to the standalone harness and never mounted by app.js/index.js. HTTP uses `rv-session-local`, HttpOnly/SameSite=Lax. This does not test the production Secure `__Host-` cookie, HTTPS/proxy behavior or cross-site third-party-cookie restrictions. Intended HTTPS shared-site frontend/API domains, exact CLIENT_URL/CORS, proxy/runtime configuration, mail setup, signing-secret deployment and separately authorized provider/deployment verification remain required. No real email, Stripe test/live requests, production data, remote migrations, DNS or hosting settings were touched.
+
+Local browser identity integration is verified. Real email delivery, deployed behavior, billing lifecycle, media entitlement, catalog/admin authorization, schema drift and other documented blockers remain unresolved. This is not beta readiness. Earlier statements below that frontend changes were unauthorized or browser integration unverified are historical, superseded only within this bounded local outcome.
+
+---
+
 # Current backend handoff — webhook authenticity, 2026-10-22
 
 **Bounded outcome:** `POST /api/v1/payment/webhooks` now preserves the raw body
