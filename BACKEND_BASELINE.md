@@ -1,3 +1,131 @@
+# Approved schema metadata inspection — 2026-10-25
+
+Owner separately approved READINESS_METADATA.sql sections A and conditionally B.
+Both completed against verified application database A, using TLS certificate/
+hostname verification, read-only session/transactions, short timeouts and ROLLBACK.
+No customer records or migration log bodies were read; no migrations ran.
+
+All 24 historical Prisma migrations are recorded completed, with matching
+committed SQL checksums and no unfinished/rolled-back entries. The only unapplied
+repository migration is 20261017160000_email_identity. Its four tables are absent:
+LoginProof, IdentitySession, CheckoutOwnership and IdentityRateLimit. This is a
+confirmed database compatibility blocker for v161, independent of zero dynos
+and missing config. Existing model scalar types/nullability match Prisma except
+the known NetworkError.errorCode INTEGER NOT NULL versus Int? mismatch.
+NetworkError.timestamp is already NOT NULL. Full schema equivalence, customer
+data compatibility, backup restore and production readiness are not established.
+
+See the updated [readiness plan](BACKEND_READINESS_PLAN.md). Recommendation
+remains restoration deferred. SQL authorization is fulfilled and did not extend
+to migration, backup capture/restore, shadow queries, settings or service changes.
+Earlier entries below retain their original evidence/authorization limits.
+
+# Read-only Heroku metadata follow-up — 2026-10-25
+
+After owner-authorized official CLI installation and owner login, provider
+metadata confirms v161/f25c4158 is current on heroku-24/Cedar. Web formation is
+Eco quantity 0, command npm start, and the dyno list is empty. Retained router
+logs show H14 after v161; no startup exception was captured. Matching build
+diagnostics identify npm 11.19.1 and unspecified engines.node; exact deployed
+Node version remains unverified. Required identity/mail/webhook config is still
+absent/blank; Stripe API credential is test mode (values not displayed).
+
+DATABASE_URL maps to resource A (Essential-1); BROWN shadow URL maps to distinct
+resource B (Essential-0), with different host/database identifiers. Both report
+PostgreSQL 15.18 and Available. B's contents/lineage/disposability remain unknown.
+No logical backups or restore jobs are listed; both backup schedules are empty.
+Three successful 2023–2024 copy jobs do not establish backups/restorability.
+Both databases report Continuous Protection On, but Rollback/Fork unsupported:
+provider physical protection does not supply a customer rollback window.
+
+Updated [readiness plan](BACKEND_READINESS_PLAN.md) records evidence and limits.
+The [metadata-only SQL](READINESS_METADATA.sql) remains unapproved/unexecuted.
+No customer records, raw logs, config values or private URLs were displayed or
+saved. No SQL, settings, resources, scaling, restart, migration, deployment,
+push or merge occurred. Continue deferring restoration. Historical assessments
+below retain their original evidence limits; this follow-up supersedes the
+earlier CLI-access, dyno, attachment-mapping and backup-metadata unknowns.
+
+# Recovery/readiness preparation — 2026-10-25 (initial)
+
+See [BACKEND_READINESS_PLAN.md](BACKEND_READINESS_PLAN.md) and the proposed,
+unexecuted [metadata queries](READINESS_METADATA.sql). Recommendation: defer
+restoration while completing local authorization fixes. No Heroku CLI/connector
+was available and Computer Use for Chrome was not approved; dynos/startup logs,
+actual attachment mapping/shadow independence and backup metadata remain
+uninspected. No remote SQL, infrastructure changes or service restoration occurred.
+The plan records an optional restricted-testing design, production-targeting
+preview prerequisites, schema/recovery limits and separate authorization boundaries.
+
+# Deployment environment assessment — 2026-10-25
+
+Stopping point reached: enough read-only evidence to prioritize. Repository
+source and handoffs were inspected; dashboard metadata below is owner-reported.
+No hosting connector/CLI was available and Chrome inspection was not approved.
+Only anonymous GETs to the three explicitly identified app origins were made
+(frontend landing pages and backend roots); no protected data/API probing,
+webhook events, accounts, payments, email sending or database queries occurred.
+Only project documentation was edited by the agent.
+
+| Site/app and purpose | Accessibility | Reported deployed revision | Connections and service modes |
+| --- | --- | --- | --- |
+| Netlify rvdl-ui production: https://www.roopvermalibrary.com/ | Anonymous landing GET 200, no redirect; application gates/access policy unverified | Published main@244d87e23d4af2c1a85487b1cbeea1d1b2d52214 | VITE_API_ORIGIN=https://roop-verma-archive.herokuapp.com in all listed contexts; frontend Stripe key mode unknown |
+| Netlify rvdl-ui-sb PR sandbox: https://rvdl-ui-sb.netlify.app/ | Anonymous landing GET 200, no redirect; individual PR preview access unverified | Published main@244d87e23d4af2c1a85487b1cbeea1d1b2d52214; individual PR revision unknown | VITE_API_ORIGIN=https://rvdl-service-sb-c5e30f25afed.herokuapp.com; owner reports that backend no longer exists |
+| Heroku production API: https://roop-verma-archive.herokuapp.com/ | Anonymous root 503 before and after owner deployment; dyno state/access restrictions unverified | Owner manually deployed f25c4158a08c092def49fa6e000e2f3262974021 / v161 during assessment | DATABASE Essential 1 designated production by owner; HEROKU_POSTGRESQL_BROWN Essential 0 intended for migration shadow use; Stripe API key test mode; required server email config absent |
+| Former Heroku sandbox API: https://rvdl-service-sb-c5e30f25afed.herokuapp.com/ | Anonymous root 404; owner reports app deleted/absent | No current deployment reported | Stale sandbox frontend target; former services not inspected |
+
+Netlify dashboard projects are rvdl-ui and rvdl-ui-sb. Owner confirms main auto
+publishing, PR previews and unlocked production publishing; Heroku is manual.
+Both projects' API-origin settings cover Production, Deploy Previews, Branch
+deploys, Preview server & Agent runners, and Local dev (Netlify API). Current
+rvdl-ui preview configuration therefore targets the production API; sandbox
+previews target the absent sandbox API. These are current configuration reports,
+not independently verified historical build values. Relevant individual PR
+preview URL/revision, password/SSO settings and preview access remain unknown.
+
+**Confirmed source/configuration blocker:** owner reports CLIENT_URL present;
+AUTH_RATE_LIMIT_SECRET, RESEND_API_KEY, LOGIN_EMAIL_FROM and
+STRIPE_WEBHOOK_SECRET absent. No secret values were shared. v161 loads
+identity/config.js before listen and requires a rate secret of at least 32
+characters plus nonempty mail key/sender. This reported configuration cannot
+start v161. It establishes a startup blocker, not a captured runtime error or
+the sole explanation of the observed 503. Owner sees an Eco subscription CTA
+rather than dyno status; compute state remains unknown. Missing webhook signing
+secret separately returns 503 before processing once the app starts.
+
+**Protection and compatibility evidence:** v161 matches inspected server HEAD
+and includes server-delivered single-use proofs, HttpOnly sessions, CSRF/account
+ownership guards and raw-body Stripe signature verification. Frontend 244d87e
+includes the matching identity client. Documented local checks support contract
+compatibility, not deployed startup, migration state, login or webhook behavior.
+The initially reported v160/3d91b1b0 predated these protections; owner deployment
+of v161 superseded that source mismatch. The agent did not deploy. No claim of
+operational protection or currently reachable vulnerable handlers is established.
+
+**Service boundaries:** owner classifies the main database as production and
+Stripe API key as test mode. Prisma source uses DATABASE_URL for application
+access and HEROKU_POSTGRESQL_BROWN_URL for shadowDatabaseUrl. Actual connection
+mapping, database contents, applied migrations and shadow independence/disposable
+status were not inspected. Test Stripe credentials do not make the database a
+test environment. Email sending for the current backend is unconfigured; prior
+local designated-inbox success does not establish hosted delivery. Frontend
+publishable-key mode, Stripe endpoint setup/price compatibility, exact CLIENT_URL,
+cookie/proxy configuration and external access controls remain unverified.
+Cross-site cookies and a single allowed frontend origin may affect previews.
+
+**Priority decision:** address bounded production configuration/runtime readiness
+before media-storage/access review. First prepare an owner-reviewed recovery
+plan that accounts for the production-designated database, migration state,
+missing identity/mail/webhook configuration and dyno availability; then choose
+whether to keep the app unavailable pending authorization fixes or explicitly
+restrict hosting access before recovery. Do not infer containment from 503.
+Track/media entitlement and catalog/admin authorization gaps remain in v161;
+billing consistency and NetworkError.errorCode drift remain unresolved. Restoring
+service without addressing or containing those gaps could expose affected
+handlers. No protected endpoint test or known-vulnerability exploitation was
+performed. No settings, access restrictions, migrations, DNS, pushes or merges
+were changed by the agent; further fixes or deployment changes need a new scope.
+
 # Current CI handoff — 2026-10-24
 
 Minimal verification workflows are prepared separately in each repository.
