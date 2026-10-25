@@ -1,3 +1,122 @@
+# Current backend handoff — catalog/admin authorization, 2026-10-25
+
+**Local stopping point reached:** catalog mutations require a verified session
+and the current database user's admin role. At the owner's explicit policy
+choice, tribute creation/editing/deletion now uses the same admin boundary. Service
+restoration remains deferred. This does not establish media entitlement,
+deployed enforcement, overall API security or beta readiness. Earlier entries
+below retain their dated evidence and authorization limits.
+
+## Route inventory and enforced policy
+
+Paths below are relative to `/api/v1`; `:key` is the existing public compatibility
+key. All 27 management operations now run `middleware/catalogMutation.js`
+before their existing controllers:
+
+| Path | Admin management operations | Data managed |
+| --- | --- | --- |
+| `/artist/:key` | POST, PUT, DELETE | Artists |
+| `/category/:key` | POST, PUT, DELETE | Event categories |
+| `/event/:key` | POST, PUT, DELETE | Events and catalog relationships |
+| `/location/:key` | POST, PUT, DELETE | Locations |
+| `/media-type/:key` | POST, PUT, DELETE | Media types (existing update bug below) |
+| `/raga/:key` | POST, PUT, DELETE | Ragas and any nested Prisma input |
+| `/tape/:key` | POST, PUT, DELETE | Tapes/event associations |
+| `/track/:key` | POST, PUT, DELETE | Tracks, visibility, media URLs and any nested Prisma input |
+| `/tribute/:key` | POST, PUT, DELETE | Admin creation/moderation, explicitly included by owner |
+
+Traced `index.js` → `app.js` → mounted v1 routers → controllers/Prisma calls.
+No separate catalog bulk route, PATCH route, import/upload route, TrackArtist
+route or alternate mounted catalog handler was found. Track/raga controllers
+forward remaining body properties to Prisma, so nested/bulk relation input is
+behind the same pre-controller guard. `controllers/index.js` contains unused
+legacy route references; it is not mounted by the entry point. Seeds are local
+scripts, not HTTP paths, and were not run.
+
+Authentication is the existing `requireSession` → `identity.authenticate`:
+validate the opaque cookie, read its hashed persisted session with the current
+related `User`, and reject absent/unknown, expired, revoked, deleted-user or
+changed-email identity with 401. Authorization is the existing `requireAdmin`:
+require that freshly loaded `User.isAdmin === true`, otherwise 403. No client
+body/query/header role or legacy JWT establishes authority. Demotion takes
+effect on the next request using the same session; no new login is required.
+
+Guard order: no-store response → verified session → existing CSRF/origin guard
+→ existing public-key compatibility check → current admin role → controller.
+Mutations require `X-RVDL-CSRF: 1`; an Origin, when supplied, must exactly match
+CLIENT_URL. Native tools may omit Origin. Authentication may read identity data;
+denial occurs before catalog/controller reads, writes or downstream mutations.
+No session schema, credential lifecycle, admin provisioning or catalog payload
+semantics were changed.
+
+## Local regression evidence
+
+Node **24.19.0** (`.nvmrc`), existing locked dependencies, fake storage/mail/Stripe:
+
+- `node --test test/catalog-authorization.test.js`: **70 passed**.
+- `npm test`: **140 passed** (all 70 prior synthetic assertions retained plus
+  70 new checks); zero failures, skips or TODOs.
+- Node 24.19.0 syntax checks passed for all 12 changed/new JavaScript files;
+  `git diff --check` passed.
+- New HTTP tests use the actual app/parsers/cookies/middleware/routes/controllers.
+  Every management route rejects anonymous/API-key-only callers, malformed and
+  unknown sessions, exact-boundary expiry, logged-out/revoked sessions, ordinary
+  users, spoofed role/identity fields, demoted admins, bad CSRF/origins and wrong
+  keys. All routes also reject deleted/changed-email users and fail closed on
+  session-storage failure. Every denial asserts unchanged full storage and only
+  permitted authentication reads, with no controller/downstream calls.
+- Mounted-route inventory asserts all reviewed paths/methods, including the
+  separate public-track read and playback path, and flags added alternate/bulk
+  routes or top-level mounts for review. Denied nested/bulk bodies are exercised.
+- Admin create/update/delete succeeds through real controllers for artists,
+  categories, events, locations, ragas, tapes and tracks; media-type create/delete
+  and tribute create/update/delete succeed. A successful admin session then fails all
+  representative CRUD operations after demotion. Media-type PUT has complete
+  denial coverage but its existing functional bug is not certified as correct.
+- Anonymous public reads and playback telemetry retain their existing behavior. Original account/identity and signed-webhook assertions pass.
+
+Initial sandbox execution could not bind loopback; the permitted rerun supplied
+the passing results above. No real database checks were added or rerun: this
+change adds route guards using unchanged identity queries, with no new SQL,
+schema, transaction or concurrency behavior requiring database-specific evidence.
+The fake catalog delegates do not prove Prisma constraints, nested-write validity
+or whole-schema equivalence. Historical PostgreSQL evidence remains historical.
+
+## Exclusions, findings and remaining blockers
+
+Public GETs, including `/track/:key` and `/track/public/:key`, are unchanged;
+private media entitlement and copied Cloudinary URL access remain unresolved.
+Frontend follow-up: `src/views/tributes/Tributes.tsx` in the sibling client renders
+hardcoded entries and placeholder contact-email text. No tribute form or frontend
+tribute POST caller exists; the support form sends email through EmailJS instead.
+The owner requested that unused submission operations not remain user-accessible,
+so POST tribute now joins PUT/DELETE behind the admin guard. Public tribute GET
+remains unchanged; adding a future user submission workflow requires an explicit
+policy and tests. The former anonymous-success assertion was replaced with the
+same denial matrix as every other admin mutation, plus authorized admin creation.
+`POST /track/track-play/:key` is playback telemetry. Network-error POST/DELETE
+and bulk PUT (timestamps on all error rows) operate on telemetry, not the catalog;
+their authorization/privacy and existing payload issues remain separate findings.
+Account, registration, payments, webhooks and retired user bulk deletion keep
+their existing guards/behavior. Billing consistency and admin provisioning were
+not changed. No frontend files were edited.
+
+**Existing functional bug, unchanged:** media-type PUT calls
+`prisma.location.update` in `controllers/mediaType/controller.put.js` rather
+than updating MediaType. Authorization now protects that route and any Location
+write it attempts, but repairing the controller remains separate work. Existing
+catalog validation/debug logging and telemetry/schema defects were not expanded
+into this change.
+
+Hosted identity tables are still absent per the earlier approved metadata read;
+missing identity/mail/webhook configuration, zero web dynos, runtime/proxy/cookie
+verification, preview API targeting, shadow disposability and usable recovery/
+restore evidence remain blockers. NetworkError.errorCode drift, media entitlement
+and billing lifecycle remain open. No production records, remote SQL, migrations,
+infrastructure/configuration changes, deployments, scaling, pushes or merges
+were performed. See [readiness plan](BACKEND_READINESS_PLAN.md); keep restoration
+deferred and verify deployment only in a separately authorized task.
+
 # Approved schema metadata inspection — 2026-10-25
 
 Owner separately approved READINESS_METADATA.sql sections A and conditionally B.
