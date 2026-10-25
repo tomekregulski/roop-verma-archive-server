@@ -56,6 +56,29 @@ Checkout lookup rejects old/unrecorded IDs. The backend records IDs only when it
 
 Legacy email-token, session-token, admin-token and account-update-token GETs return 410 and perform no credential issuance. Old JWT headers/cookies cannot authenticate. Admins use the same mailbox-proof flow as everyone else; the role must already exist in trusted database state. There is no public admin provisioning API.
 
+## Catalog management and tribute moderation — 2026-10-25
+
+POST/PUT/DELETE on `/artist/:key`, `/category/:key`, `/event/:key`,
+`/location/:key`, `/media-type/:key`, `/raga/:key`, `/tape/:key` and `/track/:key`
+now require the session cookie, `X-RVDL-CSRF: 1`, the existing public API key and
+the current database user's `isAdmin === true`. The owner also selected this
+policy for POST/PUT/DELETE `/tribute/:key` after confirming no frontend tribute
+submission form or POST caller exists. Paths are relative to `/api/v1`.
+Supplied Origin must exactly match CLIENT_URL; native tools may omit Origin.
+Responses use no-store. Missing/invalid/expired/revoked identity returns 401;
+role, CSRF/origin or key denial returns 403, before the management controller.
+
+The existing `identity.authenticate` loads the persisted session and current
+related User on each request. `requireAdmin` checks that current user, so removing
+admin privilege invalidates mutation authority on the next request with the same
+session. Client roles and legacy JWTs do not participate. No admin provisioning
+API was added. Existing controller payload/response contracts are preserved.
+
+GET catalog/tribute routes and track-play telemetry keep their existing access
+policy. Tribute creation is admin-only; no public submission workflow is enabled. This change does not enforce private media entitlement.
+See [the current handoff](BACKEND_BASELINE.md) for inventory, evidence and the
+existing media-type PUT bug (it targets Location), which remains unchanged.
+
 ## Required configuration (names only; never commit values)
 
 | Name | Purpose |

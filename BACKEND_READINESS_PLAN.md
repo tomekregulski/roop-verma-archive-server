@@ -1,10 +1,22 @@
 # Bounded Heroku recovery/readiness plan — 2026-10-25
 
+**Local authorization update — 2026-10-25:** the catalog/admin task is complete
+locally: all 24 catalog create/update/delete routes and the three owner-approved
+tribute management routes now require verified, unexpired, non-revoked identity
+and the current server-side admin role, with CSRF/origin enforcement. Node
+24.19.0: 70 focused checks and all 140 backend synthetic regression checks pass.
+The [current handoff](BACKEND_BASELINE.md) contains the route inventory, policy,
+exclusions, test limits and the unchanged media-type update target bug. Public
+reads, telemetry paths, billing, provisioning and frontend are unchanged. Tribute
+POST is now admin-only after confirming no frontend submission form/caller exists.
+No remote work occurred in this implementation task. Media entitlement and
+deployed verification remain unresolved; restoration remains deferred.
+
 Decision recommendation: **defer restoration and continue local authorization
 fixes**. Restricted recovery is an option only after the evidence and controls
 below are verified. This is preparation, not production readiness or containment.
 Owner-approved metadata SQL is complete; no customer records were read and no
-infrastructure/application changes or migrations were made.
+infrastructure/hosted application changes or migrations were made.
 
 ## Evidence and limits
 
@@ -26,7 +38,7 @@ migrations. Existing uncommitted assessment documentation was preserved.
 | Approved SQL: migration history | Sections A and B completed against application A only, on 2026-10-25 at 12:45–12:49 EDT. Public migration ledger has 24 completed entries, all matching SHA-256 of the committed migration files in f25c4158; no unfinished/rolled-back entries or nonempty log bodies indicated. The sole unapplied local migration is 20261017160000_email_identity. |
 | Approved SQL: schema | LoginProof, IdentitySession, CheckoutOwnership and IdentityRateLimit are all absent, so their required indexes/foreign keys are absent too. All 16 pre-identity model tables are present. Existing model column types/nullability match schema.prisma except NetworkError.errorCode, which is INTEGER NOT NULL versus Int?. NetworkError.timestamp is already NOT NULL. Observed catalog constraints are validated. Two additional public objects occur in column metadata but were not classified; no complete schema-equivalence claim. |
 | Frontend production and previews use production API | Current owner-reported rvdl-ui settings across all contexts; deployed frontend 244d87e. rvdl-ui-sb contexts target a deleted backend. Individual preview builds/access remain unverified. |
-| Local checks versus hosted readiness | Historical 70 synthetic checks and six disposable PostgreSQL identity checks pass; no rerun needed for this documentation-only task. Media entitlement, catalog/admin authorization, billing consistency and schema drift remain open. |
+| Local checks versus hosted readiness | Catalog/admin guards now pass 70 focused and 140 total synthetic checks on Node 24.19.0. Six historical disposable PostgreSQL identity checks were not rerun for this guard-only change. Catalog enforcement is local evidence only; media entitlement, deployed verification, billing consistency and schema drift remain open. |
 
 **Access update:** after Chrome Computer Use was not approved, the owner authorized
 official Heroku CLI installation and completed login. Heroku CLI 11.12.1 and its
@@ -161,7 +173,7 @@ and [release rollback](https://devcenter.heroku.com/articles/releases).
 
 | Choice | Effort/cost and consequences |
 | --- | --- |
-| **Defer restoration (recommended)** | No new hosting spend or gate implementation. Existing DB/add-on charges continue; deferment is not a security control and 503 is not verified containment. Work locally with synthetic providers/data; hosted login, mail and webhook/browser verification remain pending. Small next implementation scope: catalog/admin authorization with positive and denied synthetic cases; media entitlement follows. |
+| **Defer restoration (recommended)** | No new hosting spend or gate implementation. Existing DB/add-on charges continue; deferment is not a security control and 503 is not verified containment. Work locally with synthetic providers/data; hosted login, mail and webhook/browser verification remain pending. Catalog/admin authorization is now implemented and synthetically tested locally (see current handoff); media entitlement remains separate work. |
 | Restore for restricted testing | First complete mapping/schema/backup readiness and implement/test a fail-closed API gate. A practical small-team candidate is a fixed tester/VPN egress IP allowlist enforced by the application before all routes/static/OPTIONS, covering every hostname including herokuapp.com. Requires verified trusted-proxy/IP derivation and spoofed-forwarding tests; do not trust arbitrary X-Forwarded-For or merely set trust proxy to true. It admits anyone on the allowed egress, so account/role/entitlement fixes still matter. If stable egress or robust IP verification is unavailable, defer rather than ship an assumed restriction. |
 
 The gate is a proposal, not present protection. Verify denial from an outside

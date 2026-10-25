@@ -1,5 +1,30 @@
 # Local backend identity checks
 
+Latest local catalog/admin run (2026-10-25), Node **24.19.0**:
+`node --test test/catalog-authorization.test.js`: **70 passed**;
+`npm test`: **140 passed**, including all 70 previous synthetic checks.
+No failures, skips or TODOs. Use the pinned runtime for both commands.
+
+Catalog tests mount the actual full app with the existing identity fixture and
+stateful catalog doubles from `support/catalog-db.js`. All 24 catalog mutations
+plus three owner-approved tribute management routes are checked for anonymous,
+invalid/expired/revoked identity, non-admin/spoofed roles, current-role demotion,
+CSRF/origin/key rejection, deleted/changed-email users and storage failure.
+Denied requests assert unchanged full storage and no calls beyond identity
+reads. Mounted routes/methods are compared with the reviewed inventory, including
+alternate public-track/playback paths; new routes/aliases require review. Nested/
+bulk input denials and successful admin CRUD/moderation are exercised. Existing
+public reads and playback access are retained. Tribute POST has no frontend
+form/caller and now has the full admin denial matrix and an admin creation check.
+
+The media-type PUT guard is tested, but its pre-existing Location update bug is
+recorded separately, not certified as correct. Fake storage does not prove
+Prisma constraints or nested-write validity. No database checks were needed for
+this route-only change using unchanged session/role mechanisms; PostgreSQL and
+strict-schema results below remain historical. No real external services,
+production records, remote SQL or deployment were used. Full route inventory
+and remaining blockers: [current handoff](../BACKEND_BASELINE.md).
+
 Current CI setup and the 2026-10-24 pinned-runtime rerun are recorded in
 [CI.md](../CI.md): 70 synthetic and six PostgreSQL identity checks pass; the
 separate strict schema diagnostic still fails on NetworkError.errorCode.

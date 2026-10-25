@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const controllers = require('../../../controllers/track');
 const isValidApiKey = require('../../../middleware/isValidateApiKey');
+const catalogMutation = require('../../../middleware/catalogMutation');
 const isValidJwt = require('../../../middleware/isValidJwt');
 
 const userRouter = router;
@@ -10,13 +11,13 @@ userRouter
   .get(isValidApiKey, /* isValidJwt,*/ controllers.get.allTracks);
 userRouter
   .route('/:key')
-  .post(isValidApiKey, /* isValidJwt,*/ controllers.post.createTrack);
+  .post(...catalogMutation, controllers.post.createTrack);
 userRouter
   .route('/:key')
-  .put(isValidApiKey, /* isValidJwt,*/ controllers.put.update);
+  .put(...catalogMutation, controllers.put.update);
 userRouter
   .route('/:key')
-  .delete(isValidApiKey, /* isValidJwt,*/ controllers.del.delete);
+  .delete(...catalogMutation, controllers.del.delete);
 userRouter
   .route('/public/:key')
   .get(isValidApiKey, controllers.get.publicTracks);
