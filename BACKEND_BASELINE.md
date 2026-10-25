@@ -1,3 +1,18 @@
+# Current CI handoff — 2026-10-24
+
+Minimal verification workflows are prepared separately in each repository.
+See [CI.md](CI.md) for setup, exact local results, exclusions and publication
+requirements. Backend Node 24.19.0 clean install/generation and 70 synthetic
+tests pass; six disposable PostgreSQL 18.4 identity checks pass. The separately
+filtered strict schema diagnostic still fails only on NetworkError.errorCode
+nullability drift. It remains visible and must not be required for merging.
+Frontend Node 18.15.0/pnpm 9.1.2 clean install, 14 unit tests and type/build pass;
+the existing LoginGate.tsx:38 whitespace lint error remains enforced and open.
+No application, schema, dependency or security assertion changes were made.
+No push, hosted CI run, deployment or repository settings change was performed.
+Provider automatic-deploy behavior must be confirmed safe before publication is
+authorized. External email/Stripe, deployment and beta readiness remain unverified.
+
 # Current integration handoff — browser identity, 2026-10-22
 
 The owner authorized frontend implementation and narrowly necessary backend fixes. The React email-proof/session flow now works against the isolated local backend. Frontend base HEAD: `baefaf4ddf8d2f0797cbf8073fb18e861b9b79a7`; backend base HEAD: `f6a91da98a7b21ac7745bb9441b151afa9b17b01`, with uncommitted changes in each separate repository. No backend application code, dependencies or migrations changed here: only `test/support/browser-fixture.js` and handoff/contract documentation. Verification results, historical source fingerprints, reproduction steps and limits are recorded in the sibling frontend's `IDENTITY_HANDOFF.md`. Local test captures are ignored and are not required to read that handoff or run the tests.

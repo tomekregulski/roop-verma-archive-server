@@ -10,6 +10,9 @@ In addition to audio, the project will eventually be expanded to incude other fo
 
 ## Backend identity development
 
+See [CI.md](CI.md) for the separate automated regression/database check and
+non-required schema diagnostic, local reproduction and pending hosted results.
+
 Read [IDENTITY_API.md](IDENTITY_API.md) for the email login/session contract, configuration and reproducible Postman/curl walkthrough. Read [test/README.md](test/README.md) for synthetic and disposable PostgreSQL checks, and the separate failing legacy schema assessment. Use Node 24.19.0 (`.nvmrc`) and npm. `npm run demo:identity` starts a synthetic-only local API and mailbox; it sends no real email and needs no service credentials.
 
 Browser/frontend integration and deployed behavior remain unverified. See the current handoff in [BACKEND_BASELINE.md](BACKEND_BASELINE.md) for unresolved security blockers.

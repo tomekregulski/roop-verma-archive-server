@@ -1,5 +1,10 @@
 # Local backend identity checks
 
+Current CI setup and the 2026-10-24 pinned-runtime rerun are recorded in
+[CI.md](../CI.md): 70 synthetic and six PostgreSQL identity checks pass; the
+separate strict schema diagnostic still fails on NetworkError.errorCode.
+Hosted runs remain pending. Earlier dated results below are historical.
+
 Use Node 24.19.0 (`.nvmrc`) and npm. Install locked dependencies with
 `npm ci --ignore-scripts --no-audit --no-fund`. Prisma client generation is a
 separate step for database/application use; synthetic tests need no .env or
