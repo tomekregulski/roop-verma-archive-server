@@ -1,0 +1,95 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Backend regression and identity database
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://rvdl_test:synthetic-only@127.0.0.1:5432/rvdl_identity_test
+      HEROKU_POSTGRESQL_BROWN_URL: postgresql://rvdl_test:synthetic-only@127.0.0.1:5432/rvdl_identity_shadow
+      TEST_DATABASE_URL: postgresql://rvdl_test:synthetic-only@127.0.0.1:5432/rvdl_identity_test?connection_limit=8
+    services:
+      postgres: &test-postgres
+        image: postgres:18.4
+        env:
+          POSTGRES_USER: rvdl_test
+          POSTGRES_PASSWORD: synthetic-only
+          POSTGRES_DB: rvdl_identity_test
+        ports:
+          - 5432:5432
+        # Wait for PostgreSQL to accept connections before running job steps.
+        options: >-
+          --health-cmd "pg_isready -U rvdl_test -d rvdl_identity_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate locked Prisma client
+        run: node node_modules/prisma/build/index.js generate
+      - name: Synthetic regression (includes retained security assertions)
+        run: npm test
+      - name: Identity against disposable PostgreSQL
+        # Suite guards the URL, creates a random schema, replays migrations,
+        # uses fake mail/Stripe, and drops that schema during teardown.
+        run: npm run test:identity:db
+
+  schema-diagnostic:
+    name: Schema drift diagnostic (not required)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://rvdl_test:synthetic-only@127.0.0.1:5432/rvdl_identity_test
+      HEROKU_POSTGRESQL_BROWN_URL: postgresql://rvdl_test:synthetic-only@127.0.0.1:5432/rvdl_identity_shadow
+      TEST_DATABASE_URL: postgresql://rvdl_test:synthetic-only@127.0.0.1:5432/rvdl_identity_test?connection_limit=8
+      RVDL_ASSESS_FULL_SCHEMA: '1'
+    services:
+      postgres: *test-postgres
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate locked Prisma client
+        run: node node_modules/prisma/build/index.js generate
+      - name: Strict whole-schema assessment
+        id: schema
+        # Run only the diagnostic; do not repeat the six identity tests.
+        run: node --test --test-name-pattern='^full schema assessment:' test/integration/identity.postgres.js
+      - name: Record diagnostic outcome
+        if: always()
+        env:
+          DIAGNOSTIC_OUTCOME: ${{ steps.schema.outcome }}
+        run: |
+          echo "Strict whole-schema assessment: ${DIAGNOSTIC_OUTCOME}" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Known baseline: NetworkError.errorCode nullability drift. Inspect the assertion output for the actual difference; other failures are not accepted as known drift.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'This job deliberately preserves failures. Do not require it or the aggregate workflow for merging; require Backend regression and identity database after reliable hosted runs. Follow-up: reconcile telemetry model/migration nullability and rerun the strict assessment.' >> "$GITHUB_STEP_SUMMARY"
