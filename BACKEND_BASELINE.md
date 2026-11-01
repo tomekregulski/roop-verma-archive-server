@@ -1,3 +1,44 @@
+# Current backend handoff — local playback authorization, 2026-10-28
+
+**Local stopping point reached:** playback access decisions and temporary-URL
+issuance boundaries are implemented and tested, with the sibling frontend
+integrated. Service restoration remains deferred. Live private media protection
+is **not** established. Read [PLAYBACK_API.md](PLAYBACK_API.md) for the HTTP,
+normalized-entitlement, mapping/signing and catalog DTO contracts.
+
+- POST `/api/v1/track/:trackId/playback-access/:key` resolves Track.id/visibility
+  on the server; anonymous public access is allowed. Subscriber tracks require
+  the current persisted session and an explicit current paid interval. Cancelled
+  subscriptions retain paid-through access; incomplete/unpaid/unapproved or
+  ambiguous grants deny. No legacy display status or admin bypass grants access.
+- Recording fake signing and synthetic paid intervals exist only in the test
+  harness. Production composition returns unavailable (503) until trustworthy
+  billing, playback asset mapping and real signing are integrated. No application
+  endpoint/configuration flag can turn on test access; no legacy URL fallback.
+- Catalog DTOs remove permanent URLs, master/archive metadata and unknown storage
+  fields on full/public reads, mutations and nested/alternate paths. Catalog
+  metadata visibility is unchanged. Old clients requiring Track.url are
+  incompatible; coordinate eventual frontend/backend release.
+- React player requests issuance, handles failures/retry, clears old media on
+  track/account changes and rejects stale results. Local expiry offers manual
+  renewal; seamless long-recording renewal/position preservation remains work.
+- Node 24.19.0 full synthetic suite: **166 pass**, including all 140 previous
+  checks and 26 playback/runtime checks. Actual HTTP stack is exercised with
+  synthetic data. Browser React harness: **23 assertions pass** with Axios/Audio
+  doubles. Frontend TypeScript, ESLint, Vite build, 14 existing unit checks and
+  diff/syntax checks pass. No new DB schema or constraints were introduced;
+  PostgreSQL checks were not rerun. Full evidence/limits are in the contract.
+
+Final provider approval, real private MP3 mapping/signing/delivery, trustworthy
+billing entitlements, separate inaccessible WAV archive credentials, legacy URL
+retirement, provider Range/seek/expiry checks and deployed verification remain
+prerequisites. Existing hosted identity/schema/config/recovery blockers below
+also remain. No billing synchronization, remote services, protected media,
+provider settings, migrations, uploads, purchases, restoration, deployments,
+pushes or merges were changed. The pre-existing untracked decision brief was
+preserved, with a local implementation note added. Earlier entries below are
+dated evidence and are superseded only where this update explicitly says so.
+
 # Current backend handoff — catalog/admin authorization, 2026-10-25
 
 **Local stopping point reached:** catalog mutations require a verified session

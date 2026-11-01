@@ -2,9 +2,12 @@ const router = require('express').Router();
 const controllers = require('../../../controllers/track');
 const isValidApiKey = require('../../../middleware/isValidateApiKey');
 const catalogMutation = require('../../../middleware/catalogMutation');
-const isValidJwt = require('../../../middleware/isValidJwt');
+const { noStore, browserGuard } = require('../../../identity/http');
 
 const userRouter = router;
+
+userRouter.route('/:trackId/playback-access/:key')
+  .post(noStore, browserGuard, isValidApiKey, require('../../../playback/http'));
 
 userRouter
   .route('/:key')

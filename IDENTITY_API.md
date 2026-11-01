@@ -1,3 +1,10 @@
+# Playback contract update — 2026-10-28
+
+See [PLAYBACK_API.md](PLAYBACK_API.md) for the new local issuance endpoint and
+catalog response projection. Identity's subscription display fields remain
+untrusted for playback. Billing and real delivery adapters are incomplete;
+service restoration remains deferred. Earlier identity evidence follows.
+
 # Backend email login and account identity — 2026-10-17
 
 Status: implemented locally after the owner's design agreement. Local React/browser integration verified 2026-10-22 with synthetic mail, Stripe and storage; real email and deployed behavior remain unverified. The original baseline was reproduced: 2 smoke checks passed; 8 desired-security assertions failed. Those eight assertions now pass, unchanged in substance, and are included in normal regression tests. This does **not** close the whole security assessment.
