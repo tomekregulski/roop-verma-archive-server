@@ -1,3 +1,24 @@
+# Playback regression update — 2026-10-28
+
+Pinned Node 24.19.0: `node --test test/*.test.js` (same command as `npm test`):
+**166 passed**. The 140 existing checks remain, with 25 new HTTP playback/catalog
+checks in `playback-access.test.js` and one normal-runtime fail-closed check in
+`playback-runtime.test.js`. The route inventory includes issuance. All identity,
+admin, ownership and signed-webhook assertions remain enabled.
+
+Playback tests inject normalized paid periods, an explicit playback asset mapping
+and a recording fake signer only through the module-loader fixture. No deployed
+application/configuration can enable them. Tests cover exact paid expiry,
+cancellation, unavailable/ambiguous/revoked/unapproved grants, invalid sessions,
+spoofed authority, mapping scope, signed expiry and catalog projection including
+nested/mutation/case variants. Normal composition cannot return fake/legacy URLs.
+See [PLAYBACK_API.md](../PLAYBACK_API.md) for precise contracts and limits.
+
+The sibling client's `test/playback-browser.html` runs 23 actual React browser
+assertions with isolated Axios/Audio doubles. This is separate from HTTP tests;
+it does not verify real delivery, media bytes, Range/seek or storage expiration.
+No PostgreSQL or provider tests were added or rerun. Earlier evidence follows.
+
 # Local backend identity checks
 
 Latest local catalog/admin run (2026-10-25), Node **24.19.0**:

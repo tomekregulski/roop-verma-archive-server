@@ -53,6 +53,10 @@ module.exports = async function createIdentityFixture(options = {}) {
       if (request === '@prisma/client') return { PrismaClient: class { constructor() { return db; } } };
       if (request === 'stripe') return () => stripe;
       if (request === 'dotenv') return { config() {} };
+      if (Module._resolveFilename(request, args[0]).endsWith('/playback/runtime.js') && options.playbackAdapters) {
+        return require('../../playback/service').createPlayback({ db, identity, now: () => time,
+          ...options.playbackAdapters({ db, calls, now: () => time }) });
+      }
       if (Module._resolveFilename(request, args[0]).endsWith('/identity/runtime.js')) return { db, config, identity };
       return originalLoad.call(this, request, ...args);
     };

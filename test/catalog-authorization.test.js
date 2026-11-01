@@ -68,7 +68,7 @@ test('mounted catalog and tribute route inventory has no unreviewed mutation pat
     const actual = router.stack.flatMap(layer => Object.keys(layer.route.methods)
       .map(method => `${method.toUpperCase()} ${layer.route.path}`)).sort();
     const expected = ['GET /:key', 'POST /:key', 'PUT /:key', 'DELETE /:key'];
-    if (resource === 'track') expected.push('GET /public/:key', 'POST /track-play/:key');
+    if (resource === 'track') expected.push('GET /public/:key', 'POST /track-play/:key', 'POST /:trackId/playback-access/:key');
     assert.deepEqual(actual, expected.sort(), resource + ' routes must match HTTP coverage');
   }
 });
@@ -135,7 +135,9 @@ for (const resource of catalogResources.filter(resource => resource !== 'media-t
     const changedField = { event: { eventName: 'Renamed event' }, tape: { tapeId: 3 }, track: { trackId: 3 } }[resource] || { name: 'Renamed' };
     const updated = await mutate({ resource, method: 'PUT' }, cookie, { body: { ...inputs[resource], id, ...changedField } });
     assert.equal(updated.status, 200);
-    assert.deepEqual(f.prisma.tables[model].find(row => row.id === id), updated.body.data);
+    const stored = f.prisma.tables[model].find(row => row.id === id);
+    assert.deepEqual(require('../catalog/response').project(model, stored), updated.body.data);
+    if (model === 'track') assert.equal(stored.url, inputs.track.url, 'storage keeps legacy locator; response must omit it');
     assert.equal((await mutate({ resource, method: 'DELETE' }, cookie, { body: { id } })).status, 200);
     assert.equal(f.prisma.tables[model].length, 1);
   });

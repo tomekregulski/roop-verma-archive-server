@@ -5,8 +5,6 @@ const prisma = new PrismaClient();
 module.exports = {
   allTracks: async (req, res, next) => {
     try {
-      console.log('JWT');
-      console.log(req.headers.jwt);
       const allTracks = await prisma.track.findMany({
         include: {
           tape: {
