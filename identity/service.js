@@ -1,4 +1,5 @@
 const { createHash, createHmac, randomBytes } = require('node:crypto');
+const { lockAccount } = require('./account-lock');
 const { setTimeout: delay } = require('node:timers/promises');
 const hash = value => createHash('sha256').update(value).digest('hex');
 const credential = () => randomBytes(32).toString('base64url');
@@ -74,6 +75,7 @@ function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = 
     const user = await db.$transaction(async tx => {
       const proof = await tx.loginProof.findUnique({ where: { tokenHash } });
       if (!proof) throw failure(401, 'Invalid or expired login link');
+      await lockAccount(tx, proof.userId);
       const current = await tx.user.findUnique({ where: { id: proof.userId } });
       if (!current || current.email !== proof.email) throw failure(401, 'Invalid or expired login link');
       // PostgreSQL rechecks this predicate after a competing update commits.

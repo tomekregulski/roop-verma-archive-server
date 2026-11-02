@@ -22,6 +22,8 @@ test('registration smoke check uses only synthetic database and Stripe doubles',
 test('Stripe-led candidate routes are absent from normal application composition', async () => {
   const cookie = await fixture.login();
   assert.equal((await fixture.json('payment/checkout/synthetic-public-key', {}, cookie)).status, 404);
+  assert.equal((await fixture.json('user/account-deletion/synthetic-public-key', { confirm: true }, cookie)).status, 404);
+  assert.equal((await fixture.request('user/owner/deletions/synthetic-public-key', { headers: { Cookie: cookie } })).status, 404);
   assert.equal((await fixture.request('payment/account/synthetic-public-key', { headers: { Cookie: cookie } })).status, 404);
   assert.equal(fixture.calls.some(call => call === 'stripe.checkout.create'), false);
 });

@@ -1,3 +1,30 @@
+# Current verification — isolated D9 deletion, 2026-11-02
+
+Current evidence/limits: [purchase and D9 handoff](../STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+D9 extends the existing candidate fixtures, with no normal-runtime cutover:
+
+- Node 24.19.0 full synthetic suite: **350 pass** (27 shared D9 cases added).
+- Full fresh disposable PostgreSQL billing suite: **214 pass** (same 27 D9 cases
+  plus four SQL/independent-client checks). `test:billing:local` and
+  `test:purchase:local` include D9. No existing or remote database was used.
+- SQL checks cover final-delete rollback of earlier scrubbing/tombstones, stale
+  local facts across provider reads, concurrent proof exchange/session cascades
+  and ambiguous concurrent completion. Prior migration-upgrade/mismatch assertions
+  remain; only historical fixture migration/insert boundaries were adjusted.
+- React purchase/deletion page: **29 assertions pass**; player page: **23 pass**.
+  Real browser request/review/withdraw/re-request/complete journey uses the existing
+  `node test/browser-harness.mjs --purchase`, HTTP/cookies/disposable PG and fake
+  providers. Focused React errors/session/unmount tests use an Axios double.
+- Frontend unit suite: **14 pass**; TypeScript, changed-source ESLint, normal Vite
+  build pass. Existing large-bundle/browser-data warnings remain.
+- Separate strict schema diagnostic: **6 pass / 1 fail**, only the pre-existing
+  NetworkError.errorCode Required→Nullable mismatch, visible and unsuppressed.
+
+No real Stripe/email/media, runtime activation, provider setup, deployment or
+existing-data retention preflight is established by these results.
+
+---
+
 # Current verification — isolated D1/D8 purchase, 2026-11-01
 
 Read [STRIPE_LED_PURCHASE_IMPLEMENTATION.md](../STRIPE_LED_PURCHASE_IMPLEMENTATION.md)

@@ -84,7 +84,7 @@ before(async () => {
   await fs.copyFile(path.resolve('prisma/schema.prisma'), path.join(upgradeDirectory, 'schema.prisma'));
   await fs.mkdir(path.join(upgradeDirectory, 'migrations'));
   for (const name of await fs.readdir('prisma/migrations'))
-    if (!['20261101120000_billing_evidence', '20261101180000_paid_access_cache', '20261101200000_owned_checkout'].includes(name))
+    if (!['20261101120000_billing_evidence', '20261101180000_paid_access_cache', '20261101200000_owned_checkout', '20261102000000_owner_assisted_deletion'].includes(name))
       await fs.cp(path.join('prisma/migrations', name), path.join(upgradeDirectory, 'migrations', name), {
         recursive: true,
       });
@@ -307,17 +307,8 @@ test('migration upgrade retains representative legacy data without inventing pay
   assert.equal(cli(['migrate', 'deploy'], target, path.join(upgradeDirectory, 'schema.prisma')).status, 0);
   const legacy = new PrismaClient({ datasources: { db: { url: target.href } } });
   try {
-    const user = await legacy.user.create({
-      select: { id: true },
-      data: {
-        email: 'legacy@example.invalid',
-        firstName: 'Old',
-        lastName: 'Listener',
-        stripeId: 'cus_legacy',
-        isAdmin: false,
-        subscriptionActive: 'active',
-      },
-    });
+    // Use exactly the prior schema: generated defaults now include D9 columns.
+    const [user] = await legacy.$queryRaw`INSERT INTO "User" (email, "firstName", "lastName", "stripeId", "isAdmin", "subscriptionActive") VALUES ('legacy@example.invalid','Old','Listener','cus_legacy',false,'active') RETURNING id`;
     // Raw insert targets exactly the prior schema, where new fields do not exist.
     await legacy.$executeRaw`INSERT INTO "Subscription" (id, name, "userId", "stripeId", "priceId", "productId", status, "cancelAt") VALUES ('sub_legacy','legacy',${user.id},'cus_legacy','1234567','123456','active','invalid legacy timestamp')`;
     assert.equal(cli(['migrate', 'deploy'], target).status, 0);
@@ -338,16 +329,7 @@ test('migration refuses mismatched legacy customer association without guessing 
   assert.equal(cli(['migrate', 'deploy'], target, path.join(upgradeDirectory, 'schema.prisma')).status, 0);
   const legacy = new PrismaClient({ datasources: { db: { url: target.href } } });
   try {
-    const user = await legacy.user.create({
-      select: { id: true },
-      data: {
-        email: 'mismatch@example.invalid',
-        firstName: 'Mismatch',
-        lastName: 'Test',
-        stripeId: 'cus_true',
-        isAdmin: false,
-      },
-    });
+    const [user] = await legacy.$queryRaw`INSERT INTO "User" (email, "firstName", "lastName", "stripeId", "isAdmin") VALUES ('mismatch@example.invalid','Mismatch','Test','cus_true',false) RETURNING id`;
     await legacy.$executeRaw`INSERT INTO "Subscription" (id, name, "userId", "stripeId", "priceId", "productId", status) VALUES ('sub_orphan','legacy',${user.id},'cus_foreign','123','456','active')`;
     assert.notEqual(cli(['migrate', 'deploy'], target).status, 0);
     assert.equal(await legacy.user.count(), 1);

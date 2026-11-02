@@ -65,6 +65,9 @@ module.exports = async function purchasePostgres(source) {
       });
     const clear = async () => {
       for (const model of [
+        'token',
+        'trackPlay',
+        'networkError',
         'paidInvoiceGrant',
         'stripeEventReceipt',
         'billingOperation',

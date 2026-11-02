@@ -12,6 +12,7 @@ async function main() {
       if (process.argv.includes('--billing') || process.argv.includes('--paid-access'))
         suites.push('test/integration/paid-access.postgres.js');
       if (process.argv.includes('--billing') || process.argv.includes('--purchase')) suites.push('test/integration/purchase.postgres.js');
+      if (process.argv.includes('--billing') || process.argv.includes('--purchase') || process.argv.includes('--deletion')) suites.push('test/integration/deletion.postgres.js');
       const child = spawn(process.execPath, ['--test', '--test-timeout=45000', ...suites], {
         cwd: path.resolve(__dirname, '..'), stdio: 'inherit',
         env: { ...process.env,

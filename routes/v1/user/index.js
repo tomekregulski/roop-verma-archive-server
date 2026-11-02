@@ -41,10 +41,17 @@ router.post(
   customerOwner((req) => req.body.customerId),
   controllers.post.createPortalSession
 );
-router.delete('/:key', requireSession, browserGuard, isValidApiKey, requireAdmin, controllers.del.deleteById);
+router.delete(
+  '/:key',
+  requireSession,
+  browserGuard,
+  isValidApiKey,
+  requireAdmin,
+  controllers.del.deleteById
+);
 module.exports = router;
 
-module.exports.createPurchaseRouter = (purchase) => {
+module.exports.createPurchaseRouter = (purchase, deletion) => {
   const candidate = require('express').Router();
   const handlers = controllers.post.createPurchaseHandlers(purchase);
   candidate.use(noStore);
@@ -65,5 +72,6 @@ module.exports.createPurchaseRouter = (purchase) => {
     isValidApiKey,
     handlers.createPortalSession
   );
+  if (deletion) require('../../../identity/deletion-http').mount(candidate, deletion);
   return candidate;
 };

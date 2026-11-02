@@ -1,3 +1,71 @@
+# D9 owner-assisted deletion — isolated candidate, 2026-11-02
+
+This is local staged functionality, not normal-runtime rollout. See
+[implementation and current evidence](STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+Use the existing `--purchase` browser fixture; it adds `/owner/deletions` using
+persisted-session authentication and current server-side `isAdmin`, never the
+frontend development AdminLogin. A real owner identity/role, deployed protected
+route and `ACCOUNT_DELETION_SUPPORT_EMAIL` must be configured at the later C1 /
+provider-activation gates. Existing EmailJS support configuration exposes no
+backend recipient; do not invent one. No provider action was performed here.
+
+A customer explicitly requests deletion in candidate Account. This blocks new
+purchases/association, preserving login, trusted Portal and normal playback policy.
+Subscription cancellation stays separate and retains the app account. A pending
+request sends one best-effort templated notification with email/time/protected
+review link. Acceptance is not inbox delivery. Failed/uncertain/missing delivery
+never rolls back the request; no retries or external exactly-once guarantee.
+Owners should inspect the pending list even if no notification arrived. No
+response-time promise is approved. Withdrawal is support-assisted through the
+owner review and does not change Stripe billing or ordinary purchase safeguards.
+
+Before **Complete app account deletion**, review the correct account and:
+
+1. Verify the exact Stripe mode, trusted customer and every owned Checkout attempt.
+   Email alone is insufficient; include inactive attempts and unassociated results.
+2. Resolve each Checkout outcome. Open Sessions must close/expire. Unknown/missing
+   Session IDs, old attempts, absent bindings, timeouts or missing webhooks do not
+   prove no purchase. For a lost ID, enter only an exact Dashboard Session matching
+   the retained immutable attempt metadata/mode/ownership. No fresh Checkout or
+   broad provider-history discovery is used. Unknown cases stay pending and may
+   require engineering; do not delete the attempt to bypass a blocker.
+3. Review **all** subscriptions and duplicates, including unassociated ones.
+   Normal period-end cancellation means wait for actual closure; a scheduled
+   cancellation alone cannot complete deletion.
+4. Review schedules, draft/open invoices, retries and pending invoice items. Make
+   an explicit Dashboard disposition for every item; the app does not inspect or
+   reconstruct these financial histories.
+5. Apply approved D3–D8 exceptions: refund alone does not cancel or revoke ordinary
+   access; refund-and-end-service needs explicit cancellation. Handle partial
+   refunds, disputes, duplicate cleanup and any agreed compensation in Dashboard /
+   support. There is no automatic restoration, refund or entitlement editor.
+6. Recheck Dashboard immediately before attesting actual closure. Completion does
+   fresh exact reads and rejects stale local review, open/unknown outcomes or
+   ongoing known subscriptions. Provider trouble blocks completion; local review
+   still permits support withdrawal. Refresh/review after any stale or ambiguous
+   result before retrying. A repeated completed request never recreates identity.
+
+Completion atomically deletes User, all sessions/login links/CheckoutOwnership,
+legacy Token and individual TrackPlay rows; aggregate Track.plays is preserved.
+It clears cache, retains customer/subscription/attempt deletion tombstones without
+automatic expiry, and removes names/email/request JSON from deleted live-v2 app
+attempts. Linked diagnostics lose structured identity and entire message/type
+fields; known embedded identifiers are also detected in unlinked error messages.
+Codes/times remain. Unknown encodings, arbitrary unlinked author text (including
+Tribute), provider mail, logs and backups are not an erasure guarantee or a new
+retention policy. Unsupported legacy immutable requests block completion pending
+investigation/C1 retention preflight. Existing public legacy telemetry/listening
+writers and play counting were not repaired by D9.
+
+Stripe customers, payments, invoices, refunds and other financial records remain.
+App deletion does not immediately invalidate issued media URLs (up to their
+existing expiry). Late candidate callbacks cannot recreate identity or associate
+retained billing with a later same-email account. **Do not expose this candidate
+alongside legacy provisioning/recovery**: C1 must replace that normal composition
+and remove its old recovery paths before operational use.
+
+---
+
 # Isolated Stripe-led slice — 2026-11-01
 
 `PAID_ACCESS_IMPLEMENTATION.md` records the approved local access adapter/cache/veto

@@ -16,6 +16,7 @@ module.exports = function configuration(env = process.env) {
   if (!Number.isInteger(proxyHops) || proxyHops < 0 || proxyHops > 5) throw new Error('Invalid TRUST_PROXY_HOPS');
   return {
     clientOrigin: client.origin, rateSecret: env.AUTH_RATE_LIMIT_SECRET,
+    deletionSupportEmail: env.ACCOUNT_DELETION_SUPPORT_EMAIL || null,
     resendKey: env.RESEND_API_KEY, emailFrom: env.LOGIN_EMAIL_FROM, proxyHops,
     cookieName: secure ? '__Host-rv-session' : 'rv-session-local',
     cookie: { httpOnly: true, secure, sameSite, path: '/' },

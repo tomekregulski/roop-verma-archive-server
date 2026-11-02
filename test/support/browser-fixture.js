@@ -164,6 +164,16 @@ module.exports = async function browserFixture({
           data: { externalId: null, createdAt: new Date(Date.now() - 24 * 3600000) },
         });
       }
+      if (purchaseMode && action === 'owner-login') {
+        let user = await fixture.prisma.user.findUnique({ where: { email: 'owner@example.invalid' } });
+        if (!user) user = await fixture.prisma.user.create({ data: { email: 'owner@example.invalid', firstName: 'Synthetic', lastName: 'Owner', stripeId: null, isAdmin: true } });
+        await fixture.json('auth/login', { email: user.email });
+        res.writeHead(303, { Location: '/open-latest' }).end();
+        return;
+      }
+      if (purchaseMode && action === 'close-subscriptions')
+        for (const sub of fixture.stripe.resources.subscriptions) sub.status = 'canceled';
+      if (action === 'restore-mail') fixture.failMail(false);
       if (action === 'expire-proof') fixture.advance(16 * 60 * 1000);
       if (action === 'expire-session') fixture.advance(8 * 24 * 60 * 60 * 1000);
       if (action === 'revoke')
@@ -191,7 +201,7 @@ module.exports = async function browserFixture({
         'missing-webhook',
         'delayed-webhook',
         'fail-mail',
-        ...(purchaseMode ? ['settle', 'expire-checkout', 'unknown-old'] : []),
+        ...(purchaseMode ? ['settle', 'expire-checkout', 'unknown-old', 'owner-login', 'close-subscriptions', 'restore-mail'] : []),
       ]
         .map(
           (action) =>

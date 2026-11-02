@@ -10,6 +10,11 @@ The isolated access slice is complete; its recorded evidence is **290 synthetic
 and 144 disposable PostgreSQL tests**, not new results from this assessment.
 See [PAID_ACCESS_IMPLEMENTATION.md](PAID_ACCESS_IMPLEMENTATION.md).
 
+The later bounded D9 slice was also authorized and implemented (2026-11-02).
+Current evidence and its retention/configuration boundaries are in the existing
+implementation handoff. Historical owner-control gates below remain scope history;
+C1/runtime/provider/existing-data work is still separately authorized.
+
 ## Recommendation: reuse storage and protections, replace orchestration
 
 Deliver one isolated browser → real local HTTP → disposable PostgreSQL journey

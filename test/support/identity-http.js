@@ -36,9 +36,42 @@ module.exports = async function createIdentityFixture(options = {}) {
   });
   const stripe = options.stripe || require('./billing-provider').provider(calls);
   // Test-only composition. Normal application runtime has no alternate-adapter flag.
-  const billingAdapter = options.billingAdapter?.({ db, stripe, now: () => time });
-  const purchase = options.purchaseAdapter?.({ db, stripe, config: options.billingConfiguration || require('./billing-provider').config,
-    clientOrigin: config.clientOrigin, now: () => time, access: billingAdapter });
+  const billingAdapter = options.billingAdapter?.({
+    db,
+    stripe,
+    now: () => time,
+  });
+  const purchase = options.purchaseAdapter?.({
+    db,
+    stripe,
+    config: options.billingConfiguration || require('./billing-provider').config,
+    clientOrigin: config.clientOrigin,
+    now: () => time,
+    access: billingAdapter,
+  });
+  const notifications = [];
+  const deletion =
+    purchase &&
+    require('../../billing/deletion').createDeletion({
+      db,
+      purchase,
+      clientOrigin: config.clientOrigin,
+      now: () => time,
+      sendNotification: options.noDeletionMail
+        ? null
+        : require('../../identity/mail').createDeletionMailer(
+            { ...config, deletionSupportEmail: 'support@example.invalid' },
+            async (_url, request) => {
+              calls.push('deletion.mail.send');
+              notifications.push(JSON.parse(request.body));
+              if (mailFailure) throw Error('synthetic notification failure');
+              return {
+                ok: true,
+                json: async () => ({ id: 'synthetic-notification-id' }),
+              };
+            }
+          ),
+    });
   let operations;
   const billing = require('../../billing/service').createBilling({
     db,
@@ -71,8 +104,13 @@ module.exports = async function createIdentityFixture(options = {}) {
   let app;
   try {
     Module._load = function (request, ...args) {
-      if (purchase && ['/routes/v1/payments/index.js', '/routes/v1/user/index.js'].some(path => Module._resolveFilename(request, args[0]).endsWith(path)))
-        return originalLoad.call(this, request, ...args).createPurchaseRouter(purchase);
+      if (
+        purchase &&
+        ['/routes/v1/payments/index.js', '/routes/v1/user/index.js'].some((path) =>
+          Module._resolveFilename(request, args[0]).endsWith(path)
+        )
+      )
+        return originalLoad.call(this, request, ...args).createPurchaseRouter(purchase, deletion);
       if (request === '@prisma/client')
         return {
           PrismaClient: class {
@@ -97,7 +135,9 @@ module.exports = async function createIdentityFixture(options = {}) {
       if (Module._resolveFilename(request, args[0]).endsWith('/billing/runtime.js'))
         return {
           stripe,
-          billing: billingAdapter ? { ...billing, processEvent: billingAdapter.processEvent } : billing,
+          billing: billingAdapter
+            ? { ...billing, processEvent: billingAdapter.processEvent }
+            : billing,
           operations,
           readEntitlement,
         };
@@ -141,6 +181,8 @@ module.exports = async function createIdentityFixture(options = {}) {
     billing,
     billingAdapter,
     purchase,
+    deletion,
+    notifications,
     operations,
     readEntitlement,
     advance(ms) {
@@ -152,6 +194,7 @@ module.exports = async function createIdentityFixture(options = {}) {
     async reset() {
       calls.length = 0;
       mail.length = 0;
+      notifications.length = 0;
       warnings.length = 0;
       mailFailure = false;
       time = new Date('2026-10-17T16:00:00Z');
@@ -241,7 +284,9 @@ module.exports = async function createIdentityFixture(options = {}) {
     },
     async close() {
       try {
-        await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+        await new Promise((resolve, reject) =>
+          server.close((error) => (error ? reject(error) : resolve()))
+        );
       } finally {
         restoreEnvironment();
       }

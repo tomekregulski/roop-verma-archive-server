@@ -29,6 +29,8 @@ model User {
   subscriptionActive  String?
   stripeId            String? @unique
   deletionRequestedAt DateTime?
+  deletionRevision    Int @default(0)
+  deletionNotice      String?
   isAdmin             Boolean
   loginProofs         LoginProof[]
   identitySessions    IdentitySession[]
@@ -292,4 +294,7 @@ model BillingOperation {
   externalId  String?
   createdAt   DateTime @default(now())
   completedAt DateTime?
+  deletedAt   DateTime?
+  closureCustomerId String?
+  closureSubscriptionId String?
 }

@@ -1,3 +1,12 @@
+# D9 local handoff — 2026-11-02
+
+The bounded owner-assisted account-deletion slice is implemented in the isolated
+purchase composition. Current behavior, retention edges, support configuration,
+verification and C1 removal inventory: `STRIPE_LED_PURCHASE_IMPLEMENTATION.md`;
+owner checklist: `Operations.md`. 350 synthetic / 214 disposable PostgreSQL checks
+pass; strict schema diagnostic still has the sole known telemetry failure. Normal
+runtime, legacy engine, deployment and real/existing services remain untouched.
+
 # Current backend handoff — isolated D1/D8 purchase, 2026-11-01
 
 The owner authorized `STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md`; that local slice is

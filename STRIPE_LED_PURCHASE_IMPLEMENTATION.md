@@ -1,11 +1,99 @@
-# Isolated D1/D8 implementation — 2026-11-01
+# Isolated purchase and D9 deletion implementation — 2026-11-02
 
 The owner explicitly authorized [STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md](STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md).
 The local slice is implemented. **Normal backend/frontend routes still select the
-old composition. No runtime cutover, owner controls, old-engine removal, real
+old composition. No runtime cutover, old-engine removal, real
 provider action, existing/remote DB access, deployment, restoration, push or merge.**
 D1–D10 policy is unchanged. Temporary coexistence ends only through the bounded,
 separately gated C1 task below; it is not the finished architecture.
+
+## D9 owner-assisted deletion — current local handoff
+
+The owner's bounded D9 brief supersedes older owner-control authorization gates.
+`billing/deletion.js` and `identity/deletion-http.js` extend the same isolated
+candidate factory; the frontend adds `OwnerDeletions` only in the purchase fixture.
+Normal `app.js`, billing/runtime, AppContainer/main and legacy engine remain unchanged.
+No provider/existing database/deployment/commit/push/merge action was performed.
+
+- Reuses User.deletionRequestedAt, BillingCustomer, BillingOperation, the purchase
+  advisory/User row lock, persisted sessions/admin/CSRF/no-store, Resend conventions
+  and existing HTTP/React/disposable-PG fixtures. No new table, worker or dependency.
+- Forward migration `20261102000000_owner_assisted_deletion` adds a request revision
+  (withdraw/re-request ABA protection), notification outcome and explicit attempt
+  deletion/customer/subscription references. It preserves applied migration history.
+- Authenticated requests derive identity from the session, commit an idempotent
+  purchase/association block, then attempt one support notification. Login, trusted
+  Portal and ordinary playback policy continue. No automatic cancellation/refund.
+- Configure `ACCOUNT_DELETION_SUPPORT_EMAIL` explicitly before eventual activation.
+  Existing support is frontend EmailJS (`rvdl_forms`/template), with no backend
+  destination available; no inbox was inferred. The staged Resend factory reuses
+  login sender/key/timeout, reports acceptance only, and is fake in all tests.
+  `attempted`, `uncertain` or `unconfigured` means delivery is unconfirmed. Crash,
+  timeout or final status-write failure can lose notification; repeat pending
+  submissions never resend. There is no guaranteed retry or exactly-once delivery.
+- Owner review enumerates all local owned attempts, including inactive ones and
+  trusted-customer legacy references. Exact Session/customer/subscription reads,
+  immutable ownership/mode validation and actual terminal subscription status
+  supplement Dashboard attestation. Missing IDs, open pages and unsupported legacy
+  attempts remain blockers. Exact owner-supplied Session evidence cannot start a
+  purchase, associate billing, return a hosted URL or grant access.
+- Valid late provider responses/callbacks save Session IDs while pending. Review
+  fingerprints reject mutable local changes; completion rereads exact resources,
+  then rechecks local facts under the same account lock. No provider call holds a
+  DB lock. Stripe and PostgreSQL cannot commit atomically: owner must recheck all
+  Dashboard items immediately before attestation. This is not financial-history
+  discovery or proof against arbitrary concurrent owner/provider mutations.
+- Withdrawal is owner/support-assisted only, works with provider-unavailable review
+  blockers, clears request flags, preserves all ordinary purchase safeguards and
+  never alters Stripe. A new request gets a new revision and notification attempt.
+- Completion atomically tombstones all known customers (including unassociated
+  completed purchases), invalidates cache, tombstones/scrubs live v2 attempt JSON
+  and deletes identity. Tombstoned attempts are rejected before immutable request
+  validation; live attempts keep digest validation. Late/duplicate callbacks cannot
+  recreate identity or adopt old billing after a same-email signup.
+- Cascades revoke every session, proof and CheckoutOwnership; explicit deletion
+  handles legacy Token and individual TrackPlay rows without touching Track.plays.
+  Linked error diagnostics lose identity and entire free-text fields; the scan also
+  detects known email/URL-encoded email, full name and labeled user-ID forms in
+  otherwise unlinked messages. Codes/times remain. This is not a claim to erase
+  arbitrary encodings, unlinked free text, emails, provider records, backups or logs.
+  Tribute.submittedBy/content are unlinked author text, not reliable account
+  ownership; their erasure policy and unrelated old telemetry/listening ingestion
+  remain separate decisions. No play counting or telemetry-schema repair was added.
+- Old/unsupported attempts or unrepresented legacy Checkout ownership fail closed
+  for investigation; we do not scrub their immutable parameters to bypass checks.
+  Existing-data/retention preflight belongs to C1. Difficult unknown outcomes can
+  still require engineering; ordinary new-candidate deletions use the owner UI.
+  Tombstone references have no automatic expiry. Stripe records remain untouched.
+
+Current verification (Node 24.19.0; fake Stripe/mail/media throughout): **350
+synthetic backend tests, 214 disposable PostgreSQL tests, 29 purchase/deletion React
+browser assertions, 23 playback React assertions and 14 frontend unit tests pass**.
+TypeScript (`--noEmit --emitDeclarationOnly false`), changed-source ESLint and
+normal Vite build pass, with existing bundle/browser-data warnings. Strict schema
+assessment remains **6 pass / 1 fail**, solely NetworkError.errorCode nullability;
+it was not fixed or suppressed. Full suite bodies were about 1.2s/7.0s, excluding
+startup/browser/tool waiting; these are not engineer labor measurements.
+
+The real browser journey used fetch/cookies/HTTP/Prisma/disposable PostgreSQL:
+signup/verification → fake purchase → deletion request → reload → Portal → real
+persisted admin login/review → withdrawal → buyer login/new request → fake
+Dashboard subscription closure → owner review/attestation/completion. The focused
+React page separately checks errors, stale confirmation and logout/unmount races.
+Ignored captures: client `test/evidence/deletion-owner-review.png` and
+`deletion-complete.png`. No real provider behavior is established.
+
+`npm run test:billing:local` and `test:purchase:local` now include D9; the existing
+compatible runtime/EMBEDDED_POSTGRES_MODULE instructions below apply. The prior-
+schema upgrade fixture explicitly excludes the new migration and inserts only
+historical User columns, preserving mismatch/retention assertions.
+
+D9's authorized **7–10 active engineer hours** was a planning estimate, superseding
+older 3–5h D9 guesses; labor was not clocked. No broader recovery/admin/financial
+scope was added. Remaining separately authorized billing planning is C1 **3–5h**
+and real provider setup/verification **2–4h** (5–9h combined), excluding media,
+deployment and existing-data exceptions. The quarterly-maintenance goal remains
+unvalidated until C1 eliminates the parallel old engine and operations are exercised.
 
 ## What changed and what was reused
 
@@ -176,14 +264,16 @@ are unchanged. The normal-route 404 test plus legacy regression cover the gate.
 
 ## Exact remaining work and removal
 
-1. **D9 controls, separately authorized, estimated 3–5 active engineer hours:**
-   authenticated deletion request, protected owner list/completion and checklist.
-   Reuse the account guard and retained owned attempt. In-flight/unknown purchases
-   must be resolved during owner closure; no automatic closure/entitlement editor.
-   No owner-facing control was implemented here.
+1. **D9 local controls are implemented above.** Owner support destination and real
+   provider verification remain activation dependencies; unknown legacy outcomes
+   remain explicit investigation blockers.
 2. **C1 local cutover/removal, separately authorized, estimated 3–5h after D9:**
-   select these handlers/access adapter in the existing normal runtime/routes and
-   frontend wrappers; remove the temporary legacy branches. Delete old
+   select purchase/deletion/access factories in the existing normal runtime/routes
+   and candidate frontend wrappers (including the protected owner route); compose
+   the staged Resend deletion adapter with an owner-supplied support destination.
+   Apply required forward migrations only under separate existing-DB authorization;
+   generated clients must not read new columns before that migration. Remove the
+   temporary legacy branches and old provisioning/recovery before exposing D9. Delete old
    `billing/service.js`, `operations.js`, `reader.js`, `reconcile.js`, reconciliation
    CLI/command; prune `evidence.js` to actual small shared helpers. Remove obsolete
    payment-method/resubscribe/creation GET/receipt-log APIs and duplicate ownership.
@@ -203,8 +293,8 @@ are unchanged. The normal-route 404 test plus legacy regression cover the gate.
    retirement, expiry/streaming/player integration, deployment and restoration
    remain outside this slice and are not included in those billing estimates.
 
-Remaining billing transition planning is thus **8–14 active engineer hours** for
-D9 + C1 + provider verification, excluding completed slices and deployment/delivery
+Remaining billing transition planning is now **5–9 active engineer hours** for
+C1 + provider verification, excluding completed slices and deployment/delivery
 work. Owner participation is separately about 1–2.5h for walkthrough/checklists/
 settings. The authorized 7–10h for this slice was a planning estimate; engineer
 labor was not clocked, and test/tool/browser waiting is not continuous engineer

@@ -8,6 +8,19 @@
 - Owner confirms Heroku backend/PostgreSQL and Cloudinary audio. Frontend at `../roop-verma-archive-client` is authorized only for the isolated D1/D8 scope described below; normal frontend routing/runtime cutover remains gated. Intended UX is magic-email login and Stripe-hosted Checkout/Billing Portal with one monthly tier. Refresh tokens are not implemented in the reviewed flow; do not assume they exist.
 - Read `BACKEND_BASELINE.md` for confirmed risks, open deployment questions, and the proposed next session. Keep findings distinct from assumptions.
 
+## D9 local update — 2026-11-02
+
+Owner explicitly authorized the bounded isolated D9 request/list/review/withdraw/
+completion slice. It is implemented; current evidence and exact C1 work are in
+`STRIPE_LED_PURCHASE_IMPLEMENTATION.md`, owner checklist in `Operations.md`.
+350 synthetic / 214 disposable PG / 29 purchase-deletion React / 23 player React /
+14 frontend unit checks pass. Strict telemetry drift remains 6 pass / 1 fail.
+Existing support exposes no backend recipient: configure the staged
+ACCOUNT_DELETION_SUPPORT_EMAIL later. Unknown legacy attempts stay blocked for
+investigation. Normal runtime/frontend cutover, old-engine/schema removal, real
+providers/existing databases, deployment, commits/push/merge remain unauthorized.
+Older owner-control gates below are superseded only for this local D9 slice.
+
 ## Current billing implementation — 2026-11-01
 
 - Owner explicitly authorized and the session completed the isolated D1/D8 scope

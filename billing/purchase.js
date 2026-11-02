@@ -2,6 +2,7 @@
 const { randomUUID, createHash } = require('node:crypto');
 const { API_VERSION, id, check, stripeDate, subscriptionIssue, subscriptionEnded } = require('./evidence');
 const { failure, registrationInput } = require('../identity/service');
+const { lockAccount } = require('../identity/account-lock');
 const canonical = (v) =>
   Array.isArray(v)
     ? v.map(canonical)
@@ -75,14 +76,13 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
     binding?.deletedAt ||
     binding?.stripeDeletedAt;
   async function locked(tx, userId) {
-    await lock(tx, key(userId));
-    // Also serialize with ordinary User updates/deletion that do not use our advisory lock.
-    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+    await lockAccount(tx, userId);
     return current(tx, userId);
   }
   function trusted(operation) {
     check(
       operation?.kind === 'checkout' &&
+        !operation.deletedAt &&
         operation.parameters?.version === 2 &&
         operation.digest === digest(operation.parameters),
       'PURCHASE_PARAMETERS'
@@ -161,25 +161,51 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
       'PURCHASE_SESSION'
     );
   }
+  // Save validated exact evidence even for inactive/pending-deletion attempts.
+  // A hosted page already issued by Stripe survives our local purchase block.
+  async function evidence(tx, operation, session) {
+    await lockAccount(tx, operation.userId);
+    const saved = await tx.billingOperation.findUnique({
+      where: { id: operation.id },
+    });
+    if (
+      !saved ||
+      saved.deletedAt ||
+      !saved.userId ||
+      !(await tx.user.findUnique({ where: { id: operation.userId } }))
+    )
+      return { result: help('account_deleted', operation) };
+    check(saved.userId === operation.userId, 'PURCHASE_OWNERSHIP');
+    validateSession(saved, session);
+    if (!saved.externalId)
+      await tx.billingOperation.update({
+        where: { id: saved.id },
+        data: { externalId: session.id },
+      });
+    const state = await current(tx, operation.userId);
+    return {
+      saved,
+      state,
+      result: blocked(state) ? help('deletion_pending', saved) : null,
+    };
+  }
   async function remember(operation, session) {
     return db.$transaction(async (tx) => {
-      const state = await locked(tx, operation.userId);
-      if (blocked(state)) return help('deletion_pending', operation);
-      const saved = await tx.billingOperation.findUnique({ where: { id: operation.id } });
-      check(
-        saved?.userId === operation.userId &&
-          saved.activeKey === key(operation.userId) &&
-          (!saved.externalId || saved.externalId === session.id),
-        'PURCHASE_CHANGED'
-      );
+      const { result, saved } = await evidence(tx, operation, session);
+      if (result) return result;
+      check(saved.activeKey === key(operation.userId), 'PURCHASE_CHANGED');
       if (saved.state !== 'pending') return answer('pending', 'refresh_account', saved);
-      await tx.billingOperation.update({ where: { id: saved.id }, data: { externalId: session.id } });
-      check(typeof session.url === 'string' && new URL(session.url).protocol === 'https:', 'PURCHASE_URL');
+      check(
+        typeof session.url === 'string' && new URL(session.url).protocol === 'https:',
+        'PURCHASE_URL'
+      );
       return answer('pending', 'checkout_open', saved, { url: session.url });
     });
   }
   async function associate(operation, session) {
     validateSession(operation, session);
+    const recorded = await db.$transaction((tx) => evidence(tx, operation, session));
+    if (recorded.result) return recorded.result;
     if (session.status !== 'complete') return answer('pending', 'checkout_unfinished', operation);
     if (session.payment_status === 'unpaid') return answer('pending', 'payment_pending', operation);
     const lines = session.line_items;
@@ -206,8 +232,8 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
       'PURCHASE_PLAN'
     );
     return db.$transaction(async (tx) => {
-      const state = await locked(tx, operation.userId);
-      if (blocked(state)) return help('deletion_pending', operation);
+      const { state, result } = await evidence(tx, operation, session);
+      if (result) return result;
       const saved = await tx.billingOperation.findUnique({ where: { id: operation.id } });
       if (!saved || saved.userId !== operation.userId || saved.activeKey !== key(operation.userId))
         return help('stale_attempt', operation);
@@ -255,6 +281,8 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
     validateSession(operation, session);
     if (session.status === 'complete') return associate(operation, session);
     if (session.status === 'open') return remember(operation, session);
+    const recorded = await db.$transaction((tx) => evidence(tx, operation, session));
+    if (recorded.result) return recorded.result;
     // An expired session should not have a billable subscription; check any exact ID anyway.
     if (session.subscription) {
       const sub = await provider(() => stripe.subscriptions.retrieve(id(session.subscription)));
@@ -270,7 +298,10 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
   }
   async function account(userId) {
     const state = await current(db, userId);
-    if (blocked(state)) return answer(state.user.stripeId ? 'manage' : 'help', 'deletion_pending');
+    if (blocked(state))
+      return answer(state.user.stripeId ? 'manage' : 'help', 'deletion_pending', null, {
+        requestedAt: state.user.deletionRequestedAt, notification: state.user.deletionNotice,
+      });
     const operation = await db.billingOperation.findUnique({ where: { activeKey: key(userId) } });
     if (operation?.state === 'pending') return inspect(operation);
     const sub = await selected(state.binding);
@@ -398,7 +429,7 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
     const operation =
       typeof object.metadata?.billing_operation === 'string' &&
       (await db.billingOperation.findUnique({ where: { id: object.metadata.billing_operation } }));
-    if (!operation || operation.kind !== 'checkout' || !operation.userId) return;
+    if (!operation || operation.deletedAt || operation.kind !== 'checkout' || !operation.userId) return;
     if (!(await db.user.findUnique({ where: { id: operation.userId } }))) return;
     trusted(operation);
     const session = await provider(() =>
@@ -413,6 +444,17 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
     confirm: safe(confirm),
     portal: safe(portal),
     processEvent: safe(processEvent),
+    // Internal composition seam, never request-selected. D9 reuses ownership validation.
+    deletionChecks: {
+      trusted,
+      validateSession,
+      retrieve,
+      provider,
+      settings,
+      customer: (customerId) => stripe.customers.retrieve(customerId),
+      subscription: (subId) => stripe.subscriptions.retrieve(subId),
+      session: (exactId) => stripe.checkout.sessions.retrieve(exactId, { expand: ['line_items'] }),
+    },
   };
 }
-module.exports = { createPurchase };
+module.exports = { createPurchase, digest, cleared, sessionId };

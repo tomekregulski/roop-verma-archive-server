@@ -13,6 +13,9 @@ module.exports = function memoryDatabase(calls) {
       'paidInvoiceGrant',
       'stripeEventReceipt',
       'billingOperation',
+      'token',
+      'trackPlay',
+      'networkError',
     ].map((name) => [name, []])
   );
   let failSession = false;
@@ -20,6 +23,7 @@ module.exports = function memoryDatabase(calls) {
     Object.entries(where).every(([key, value]) => {
       if (key === 'OR') return value.some((condition) => matches(row, condition));
       if (value && typeof value === 'object' && !(value instanceof Date)) {
+        if ('not' in value) return row[key] != value.not;
         if ('in' in value) return value.in.includes(row[key]);
         if ('gt' in value) return row[key] > value.gt;
         if ('lt' in value) return row[key] < value.lt;
@@ -28,7 +32,7 @@ module.exports = function memoryDatabase(calls) {
             ? row[key].toLowerCase() === value.equals.toLowerCase()
             : row[key] === value.equals;
       }
-      return row[key] === value;
+      return value instanceof Date ? row[key]?.getTime() === value.getTime() : row[key] === value;
     });
   const db = {
     tables,
@@ -44,6 +48,9 @@ module.exports = function memoryDatabase(calls) {
         return fn(args);
       };
     const defaults = (data) => ({
+      ...(['token', 'trackPlay', 'networkError'].includes(name)
+        ? { id: Math.max(0, ...tables[name].map((r) => r.id || 0)) + 1 }
+        : {}),
       ...(name === 'loginProof' ? { delivered: false, consumedAt: null } : {}),
       ...(name === 'identitySession' ? { revokedAt: null } : {}),
       ...(name === 'billingCustomer'
@@ -66,10 +73,32 @@ module.exports = function memoryDatabase(calls) {
           }
         : {}),
       ...(name === 'stripeEventReceipt'
-        ? { outcome: 'pending', attempts: 0, receivedAt: new Date(), errorCode: null }
+        ? {
+            outcome: 'pending',
+            attempts: 0,
+            receivedAt: new Date(),
+            errorCode: null,
+          }
         : {}),
-      ...(name === 'billingOperation' ? { state: 'pending', createdAt: new Date(), externalId: null } : {}),
-      ...(name === 'user' ? { stripeId: null, deletionRequestedAt: null, id: Math.max(0, ...tables.user.map((u) => u.id || 0)) + 1 } : {}),
+      ...(name === 'billingOperation'
+        ? {
+            state: 'pending',
+            createdAt: new Date(),
+            externalId: null,
+            deletedAt: null,
+            closureCustomerId: null,
+            closureSubscriptionId: null,
+          }
+        : {}),
+      ...(name === 'user'
+        ? {
+            stripeId: null,
+            deletionRequestedAt: null,
+            deletionRevision: 0,
+            deletionNotice: null,
+            id: Math.max(0, ...tables.user.map((u) => u.id || 0)) + 1,
+          }
+        : {}),
       ...data,
     });
     const change = (row, data) => {
@@ -96,7 +125,9 @@ module.exports = function memoryDatabase(calls) {
         return row
           ? structuredClone({
               ...row,
-              ...(include?.user ? { user: tables.user.find((u) => u.id === row.userId) || null } : {}),
+              ...(include?.user
+                ? { user: tables.user.find((u) => u.id === row.userId) || null }
+                : {}),
               ...(include?.subscriptions
                 ? {
                     subscriptions: tables.subscription
@@ -156,7 +187,11 @@ module.exports = function memoryDatabase(calls) {
     };
   }
   db.$queryRaw = async (_strings, key, expiresAt, ceiling) => {
-    if (_strings.join('').includes('pg_advisory_xact_lock') || _strings.join('').includes('FOR UPDATE')) return [];
+    if (
+      _strings.join('').includes('pg_advisory_xact_lock') ||
+      _strings.join('').includes('FOR UPDATE')
+    )
+      return [];
     calls.push('rateLimit.increment');
     let row = tables.identityRateLimit.find((row) => row.key === key);
     if (!row) {

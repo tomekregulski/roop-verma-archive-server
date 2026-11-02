@@ -1,6 +1,6 @@
 # Stripe-led policy decision review
 
-Current status: **D1–D10 approved; both isolated local slices implemented**.
+Current status: **D1–D10 approved; three isolated local slices implemented**.
 See `STRIPE_LED_PURCHASE_IMPLEMENTATION.md`. Further work and operational/provider
 actions remain separately gated. The review procedure/history below records the
 original proposals; table statuses are authoritative.
@@ -28,7 +28,13 @@ brief remains separately subject to authorization.
 | D8 Multiple subscriptions | Approved | One intended ongoing subscription per account. Preserve ordinary duplicate-purchase safeguards, reuse unfinished Checkout attempts, and direct existing subscribers to billing management. Access follows one securely associated subscription; no stacking time. Unexpected duplicates require owner cancellation/refund through Dashboard/support rather than automatic historical classification/repair. No instant duplicate alert is assumed; ambiguous associations may require engineering. |
 | D9 Account deletion | Approved | Explicit owner-assisted account deletion is separate from self-service subscription cancellation, which leaves the app account intact. Authenticated deletion requests block new purchases while preserving login/Portal until billing closure. Owner follows a Stripe closure checklist, then uses a minimal protected owner-facing completion control to delete app identity/revoke sessions and prevent late Checkout recreation. No routine engineer-run deletion; completion control must be included in transition scope. Deletion is not immediate and does not automatically erase Stripe financial records. Response time, user messaging, and applicable retention/legal requirements require follow-up; no response-time value has been approved. |
 | D10 Stripe availability | Approved | Shared PostgreSQL access cache, fresh for at most 15 minutes from before provider reads and never beyond the verified paid-period end; no sliding freshness or stale-on-error extension. Validate identity/current binding on every evaluation. A terminal cancellation veto for the selected subscription overrides cached access and cannot be cleared by stale events or in-flight fills; old-subscription events cannot block a replacement. Cold/expired caches cannot authorize during Stripe outages; DB outages also fail closed. Missed cancellation notifications may allow issuance for up to 15 minutes after effective cancellation, with issued URLs then usable for up to another two hours. Provider cancellation delay is additional. Approves the D10 design, not implementation or provider changes. |
-| Transition effort and implementation scope | Two isolated local slices authorized and implemented; further transition pending | Owner authorized the paid-access first slice and subsequently `STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md` for local D1/D8 backend/frontend implementation, reusing code/storage and preserving normal runtime. Evidence: `STRIPE_LED_PURCHASE_IMPLEMENTATION.md`. The 7–10h D1/D8 estimate is not a hard limit or operational rollout approval. No cutover, owner controls, old-engine/schema removal, real provider/existing DB action, deployment, restoration, push or merge. |
+| Transition effort and implementation scope | Three isolated local slices authorized and implemented; C1/provider transition pending | Paid access, D1/D8 purchase and the bounded D9 owner-assisted controls are implemented locally. Evidence: `STRIPE_LED_PURCHASE_IMPLEMENTATION.md`. D9's 7–10h estimate was planning, not a hard cutoff or operational rollout approval. Normal cutover, old-engine/schema removal, real provider/existing DB action, deployment, restoration, commit/push/merge remain gated. |
+
+D9's bounded local implementation was subsequently authorized and completed on
+2026-11-02. The request/owner completion controls and approved deletion/retention
+rules are recorded in `STRIPE_LED_PURCHASE_IMPLEMENTATION.md` and `Operations.md`.
+This supersedes owner-control gates in the older transition row only for that
+isolated slice; C1/runtime/provider/existing-data actions remain separately gated.
 
 ## Decision history
 
