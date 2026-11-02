@@ -1,4 +1,211 @@
-# Current backend handoff — local playback authorization, 2026-10-28
+# Current backend handoff — isolated D1/D8 purchase, 2026-11-01
+
+The owner authorized `STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md`; that local slice is
+implemented. Read [STRIPE_LED_PURCHASE_IMPLEMENTATION.md](STRIPE_LED_PURCHASE_IMPLEMENTATION.md)
+for file/contract boundaries, reproduction, browser observations, request counts,
+remaining dependencies and the bounded C1 removal inventory. Verified account-first
+signup and owned Checkout now supply the unchanged access adapter's trusted binding
+in isolated browser/HTTP/disposable-PostgreSQL composition, without seeding it.
+Existing attempt storage and identity protections were reused; no new ledger/table.
+
+Verification: **323 synthetic / 183 PostgreSQL tests**, **15 purchase / 23 player
+React browser assertions**, and **14 frontend unit tests** pass. TypeScript,
+changed-source ESLint, normal build, Prisma validation, 162 JS syntax checks and
+diff whitespace pass. Separate schema diagnostic remains **6 pass / 1 fail** only
+for the known NetworkError.errorCode nullability mismatch. Providers/mail/media
+are fake; actual Stripe, streaming and deployed behavior remain unverified.
+
+Normal backend/frontend routing and runtime still select the old composition.
+No owner controls, old-engine/schema removal, real provider/existing/remote DB
+action, deployment, restoration, push or merge. Existing migrations and lockfiles
+preserved. Remaining billing estimate: 8–14 active engineer hours for separately
+approved D9 controls, C1 cutover/removal (depends on D9), and real provider checks;
+owner time, unattended execution and unrelated delivery work are separate.
+No further implementation is authorized by this completed slice.
+
+---
+
+# Previous scoping handoff — D1/D8 refactoring proposal, 2026-11-01
+
+Read [STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md](STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md).
+The owner requested a proposal before further implementation, with reuse,
+replacement and final removal made explicit. The proposal reuses identity,
+BillingOperation, current binding/cache and existing test/browser tools; it
+does not add a purchase ledger or generic recovery subsystem. Next local slice:
+7–10 active engineer hours for an isolated verified signup/owned Checkout journey
+that supplies the new adapter's trusted binding. Separately gated C1 cutover and
+removal is bounded at 3–5h after owner controls; remaining transition planning is
+15–24h including that slice, D9 controls, consolidation and real provider checks.
+Owner time and unattended execution are separate. These are estimates, not
+authorization, measured labor or a commitment to a maintenance outcome.
+
+Documentation only: existing application/schema/tests/provider settings and
+normal runtime were preserved. No new test run; 290/144 below is prior access
+evidence. No frontend implementation, provider/existing DB access, migrations,
+deployment, restoration, push or merge. Policies D1–D10 are not reopened.
+
+---
+
+# Completed backend handoff — isolated Stripe-led access, 2026-11-01
+
+Owner approved D1–D10 and authorized only `STRIPE_LED_FIRST_IMPLEMENTATION.md`.
+That local slice is implemented: `billing/paid-period.js` qualifies one current
+positive paid invoice, and `billing/paid-access.js` supplies the 15-minute shared
+cache and terminal cancellation veto. Read
+[PAID_ACCESS_IMPLEMENTATION.md](PAID_ACCESS_IMPLEMENTATION.md) for code map,
+reproduction, GET counts, evidence limits and remaining integration dependencies.
+
+Verification: 290 synthetic tests pass; 144 full disposable PostgreSQL tests pass.
+Separate strict schema diagnostic remains 6 pass / 1 fail solely for the known
+NetworkError.errorCode nullability mismatch, unchanged and unsuppressed. Prisma
+validation, 155 JS syntax checks, formatting and diff whitespace pass. Fake Stripe,
+mail and media; real PostgreSQL/Prisma. Cold issuance uses two GETs, hot/shared
+reuse zero additional, canceled refresh one. No provider behavior/latency proof.
+
+Only test composition selects the new adapter. Existing frontend, controllers,
+playback runtime/service, old billing engine/migrations and lockfile are unchanged
+from the pre-slice snapshot. New forward migration adds nullable selection/cache
+fields and constraints, with no selection backfill; applied only in new disposable
+schemas. No real provider, existing/remote DB, runtime cutover, signup rewiring,
+owner controls, old-engine removal, deployment, restoration, push or merge.
+Stop here; remaining transition/integration work needs separate authorization.
+
+---
+
+# Previous backend handoff — Stripe-led assessment, 2026-11-01
+
+Subsequent policy review: **D1–D9 approved; D10 and implementation pending**.
+`STRIPE_LED_DECISIONS.md` is authoritative. Read
+[STRIPE_LED_D10_RECOMMENDATION.md](STRIPE_LED_D10_RECOMMENDATION.md) for the bounded
+options comparison, rolling read-allocation calculations and revised estimate.
+Recommendation only: 15-minute maximum shared PostgreSQL cache clipped to the
+paid period, no stale-if-error extension, and a selected-subscription terminal
+cancellation veto. No financial ledger or routine reconciliation. Required
+transition estimate: 14–23 active engineer hours, with owner time and unattended
+execution separated. [First-slice draft](STRIPE_LED_FIRST_IMPLEMENTATION.md) is a
+4–6h subset, with explicit dependencies/exclusions and no normal-runtime cutover.
+This documentation review changed no application/schema/test/provider settings;
+earlier verification results do not validate the proposed replacement.
+
+The initial assessment handoff follows; its direct-check preference and 20–36h
+estimate are superseded by the D10 report above.
+
+---
+
+Implementation is paused for architecture/policy review. Read
+[STRIPE_LED_ASSESSMENT.md](STRIPE_LED_ASSESSMENT.md) for the recommendation,
+D1–D10 policy decision table, current-source adjacent-work audit, owner/engineer
+duties and transition effort. Target: zero routine engineering hours most months,
+approximately five hours per quarter or less. Proposed replacement: owned Checkout,
+Portal and request-time Stripe subscription/paid-invoice checks rather than a local
+financial grant/history/recovery engine. Policy and availability changes need
+explicit agreement before implementation.
+
+Assessment used public official Stripe documentation and local source only.
+Application code, schema/migrations, tests, dependencies and frontend are intact;
+earlier test results below were not rerun and do not validate the alternative.
+No real provider calls, remote data, configuration, deployment or restoration.
+
+---
+
+# Previous backend handoff — billing readability and simplification, 2026-11-01
+
+The approved local billing-to-playback flow remains implemented. The owner
+requested a simplification and human-readable pass over these uncommitted changes.
+Start with [BILLING_API.md](BILLING_API.md): it now contains the flow diagram,
+file map, policy table and transaction boundaries. [Operations.md](Operations.md)
+contains the repair procedure; [test/README.md](test/README.md) is the source for
+current commands/results. Older dated entries below are historical.
+
+Simplified the implementation without changing policy, schema, dependency/API
+versions or delivery scope:
+
+- Replaced the recursive Stripe proxy with an explicit bounded-request function.
+- Shared conflict retries, complete billing-state reads, Checkout end checks and
+  the ownership/operation commit used by normal requests and recovery.
+- Removed a redundant Checkout history scan during fresh idempotent creation.
+- Split synchronization into named snapshot/admission/invoice/transaction steps;
+  expanded abbreviated names, nested expressions and compressed statements.
+- Reused one configured Stripe client across controllers and removed duplicate
+  validation already enforced by the ownership middleware.
+- Consolidated repeated documentation. No new queue/framework/dependency or
+  feature shutdown was introduced. The remaining custom policy is still substantial;
+  this pass reduces duplication and obscurity, not the agreed lifecycle scope.
+
+All earlier lifecycle/security assertions remain. Two focused request-budget
+checks were added. Synthetic Stripe/mail/media are separate from real disposable
+PostgreSQL/Prisma evidence. The strict telemetry nullability diagnostic remains
+visible and failing; no billing schema drift or historical migration repair.
+The billing migration received whitespace-only readability changes.
+
+No real provider calls, production/existing/remote data, infrastructure changes,
+frontend implementation, deployment, restoration, push or merge occurred.
+Named Stripe test-mode validation, daily reconciliation operation/lag acceptance,
+private storage/signing, legacy public-URL retirement and deployed behavior remain
+separate prerequisites. Service restoration stays deferred. Local checks establish
+no live billing correctness, media protection or beta readiness.
+
+---
+
+# Current backend handoff — billing entitlement design, 2026-11-01
+
+Owner-approved design-only checkpoint: read [BILLING_ENTITLEMENT_DESIGN.md](BILLING_ENTITLEMENT_DESIGN.md)
+for the current-flow/code evidence, payment qualification, event/access table,
+minimal schema proposal, transaction/retry/ordering protocol, reconciliation,
+test matrix and phased implementation contract. No application, dependencies,
+schema or migration files changed; no tests/migrations or provider calls were run.
+Public official Stripe documentation was checked. No remote DB queries, customer
+data, credentials, purchases, deployment, restoration, push or merge occurred.
+
+Confirmed: legacy billing stores status strings and placeholder price/product
+fields, with no invoice handling, paid-period evidence, event ledger or recovery.
+Subscription writes can partially fail, swallowed errors can still acknowledge,
+and delayed subscription deletion targets the user rather than the exact old
+subscription. Local account deletion can leave external billing running. Existing
+signature/identity tests and synthetic playback grants do not prove synchronization.
+
+Locked Stripe 17.5.0 defaults outgoing requests to 2024-12-18.acacia; application
+constructors set no override. Account/webhook payload versions remain unknown
+and independent of that SDK default. No upgrade or remote version change is proposed.
+
+Agreed authority: retrieved settled invoice + successful associated payment +
+the approved recurring line's original service period, persisted as individual
+invoice-backed grants. Three proposed new tables (customer binding/revision,
+grant evidence, event receipt), adapting Subscription to retain history. One
+shared synchronizer serves signed events and an explicit reconciliation CLI;
+optimistic customer revision and atomic writes prevent local stale overwrites.
+No queue or new hosting service. Playback reads only local qualified evidence.
+The existing `paidAt` predicate proves neither settlement nor revocation; its
+post-mapping time check also needs a fresh entitlement read once revocations exist.
+
+Owner-approved additions this session: no trials/zero-cost grants or grace;
+full refund/open or lost dispute revokes the affected period, partial refunds
+require review; immediate cancellation preserves paid coverage. Owner also approved
+one ongoing subscription: prevent a second, preserve established legitimate paid
+access on unexpected duplicates, review them without stacking time. Account deletion
+requires confirmed closure of every subscription and all future billing; keep the
+account available while closure is pending. Partial refunds preserve remaining
+original access during review unless independently disqualified. A won/withdrawn
+dispute restores only original unexpired coverage after fresh payment/refund
+verification, with no added time and other invalidations respected.
+The owner approved the model and first-task plan as the final design checkpoint
+on 2026-11-01, excluding credits, discounts, trials, plan changes and unsupported
+billing arrangements. No initial-scope policy questions remain open. These rules
+are not implemented; approval does not authorize implementation/provider actions.
+
+First implementation task: for an already provisioned verified fixture account,
+signed qualifying invoice -> durable PostgreSQL grant -> real entitlement adapter
+-> subscriber issuance with fake delivery. Include duplicate/concurrent replay,
+rollback/recovery, reconciliation and approved lifecycle boundaries. Synthetic
+Stripe fixtures verify decisions; disposable PostgreSQL is required for atomicity,
+constraints and migration rehearsal; actual Stripe test-mode verification needs
+separate explicit authorization. No implementation is authorized by this note.
+
+Service restoration remains deferred. Billing correctness, live private media,
+deployed behavior and the existing schema/recovery blockers remain unverified.
+The dated implemented-playback evidence below retains its original scope.
+
+# Prior backend handoff — local playback authorization, 2026-10-28
 
 **Local stopping point reached:** playback access decisions and temporary-URL
 issuance boundaries are implemented and tested, with the sibling frontend

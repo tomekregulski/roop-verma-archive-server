@@ -1,3 +1,110 @@
+# Current verification — isolated D1/D8 purchase, 2026-11-01
+
+Read [STRIPE_LED_PURCHASE_IMPLEMENTATION.md](../STRIPE_LED_PURCHASE_IMPLEMENTATION.md)
+for reproduction, GET/POST counts, schema/fixture limits and remaining gates.
+Normal runtime/routes remain on the old composition; no real provider action.
+
+- Backend `node --test test/*.test.js`: **323 pass**.
+- `npm run test:billing:local`: **183 pass** in a new disposable PostgreSQL cluster,
+  including identity, legacy billing, paid access and purchase. Set the optional
+  `EMBEDDED_POSTGRES_MODULE` as described below; use Node 24.19.0.
+- `npm run test:purchase:local`: smaller identity + purchase subset; guarded
+  `test:purchase:db` accepts only the explicit disposable loopback test database.
+- Frontend `node --test test/*.test.cjs`: **14 pass**; TypeScript, changed-source
+  ESLint and Vite build pass. Existing build size/browser-data-age warnings remain.
+- Frontend `node test/browser-harness.mjs --purchase`: explicit test-only candidate,
+  real HTTP/cookies/Prisma/disposable PostgreSQL, fake mail/Stripe/media. Signup,
+  abandon/reload/resume, pending return, confirmation, playback eligibility,
+  Portal, expired retry and unresolved/help were driven through the browser.
+- `/test/purchase-ui-browser.html`: **15 focused React assertions pass** with an
+  Axios double. `/test/playback-browser.html`: **23 existing assertions pass**.
+  These pages complement the real HTTP journey; no headless E2E runner was added.
+- Prisma validate, **162** backend JS syntax checks, new/refactored module formatting
+  and diff whitespace pass. Separate strict schema assessment: **6 pass / 1 fail**,
+  only the retained pre-existing telemetry nullability mismatch.
+
+The owned-attempt concurrency regression is deterministic across two Prisma clients:
+a delayed unknown-outcome read cannot replace an attempt whose Session ID was just
+persisted. Provider success/write failure, association rollback, pending deletion,
+stale completion, uniqueness and old-cache replacement races also use PostgreSQL.
+No purchase business journey seeds the selected binding. SQL/fixture upgrade tests
+preserve earlier data/security assertions and applied migration history.
+
+---
+
+# Previous verification — isolated Stripe-led access, 2026-11-01
+
+Owner-authorized first slice only; no normal-runtime cutover. See
+[PAID_ACCESS_IMPLEMENTATION.md](../PAID_ACCESS_IMPLEMENTATION.md) for code/contract,
+observed GET counts and remaining dependencies. D1–D10 policy approval is recorded
+in `STRIPE_LED_DECISIONS.md`; broader implementation is not authorized.
+
+- Full synthetic suite: **290 pass**, retaining earlier 246 plus 44 new access cases.
+- `npm run test:billing:local`: **144 pass** with real disposable PostgreSQL: earlier
+  91 plus the same 44 cases and nine new SQL/independent-client checks.
+- `npm run test:paid-access:local`: runs identity plus the isolated access DB suite
+  in a new cluster; `test:paid-access:db` runs only that suite on an explicitly
+  guarded disposable local DB. Set `EMBEDDED_POSTGRES_MODULE` as described below.
+- Separate `assess:schema:local`: **6 pass, 1 fail**, solely existing telemetry
+  nullability drift, unchanged/unsuppressed. Prisma validate, 155 JS syntax checks,
+  changed-file formatting and diff whitespace pass.
+
+The new adapter runs through actual HTTP playback and raw-body signature verification,
+using fake Stripe resources and media. Independent DB clients prove veto/selection/
+deletion races and stale-fill safety. It writes no financial grants or event ledger.
+Existing legacy-policy tests remain scoped to the retained old engine. None of
+these local results establish real Stripe behavior, private delivery or launch readiness.
+
+---
+
+# Previous backend verification — 2026-11-01
+
+Use Node **24.19.0**, locked Stripe **17.5.0** / request API
+**2024-12-18.acacia**, Prisma **4.12.0**, and generated Prisma client.
+The billing readability pass keeps every earlier lifecycle/security assertion.
+Current results supersede the dated counts below:
+
+| Command/check | Result | What it establishes |
+| --- | --- | --- |
+| `npm test` | **246 pass** | Full synthetic regression: the 166 earlier checks, 78 billing lifecycle cases, and two explicit request-budget checks |
+| `npm run test:billing:local` | **91 pass** | Real disposable PostgreSQL 18.4: the same 78 billing cases, seven SQL/CLI/migration checks, six identity checks |
+| `npm run assess:schema:local` | **6 pass, 1 fail** | Separate strict diagnostic retains only existing NetworkError.errorCode nullability drift |
+| Prisma validate, JavaScript syntax, diff check | Pass | Local validation; no service startup or real provider calls |
+
+`test/support/billing-cases.js` is shared by the memory and PostgreSQL suites.
+It exercises signed events through the actual Express verifier/controller,
+current-resource qualifier, transaction path and persisted entitlement reader,
+then playback with a verified session and recording fake delivery. Fixtures supply
+Stripe resources, never an entitlement result. PostgreSQL uses real catalog,
+identity, billing and ownership rows. Memory serialization is not database evidence;
+fake financial resources do not establish actual Stripe semantics.
+
+Read the case names for payment rejection, duplicate/concurrent delivery, stale
+fetch/refund and deletion races, rollback/retry, resumable repair, original-period
+boundaries, cancellation, refund/dispute restoration, duplicate subscriptions,
+registration/Checkout operation recovery, tombstones, mode/ownership corruption,
+public playback, no signer on denial, and version/body/signature rejection.
+PostgreSQL-only cases add competing clients, real SQL write failures, constraints,
+offline CLI inspect/apply, full migration replay, prior-schema upgrade/redeploy
+and legacy association refusal. The replacement request limiter has explicit
+call-count/failure and elapsed-time tests in `billing-budget.test.js`.
+
+The optional tool setup below still applies: set `EMBEDDED_POSTGRES_MODULE` to its
+absolute `dist/index.js`, then run `npm run test:billing:local`. The runner starts,
+stops and removes a fresh loopback cluster. Alternatively, `test:billing:db` accepts
+only the explicitly guarded disposable local `rvdl_identity_test` database via
+`TEST_DATABASE_URL`. No suite loads `.env` or real provider credentials. Existing
+CI retains its identity DB command; run the expanded billing DB command explicitly.
+
+The separate strict schema assertion is unchanged and failing. A passing billing
+schema-diff boundary check does not replace or mute it. Real provider/financial
+behavior, hosted CI execution, private media, public-URL retirement and deployed
+behavior remain unverified. See [BILLING_API.md](../BILLING_API.md) for the reader's
+guide and [Operations.md](../Operations.md) for repair. No restoration or readiness
+claim follows from these local results.
+
+---
+
 # Playback regression update — 2026-10-28
 
 Pinned Node 24.19.0: `node --test test/*.test.js` (same command as `npm test`):

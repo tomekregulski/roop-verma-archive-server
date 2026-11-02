@@ -1,3 +1,13 @@
+# Billing lifecycle update — 2026-11-01
+
+[BILLING_API.md](BILLING_API.md) describes the current registration intent,
+customer binding, shared Checkout reservation, subscription history and billing-aware
+deletion rules. Those replace the older billing-path limitations below. Session,
+CSRF, API-key and cross-account guards are preserved. Status is display only;
+customer events alone cannot create/delete login identity or revive tombstones.
+The latest backend evidence is in [test/README.md](test/README.md); earlier browser
+results retain their dates/limits and were not rerun for this backend-only pass.
+
 # Playback contract update — 2026-10-28
 
 See [PLAYBACK_API.md](PLAYBACK_API.md) for the new local issuance endpoint and
@@ -57,9 +67,9 @@ The shared :key remains for compatibility on existing routes and is public appli
 | PUT /payment/update-payment/:key | Optional stripe_id must match; subscription_id must match the acting user's local subscription and customer; validate payment_method; actual customer comes from acting user |
 | GET /payment/webhookLogs | Admin session required |
 
-Paths above are relative to /api/v1. Authentication failures precede any Stripe call. Cross-account targets are denied before Stripe. Synthetic tests also verify authorized requests still execute their original provider operations. Checkout items, prices, mode, redirects and payment update operations remain unchanged. The payment provider remains responsible for rejecting a payment method already attached to another customer; the backend does not possess a local ownership ledger for arbitrary payment-method IDs.
+Paths above are relative to /api/v1. Authentication failures precede any Stripe call. Cross-account targets are denied before Stripe. Synthetic tests also verify authorized requests still execute their original provider operations. Checkout lifecycle/allowlist now follows the billing contract above; payment updates remain association-only. The payment provider remains responsible for rejecting a payment method already attached to another customer; the backend does not possess a local ownership ledger for arbitrary payment-method IDs.
 
-Checkout lookup rejects old/unrecorded IDs. The backend records IDs only when it creates a session for the verified user. If Stripe creation succeeds but the ownership write fails, the response fails closed; an unused external session can remain, and a retry may create another. No distributed transaction or billing reconciliation was added.
+Checkout lookup rejects old/unrecorded IDs. The backend records IDs only when it creates a session for the verified user. If Stripe creation succeeds but ownership persistence fails, the response fails and the durable reservation retains its original key. Retry or operation reconciliation recovers the same session; no new reservation is created from an uncertain outcome.
 
 Legacy email-token, session-token, admin-token and account-update-token GETs return 410 and perform no credential issuance. Old JWT headers/cookies cannot authenticate. Admins use the same mailbox-proof flow as everyone else; the role must already exist in trusted database state. There is no public admin provisioning API.
 

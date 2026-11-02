@@ -1,36 +1,16 @@
-require('dotenv').config();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { stripe } = require('../../billing/runtime');
+const { wrap } = require('../../identity/http');
 
 module.exports = {
-  updatePaymentMethod: async (req, res, next) => {
-    console.log('attaching payment method...');
-    const { stripe_id, subscription_id, payment_method } = req.body;
-
-    if (!subscription_id) {
-      const error = new Error('Did not receive a valid subscription ID');
-      error.status = 500;
-      return next(error);
-    }
-    if (!payment_method) {
-      const error = new Error('Did not receive a valid payment method');
-      error.status = 500;
-      return next(error);
-    }
-
-    try {
-      const paymentMethod = await stripe.paymentMethods.attach(payment_method, {
-        customer: req.identity.user.stripeId,
-      });
-
-      const customer = await stripe.customers.update(req.identity.user.stripeId, {
-        invoice_settings: { default_payment_method: paymentMethod.id },
-      });
-
-      res.status(200).json({
-        message: 'payment method successfully updated',
-      });
-    } catch (error) {
-      return next(error);
-    }
-  },
+  // The route's subscriptionOwner guard validates the subscription and method
+  // before this handler runs. Attaching a method establishes no paid access.
+  updatePaymentMethod: wrap(async (req, res) => {
+    const paymentMethod = await stripe.paymentMethods.attach(req.body.payment_method, {
+      customer: req.identity.user.stripeId,
+    });
+    await stripe.customers.update(req.identity.user.stripeId, {
+      invoice_settings: { default_payment_method: paymentMethod.id },
+    });
+    res.json({ message: 'payment method successfully updated' });
+  }),
 };

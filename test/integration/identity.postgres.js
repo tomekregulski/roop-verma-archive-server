@@ -32,11 +32,12 @@ before(async () => {
 beforeEach(async () => {
   if (!f) return;
   await f.reset();
-  for (const model of ['loginProof', 'identitySession', 'checkoutOwnership', 'identityRateLimit', 'subscription', 'user']) await db[model].deleteMany({});
+  for (const model of ['paidInvoiceGrant', 'stripeEventReceipt', 'billingOperation', 'subscription', 'billingCustomer', 'loginProof', 'identitySession', 'checkoutOwnership', 'identityRateLimit', 'user']) await db[model].deleteMany({});
   await db.user.createMany({ data: [
     { id: 1, email: 'a@example.invalid', stripeId: 'cus_test_a', firstName: 'A', lastName: 'Test', isAdmin: false, subscriptionActive: 'active' },
     { id: 2, email: 'b@example.invalid', stripeId: 'cus_test_b', firstName: 'B', lastName: 'Test', isAdmin: false },
   ] });
+  await db.billingCustomer.createMany({ data: [{ customerId: 'cus_test_a', userId: 1, livemode: false }, { customerId: 'cus_test_b', userId: 2, livemode: false }] });
 });
 after(async () => {
   if (f) await f.close();

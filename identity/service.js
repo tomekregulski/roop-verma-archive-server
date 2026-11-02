@@ -16,6 +16,14 @@ function emailAddress(value) {
   return email;
 }
 
+function registrationInput(body) {
+  const { firstName, lastName } = body;
+  const email = emailAddress(body.email);
+  if ([firstName, lastName].some(name => typeof name !== 'string' || !name.trim() || name.length > 100 || /[\x00-\x1f]/.test(name)) ||
+      Object.keys(body).some(key => !['firstName', 'lastName', 'email'].includes(key))) throw failure(400, 'Invalid registration input');
+  return { email, firstName: firstName.trim(), lastName: lastName.trim() };
+}
+
 function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = delay, responseFloorMs = 5500 }) {
   async function limit(scope, subject, maximum, durationMs) {
     const bucket = Math.floor(now().getTime() / durationMs);
@@ -95,4 +103,4 @@ function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = 
   }
   return { requestLogin, verify, authenticate, logout, limit };
 }
-module.exports = { createIdentity, emailAddress, hash, publicUser, failure };
+module.exports = { createIdentity, emailAddress, registrationInput, hash, publicUser, failure };
