@@ -1,3 +1,19 @@
+# Current backend handoff — C1 local consolidation, 2026-11-02
+
+Normal backend/frontend now select one Stripe-led purchase/access/deletion
+composition; old billing/provisioning/ledger/reconciliation are removed. Read
+[STRIPE_LED_PURCHASE_IMPLEMENTATION.md](STRIPE_LED_PURCHASE_IMPLEMENTATION.md)
+for measured reduction, 267 synthetic / 147 disposable PostgreSQL / normal-browser
+evidence and exact remaining activation dependencies. Strict schema diagnostic
+remains 6 pass / 1 fail for known telemetry drift. APIs: `BILLING_API.md`; owner
+activation/preflight/deletion: `Operations.md`; commands: `test/README.md`.
+The forward removal migration refuses nonempty legacy tables and unresolved/
+untrusted evidence; no existing database was inspected or retention chosen.
+No real providers, deployment, restoration, commit/push/merge or private delivery.
+Earlier handoffs below are historical and their cutover/removal gates are superseded.
+
+---
+
 # D9 local handoff — 2026-11-02
 
 The bounded owner-assisted account-deletion slice is implemented in the isolated

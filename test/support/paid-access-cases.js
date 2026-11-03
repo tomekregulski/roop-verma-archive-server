@@ -73,11 +73,14 @@ function paidAccessCases({ test, fixture }) {
       const before = await f.binding();
       for (let i = 0; i < 8; i++) assert.equal((await f.play(cookie)).status, 200);
       assert.equal(reads(f).length, 2);
-      assert.equal((await f.binding()).accessFreshUntil.getTime(), before.accessFreshUntil.getTime());
+      assert.equal(
+        (await f.binding()).accessFreshUntil.getTime(),
+        before.accessFreshUntil.getTime()
+      );
       f.calls.length = 0;
       assert.equal((await f.json('track/10/playback-access/synthetic-public-key', {})).status, 200);
       assert.deepEqual(reads(f), []);
-      assert.equal(await f.prisma.paidInvoiceGrant.count(), 0, 'new path writes no financial grants');
+      assert.equal('paidInvoiceGrant' in f.prisma, false, 'no financial grant delegate remains');
     } finally {
       f.stripe.invoices.list = original;
     }
@@ -148,6 +151,33 @@ function paidAccessCases({ test, fixture }) {
     proration: (p) => {
       p.line.proration = true;
     },
+    'missing paid declaration': (p) => {
+      delete p.invoice.paid;
+    },
+    'missing out-of-band declaration': (p) => {
+      delete p.invoice.paid_out_of_band;
+    },
+    'missing starting balance': (p) => {
+      delete p.invoice.starting_balance;
+    },
+    'missing ending balance': (p) => {
+      delete p.invoice.ending_balance;
+    },
+    'missing pre-payment credit amount': (p) => {
+      delete p.invoice.pre_payment_credit_notes_amount;
+    },
+    'missing proration declaration': (p) => {
+      delete p.line.proration;
+    },
+    'string quantity': (p) => {
+      p.line.quantity = '1';
+    },
+    'string interval count': (p) => {
+      p.line.price.recurring.interval_count = '1';
+    },
+    'malformed discounts': (p) => {
+      p.invoice.discounts = {};
+    },
     'truncated lines': (p) => {
       p.invoice.lines.has_more = true;
     },
@@ -171,20 +201,25 @@ function paidAccessCases({ test, fixture }) {
     },
   };
   for (const [name, change] of Object.entries(invalid)) {
-    test('paid-access qualifier denies ' + name + ' without signing or extra financial reads', async () => {
-      const f = fixture(),
-        p = f.stripe.paidInvoice();
-      change(p);
-      const cookie = await f.login();
-      f.calls.length = 0;
-      assert.ok([403, 503].includes((await f.play(cookie)).status));
-      assert.equal(f.signatures.length, 0);
-      assert.ok(reads(f).length <= 2);
-      assert.ok(
-        reads(f).every((call) => ['stripe.subscriptions.retrieve', 'stripe.invoices.list'].includes(call))
-      );
-      assert.equal((await f.binding()).accessFreshUntil, null);
-    });
+    test(
+      'paid-access qualifier denies ' + name + ' without signing or extra financial reads',
+      async () => {
+        const f = fixture(),
+          p = f.stripe.paidInvoice();
+        change(p);
+        const cookie = await f.login();
+        f.calls.length = 0;
+        assert.ok([403, 503].includes((await f.play(cookie)).status));
+        assert.equal(f.signatures.length, 0);
+        assert.ok(reads(f).length <= 2);
+        assert.ok(
+          reads(f).every((call) =>
+            ['stripe.subscriptions.retrieve', 'stripe.invoices.list'].includes(call)
+          )
+        );
+        assert.equal((await f.binding()).accessFreshUntil, null);
+      }
+    );
   }
 
   test('unselected binding and foreign verified user cannot borrow cached access', async () => {
@@ -272,7 +307,12 @@ function paidAccessCases({ test, fixture }) {
     // Stripe can document a refund on an already-paid invoice with a credit
     // note. It does not undo the original positive payment under D4/D5.
     p.invoice.post_payment_credit_notes_amount = 1000;
-    for (const type of ['charge.refunded', 'charge.dispute.created', 'charge.dispute.closed', 'invoice.paid'])
+    for (const type of [
+      'charge.refunded',
+      'charge.dispute.created',
+      'charge.dispute.closed',
+      'invoice.paid',
+    ])
       assert.equal((await postEvent(f, event(type, p.charge.id))).status, 200);
     f.advance(MAX_FRESHNESS_MS);
     f.calls.length = 0;
@@ -294,12 +334,20 @@ function paidAccessCases({ test, fixture }) {
     };
     try {
       f.restartAccess();
+      assert.equal(
+        (await f.access().readEntitlement(1)).kind,
+        'paid',
+        'a new adapter instance reuses only the shared cache'
+      );
       f.calls.length = 0;
       assert.equal((await f.play(cookie)).status, 200);
       assert.deepEqual(reads(f), []);
       f.advance(MAX_FRESHNESS_MS);
       assert.equal((await f.play(cookie)).status, 503);
-      assert.equal((await f.binding()).accessFreshUntil.getTime(), stored.accessFreshUntil.getTime());
+      assert.equal(
+        (await f.binding()).accessFreshUntil.getTime(),
+        stored.accessFreshUntil.getTime()
+      );
       await f.select();
       assert.equal((await f.play(cookie)).status, 503, 'cold cache cannot authorize offline');
     } finally {
@@ -369,13 +417,16 @@ function paidAccessCases({ test, fixture }) {
     const canceledAt = (await f.binding()).selectedCanceledAt.getTime();
     f.advance(1);
     assert.equal((await postEvent(f, notification)).status, 200);
-    assert.equal((await postEvent(f, event('customer.subscription.updated', p.sub.id))).status, 200);
+    assert.equal(
+      (await postEvent(f, event('customer.subscription.updated', p.sub.id))).status,
+      200
+    );
     assert.equal((await postEvent(f, event('invoice.paid', p.invoice.id))).status, 200);
     assert.equal((await f.binding()).selectedCanceledAt.getTime(), canceledAt);
     assert.equal(await f.access().readEntitlement(1), null);
     assert.equal(
-      await f.prisma.stripeEventReceipt.count(),
-      0,
+      'stripeEventReceipt' in f.prisma,
+      false,
       'terminal veto needs no financial event ledger'
     );
   });

@@ -7,7 +7,7 @@ const validCredential = value => typeof value === 'string' && /^[A-Za-z0-9_-]{43
 const failure = (status, message) => Object.assign(new Error(message), { status });
 const publicUser = user => ({
   id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName,
-  stripeId: user.stripeId, subscriptionActive: user.subscriptionActive, isAdmin: user.isAdmin,
+  stripeId: user.stripeId, isAdmin: user.isAdmin,
 });
 function emailAddress(value) {
   if (typeof value !== 'string') throw failure(400, 'Invalid email address');

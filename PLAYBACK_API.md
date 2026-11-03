@@ -1,6 +1,8 @@
-# Current billing reader — 2026-11-01
+# Current billing reader — C1, 2026-11-02
 
-Normal composition uses persisted invoice evidence through `billing/reader.js`;
+Normal composition uses `billing/paid-access.js` with the shared PostgreSQL
+maximum-15-minute cache clipped to the verified paid-period end, terminal
+cancellation veto and no stale-on-error extension;
 [BILLING_API.md](BILLING_API.md) contains the flow and approved lifecycle rules.
 Playback rereads entitlement after mapping, before signing. Absent/ineligible
 coverage is 403; storage, ownership or environment inconsistency is 503. Public
@@ -79,11 +81,11 @@ The small factory takes three server-owned asynchronous adapters:
    bucket and read-only GET signing credentials without archive access.
 
 **Delivery integration remains incomplete.** `playback/runtime.js` uses the real
-persisted billing reader and unavailable asset/signing adapters. Even public
+Stripe-led billing reader and unavailable asset/signing adapters. Even public
 tracks receive 503 until delivery exists. A verified subscriber without a current
-grant receives 403; a paid subscriber reaches unavailable delivery and receives
-503. No Stripe status creates a grant. Invoice settlement, revocation,
-cancellation and restoration follow the linked billing contract.
+paid interval receives 403; an eligible paid subscriber reaches unavailable
+delivery and receives 503. No display/subscription status grants playback.
+Cancellation and owner exceptions follow the linked D1–D10 billing contract.
 
 The separate private WAV archive and playback credential separation require actual
 provider enforcement later; a filename/interface check cannot prove contents or

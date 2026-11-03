@@ -78,14 +78,10 @@ beforeEach(async () => {
   if (!f) return;
   await f.reset();
   for (const model of [
-    'paidInvoiceGrant',
-    'stripeEventReceipt',
     'billingOperation',
-    'subscription',
     'billingCustomer',
     'loginProof',
     'identitySession',
-    'checkoutOwnership',
     'identityRateLimit',
     'user',
   ])

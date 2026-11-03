@@ -1,3 +1,152 @@
+# Readability follow-up — 2026-11-03
+
+Billing evidence/paid-period validation now names association, automatic payment,
+settlement, monthly price/line and remaining-period checks. Paid-access cache and
+cancellation-envelope checks are grouped; atomic write predicates, policy/cache
+keys, null/error behavior and D1–D10 remain unchanged. Added nine negative cases
+for missing declarations, malformed discounts and numeric strings. 276 synthetic
+and 156 fresh disposable PostgreSQL tests pass. A supplemental local comparison
+of 980 synthetic field variants matched the prior paid-period decisions/error
+classes. No schema, migration, dependency or real-provider changes.
+
+Client account/owner controllers use named API actions, clearer uncertain-outcome
+messaging, fresh-review attestation and distinct mutation-success/list-refresh
+failure states. 36 purchase/owner UI + 23 playback + 14 unit checks, TypeScript,
+changed-source ESLint and build pass; normal HTTP/PG browser journey reaches
+owner completion and rejects late identity recreation. Existing build warnings
+remain. Strict schema diagnostic was not rerun for this code-only follow-up; the
+known telemetry mismatch remains separately tracked. C1 measurements below are
+historical pre-cleanup figures, not new claims of line reduction. Existing-data,
+retention, provider verification and deployment gates remain unchanged.
+
+---
+
+# C1 local consolidation — current handoff, 2026-11-02
+
+The owner's C1 brief authorizes the local work described here and supersedes older
+cutover/removal gates. One normal backend/frontend path now selects the existing
+purchase, paid-access and D9 factories. `billing/compose.js` is shared by normal
+runtime and dependency-injected tests; test fixtures no longer replace routers.
+The normal React route table supplies Account, Checkout return and protected
+`/owner/deletions`. There is no permanent alternate billing flag.
+
+Stripe owns Checkout, Portal, recurring billing and configured recovery. App code
+retains verified identity, owned immutable attempts/concurrency, trusted selection,
+paid-period/cache/veto checks, final playback authorization and account deletion.
+D1–D10 are unchanged. Identity/CSRF/admin/ownership/raw-signature protection,
+safe same-key retry, exact closure reads and tombstone rejection remain.
+
+## Removal and comparable evidence
+
+The before snapshot includes the completed uncommitted D9 slice as found at task
+start; comparison is against that snapshot, not an older Git commit/test count.
+
+| Comparable production scope | Before | After |
+| --- | ---: | ---: |
+| Backend billing + payment/user controllers/routers, all JS including staged factories | 22 files / 2,870 lines | 14 files / 1,353 lines |
+| Same backend scope, non-whitespace characters (format-independent check) | 90,345 | 42,626 |
+| Frontend main/router, Signup/Login/Account/return/owner views, AuthContext and purchase/old Checkout helpers | 10 files / 1,496 lines | 9 files / 1,232 lines |
+| Same frontend scope, non-whitespace characters | 36,202 | 29,965 |
+| Billing tables (including unused historical WebhookLog) | 7 | 2 |
+| Normal billing/user method-path patterns | 12 | 11 |
+| Distinct normal + isolated candidate patterns | 18 | 11 |
+
+These scopes include existing D9 and added composition code and exclude tests,
+docs, migrations and unrelated catalog/media code. Net removal in these production
+scopes is **1,781 lines (41%)**, with comparable non-whitespace reduction too.
+Controllers were composed/reformatted, not all counted lines are deleted behavior.
+Additional removals outside the table: 68-line reconciliation CLI, redundant
+identity ownership guards and unused legacy user/subscription query containers.
+
+Removed `service.js`, `operations.js`, `reader.js`, `reconcile.js`, their budget,
+CLI/package command, financial-history/payment/grant reconstruction, generic
+reconciliation/recovery and customer-event provisioning. `evidence.js` retains
+only the small date/tier/relationship helpers required by purchase/current paid
+invoice verification. Seven obsolete method-path patterns are gone: two creation
+GETs, payment-method update, receipt log, historical customer lookup, direct admin
+delete and the already-disabled bulk delete response; six required purchase/D9
+patterns replace them. Normal and candidate branches collapsed. Stripe Elements /
+Stripe.js bootstrap, old Checkout helper, provisioning waits and display-status
+billing rules/dependency entries are removed. The lockfile changed only for those
+two unused packages and passes frozen offline validation.
+
+Operations no longer require daily application reconciliation, invoice/grant
+repair, generic operation sweeps or receipt monitoring. Stripe Dashboard/support
+owns rare refunds/cancellations/disputes/duplicates/compensation; the minimal owner
+deletion checklist remains. This measures responsibilities/code, not quarterly labor.
+
+## Schema safety and concrete activation blockers
+
+Forward migration `20261102120000_c1_billing_consolidation` removes PaidInvoiceGrant,
+historical Subscription, StripeEventReceipt, CheckoutOwnership and WebhookLog;
+User.subscriptionActive and six obsolete BillingCustomer synchronization/request
+fields also disappear. Identity, attempts, trusted bindings/cache/veto and necessary
+deletion/security tombstones remain. Every historical migration is byte-preserved.
+
+**No legacy production engine/container is retained.** Removal is locally prepared;
+applying it to unknown existing data is blocked unless its preconditions pass.
+Every nonempty removed table refuses migration, including CheckoutOwnership even
+when matched to an owned attempt. D9 therefore cannot silently lose unresolved
+legacy closure evidence. Unsupported/orphan attempts, unresolved legacy flags and
+missing/inconsistent trusted selections also refuse. Retained live v2 attempts
+still validate their original digest; populated cache/veto/tombstone fixtures survive.
+
+No existing contents were queried. No deletion/archive/export policy, ownership
+reassignment, selection backfill or conversion/recovery engine was invented.
+For nonempty legacy records, owner retention/disposition and exact unresolved-
+purchase investigation are concrete blockers; separately scoped reviewed resolution
+is the removal condition. Never erase evidence or disable guards to complete rollout.
+Prisma 4 can mask transactional refusal text; direct precondition checks and failed-
+deploy rollback are both tested in disposable PG. Exact checklist/configuration:
+[Operations.md](Operations.md). Coordinate migrations/generated-client rollout and
+stop old writers before activation; mixed versions are not verified.
+
+## Verification run for C1
+
+- Baseline reproduced **350/350 synthetic** before edits on Node 24.19.0.
+- Consolidated normal-route suite: **267/267 synthetic**. No candidate router swap.
+- Fresh disposable PostgreSQL: **147/147**, including 18 populated prior-schema
+  upgrade/refusal fixtures, real migrations/Prisma, independent-client purchase /
+  cancellation/deletion races, rollback, session/proof/admin/catalog/media boundaries.
+- Browser normal route table: signup → captured email verification → owned Checkout
+  → unpaid return/access denial → signed paid completion/paid authorization → Portal
+  → deletion request → ordinary-owner denial → persisted owner review/withdrawal →
+  buyer re-login/re-request → fake billing closure → fresh owner review/completion →
+  late signed completion acknowledged without identity recreation. Same-email signup
+  starts customer-null without old access. HTTP/cookies/PG are real; providers fake.
+- Browser security contract **19 pass**, disallowed-origin browser CORS **1 pass**;
+  focused purchase/deletion React **29 pass**, playback React **23 pass**; the latter
+  focused pages use Axios/Audio doubles. Frontend unit suite **14/14**.
+- TypeScript, changed-source ESLint, normal Vite build, frozen offline frontend
+  lockfile validation, Prisma validation, JS syntax and diff whitespace pass.
+  Existing bundle-size/browser-data warnings remain. Disposable captures are in
+  ignored client `test/evidence/c1-*`; versioned sources reproduce verification.
+- Separate strict schema diagnostic: **6 pass / 1 fail**, only pre-existing
+  NetworkError.errorCode Required→Nullable drift; visible and unsuppressed.
+
+Run the current commands in [test/README.md](test/README.md), not the historical
+slice instructions below. Lower counts follow removal of superseded financial
+policy/engine tests; they are not an acceptance target. Provider latency/semantics,
+inbox delivery, private media delivery/expiry and deployed behavior remain unverified.
+
+Activation needs the owner-supplied ACCOUNT_DELETION_SUPPORT_EMAIL and intended
+persisted administrator identity, verified existing environment/tier/webhook/mail/
+Checkout/Portal/recovery/dispute settings, coordinated guarded schema/client rollout,
+and separately authorized existing-data/retention preflight plus real-provider
+verification. No real Stripe/email/media action, existing DB access, deployment,
+restoration, commit, push or merge was performed by this work. No claim of launch
+readiness or the zero-routine-engineering / roughly five-hours-per-quarter target.
+C1 stayed within the authorized local scope; no material estimate expansion was
+needed. The 6–10 active-engineering-hour estimate was planning, not measured labor;
+existing-data investigation and actual provider verification remain excluded.
+
+---
+
+# Historical isolated-slice evidence (superseded composition/gates)
+
+All dated slice results and old candidate reproduction below are historical.
+Current code/commands/operations are described above and in the linked current maps.
+
 # Isolated purchase and D9 deletion implementation — 2026-11-02
 
 The owner explicitly authorized [STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md](STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md).

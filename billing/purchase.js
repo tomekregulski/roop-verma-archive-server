@@ -1,4 +1,4 @@
-// Staged D1/D8 replacement for operations.js. Only isolated fixtures compose it.
+// D1/D8 verified signup and owned immutable Checkout attempts.
 const { randomUUID, createHash } = require('node:crypto');
 const { API_VERSION, id, check, stripeDate, subscriptionIssue, subscriptionEnded } = require('./evidence');
 const { failure, registrationInput } = require('../identity/service');
@@ -72,7 +72,6 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
   }
   const blocked = ({ user, binding }) =>
     user.deletionRequestedAt ||
-    binding?.deletionRequestedAt ||
     binding?.deletedAt ||
     binding?.stripeDeletedAt;
   async function locked(tx, userId) {

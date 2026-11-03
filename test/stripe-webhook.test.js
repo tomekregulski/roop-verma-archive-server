@@ -42,30 +42,13 @@ async function assertRejected(body, signature, status = 400, contentType) {
   assert.deepEqual(logs, [], 'do not log SDK errors, signatures or event/customer payloads');
 }
 
-test('signed unrelated customer.created is a durable review and never provisions identity', async () => {
-  f.stripe.resources.customers.push({ id: 'cus_test_webhook', livemode: false, metadata: {} });
-  const body = payload();
+for (const type of ['customer.created', 'customer.deleted', 'synthetic.unhandled'])
+ test('verified unrelated notification performs no provisioning, ledger or provider work: ' + type, async () => {
+  const snapshot = structuredClone(f.prisma.tables);
+  const body = payload(type);
   assert.equal((await post(body, sign(body))).status, 200);
-  assert.equal(f.prisma.tables.stripeEventReceipt[0].outcome, 'review');
-  assert.equal(f.prisma.tables.user.length, 3);
-  assert.equal(f.calls.includes('user.create'), false);
-  assert.deepEqual(logs, []);
-});
-test('signed customer.deleted retains login and records terminal billing state', async () => {
-  f.stripe.resources.customers[0].deleted = true;
-  const event = JSON.parse(payload('customer.deleted')); event.data.object.id = 'cus_test_a';
-  const body = JSON.stringify(event, null, 2);
-  assert.equal((await post(body, sign(body))).status, 200);
-  assert.equal(f.prisma.tables.user.length, 3);
-  assert.ok(f.prisma.tables.billingCustomer[0].stripeDeletedAt);
-  assert.equal(f.calls.includes('user.delete'), false);
-  assert.deepEqual(logs, []);
-});
-test('a verified unhandled event is durably ignored without downstream provider calls or logging', async () => {
-  const body = payload('synthetic.unhandled');
-  assert.equal((await post(body, sign(body))).status, 200);
-  assert.equal(f.prisma.tables.stripeEventReceipt[0].outcome, 'ignored');
-  assert.equal(f.calls.some(c => c.startsWith('stripe.')), false);
+  assert.deepEqual(f.prisma.tables, snapshot);
+  assert.deepEqual(f.calls, []);
   assert.deepEqual(logs, []);
 });
 
@@ -114,20 +97,15 @@ test('signed malformed JSON is rejected without exposing parser errors or touchi
   await assertRejected(body, sign(body));
 });
 
-test('ordinary JSON registration still parses fields and passes them to the intended Stripe service', async () => {
-  const original = f.stripe.customers.create;
-  let customerParameters;
-  f.stripe.customers.create = async params => { customerParameters = params; return original(params); };
-  try {
-    const result = await f.json('user/synthetic-public-key', {
-      firstName: 'JSON', lastName: 'Listener', email: 'json@example.invalid',
-    });
-    assert.equal(result.status, 200);
-    assert.equal(customerParameters.name, 'JSON Listener');
-    assert.equal(customerParameters.email, 'json@example.invalid');
-    assert.equal(customerParameters.metadata.billing_operation, f.prisma.tables.billingOperation[0].id);
-    assert.equal(f.calls.filter(c => c.startsWith('stripe.')).join(','), 'stripe.customers.create');
-    assert.equal(f.prisma.tables.billingCustomer.some(b => b.customerId === 'cus_test_new'), true);
-    assert.deepEqual(result.body, { newUserStripeId: 'cus_test_new' });
-  } finally { f.stripe.customers.create = original; }
+test('ordinary JSON registration retains parsing and creates a local verified-before-purchase identity', async () => {
+  const result = await f.json('user/synthetic-public-key', {
+    firstName: 'JSON', lastName: 'Listener', email: 'json@example.invalid',
+  });
+  assert.equal(result.status, 202);
+  const user = f.prisma.tables.user.find(u => u.email === 'json@example.invalid');
+  assert.equal(user.firstName, 'JSON');
+  assert.equal(user.stripeId, null);
+  assert.equal(user.isAdmin, false);
+  assert.equal(f.calls.some(c => c.startsWith('stripe.')), false);
+  assert.deepEqual(result.body, { accepted: true });
 });

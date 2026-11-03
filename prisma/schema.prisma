@@ -11,22 +11,13 @@ datasource db {
   shadowDatabaseUrl = env("HEROKU_POSTGRESQL_BROWN_URL")
 }
 
-model WebhookLog {
-  id                  Int     @id @default(autoincrement())
-  requestId           String
-  idempotencyKey      String
-  type                String
-}
-
 model User {
   id                  Int     @id @default(autoincrement())
   email               String  @unique
   firstName           String
   lastName            String
-  subscription        Subscription[]
   billingCustomer     BillingCustomer?
   billingOperations   BillingOperation[]
-  subscriptionActive  String?
   stripeId            String? @unique
   deletionRequestedAt DateTime?
   deletionRevision    Int @default(0)
@@ -34,7 +25,6 @@ model User {
   isAdmin             Boolean
   loginProofs         LoginProof[]
   identitySessions    IdentitySession[]
-  checkoutOwnerships  CheckoutOwnership[]
 }
 
 model LoginProof {
@@ -58,41 +48,11 @@ model IdentitySession {
   @@index([expiresAt])
 }
 
-model CheckoutOwnership {
-  sessionId  String @id
-  userId     Int
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customerId String
-}
-
 model IdentityRateLimit {
   key       String   @id
   count     Int
   expiresAt DateTime
   @@index([expiresAt])
-}
-
-// TODO: subscription routes?
-model Subscription {
-  id                  String  @unique
-  name                String
-  user                User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId              Int?
-  stripeId            String
-  priceId             String
-  productId           String
-  status              String
-  cancelAt            String?
-  customer            BillingCustomer @relation(fields: [stripeId], references: [customerId])
-  acceptedAt          DateTime?
-  livemode            Boolean?
-  cancelAtPeriodEnd   Boolean @default(false)
-  canceledAt          DateTime?
-  endedAt             DateTime?
-  syncedAt            DateTime?
-  syncIssueCode       String?
-  grants              PaidInvoiceGrant[]
-  @@index([stripeId, status])
 }
 
 // TODO: token routes?
@@ -216,21 +176,15 @@ model NetworkError {
   errorType           String?
 }
 
-// Durable ownership and revision lock. Keep this binding after User deletion.
+// Trusted selected subscription, shared access cache and retained deletion/security tombstones.
 model BillingCustomer {
   customerId          String @id
   userId              Int? @unique
   user                User? @relation(fields: [userId], references: [id], onDelete: SetNull)
   livemode            Boolean?
-  revision            Int @default(0)
-  deletionRequestedAt DateTime?
   deletedAt           DateTime?
   stripeDeletedAt     DateTime?
-  lastSyncedAt        DateTime?
-  syncIssueCode       String?
-  reconcileCursor     String?
-  lastFullScanAt      DateTime?
-  // Isolated Stripe-led adapter; normal runtime does not select or read these yet.
+  // Maximum 15-minute shared paid-access cache; cancellation veto is terminal.
   selectedSubscriptionId String? @unique
   selectedCanceledAt  DateTime?
   accessCheckedAt     DateTime?
@@ -238,49 +192,9 @@ model BillingCustomer {
   cachedPaidFrom      DateTime?
   cachedPaidThrough   DateTime?
   accessFreshUntil    DateTime?
-  subscriptions       Subscription[]
 }
 
-// One invoice pays one original period. Revocation never erases the evidence.
-model PaidInvoiceGrant {
-  invoiceId          String @id
-  invoiceLineId      String @unique
-  subscriptionId     String
-  subscription       Subscription @relation(fields: [subscriptionId], references: [id])
-  priceId            String
-  serviceFrom        DateTime
-  serviceThrough     DateTime
-  settledAt          DateTime
-  paymentIntentId    String @unique
-  chargeId           String @unique
-  currency           String
-  amountPaid         Int
-  invalidatedAt      DateTime?
-  invalidationReason String?
-  disputeId          String?
-  reviewReason       String?
-  verifiedAt         DateTime
-  @@index([subscriptionId, serviceThrough])
-}
-
-// Routing/audit facts only. A pending receipt does not mean processing succeeded.
-model StripeEventReceipt {
-  eventId        String @id
-  type           String
-  objectId       String
-  apiVersion     String?
-  livemode       Boolean?
-  eventCreatedAt DateTime?
-  receivedAt     DateTime @default(now())
-  outcome        String @default("pending")
-  appliedAt      DateTime?
-  attempts       Int @default(0)
-  errorCode      String?
-  lastAttemptAt  DateTime?
-  @@index([outcome, receivedAt])
-}
-
-// Persist fixed registration/Checkout parameters before making a provider POST.
+// Persist one owned immutable Checkout attempt before making a provider POST.
 model BillingOperation {
   id          String @id
   activeKey   String? @unique

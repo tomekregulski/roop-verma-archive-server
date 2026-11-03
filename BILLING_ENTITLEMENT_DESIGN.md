@@ -1,3 +1,6 @@
+> Historical invoice-ledger design, superseded by approved D1–D10 and C1 removal.
+> Current policy and single-path implementation: [BILLING_API.md](BILLING_API.md).
+
 # Owner direction superseding the implementation approach — 2026-11-01
 
 Assessment complete for review: [STRIPE_LED_ASSESSMENT.md](STRIPE_LED_ASSESSMENT.md).

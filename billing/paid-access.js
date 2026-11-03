@@ -1,5 +1,4 @@
-// Intentionally not imported by billing/runtime.js. This slice is exercised only
-// by isolated HTTP/database fixtures until the owned-Checkout cutover is approved.
+// Normal paid-access reader: shared bounded cache and terminal cancellation veto.
 const { API_VERSION, id, check, stripeDate } = require('./evidence');
 const paidPeriod = require('./paid-period');
 const MAX_FRESHNESS_MS = 15 * 60 * 1000;
@@ -10,7 +9,11 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
   const settings = () => {
     const value = typeof config === 'function' ? config() : config;
     check(
-      value && typeof value.livemode === 'boolean' && value.priceId && value.productId && value.currency,
+      value &&
+        typeof value.livemode === 'boolean' &&
+        value.priceId &&
+        value.productId &&
+        value.currency,
       'ACCESS_CONFIGURATION'
     );
     return value;
@@ -40,7 +43,12 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
     if (!row) return null;
     check(row.user?.id === userId && row.user.stripeId === row.customerId, 'ACCESS_ASSOCIATION');
     check(row.livemode === config.livemode, 'ACCESS_MODE');
-    if (row.deletedAt || row.stripeDeletedAt || row.selectedCanceledAt || !row.selectedSubscriptionId)
+    if (
+      row.deletedAt ||
+      row.stripeDeletedAt ||
+      row.selectedCanceledAt ||
+      !row.selectedSubscriptionId
+    )
       return null;
     check(/^sub_[A-Za-z0-9_]+$/.test(row.selectedSubscriptionId), 'ACCESS_SELECTION');
     return row;
@@ -54,23 +62,35 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
       accessCheckedAt,
       accessFreshUntil,
     } = row;
-    check(
-      [paidFrom, paidThrough, accessCheckedAt, accessFreshUntil].every(
-        (date) => date instanceof Date && Number.isFinite(date.getTime())
-      ) &&
-        paidFrom < paidThrough &&
-        accessFreshUntil <= paidThrough &&
-        accessFreshUntil.getTime() <= accessCheckedAt.getTime() + MAX_FRESHNESS_MS,
-      'ACCESS_CACHE'
+    const datesValid = [paidFrom, paidThrough, accessCheckedAt, accessFreshUntil].every(
+      (date) => date instanceof Date && Number.isFinite(date.getTime())
     );
-    if (!(accessCheckedAt <= time && time < accessFreshUntil && paidFrom <= time && time < paidThrough))
+    check(datesValid, 'ACCESS_CACHE');
+    const boundsValid =
+      paidFrom < paidThrough &&
+      accessFreshUntil <= paidThrough &&
+      accessFreshUntil.getTime() <= accessCheckedAt.getTime() + MAX_FRESHNESS_MS;
+    check(boundsValid, 'ACCESS_CACHE');
+    if (
+      !(
+        accessCheckedAt <= time &&
+        time < accessFreshUntil &&
+        paidFrom <= time &&
+        time < paidThrough
+      )
+    )
       return null;
     return { kind: 'paid', userId: row.userId, paidFrom, paidThrough };
   }
 
   async function cancel(customerId, subscriptionId, livemode) {
     await db.billingCustomer.updateMany({
-      where: { customerId, selectedSubscriptionId: subscriptionId, livemode, selectedCanceledAt: null },
+      where: {
+        customerId,
+        selectedSubscriptionId: subscriptionId,
+        livemode,
+        selectedCanceledAt: null,
+      },
       data: { selectedCanceledAt: now(), ...cleared },
     });
   }
@@ -105,7 +125,8 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
     const period = paidPeriod(subscription, invoices.data[0], config, now());
     check(now() >= started && now() - started < MAX_FRESHNESS_MS, 'ACCESS_READ_EXPIRED');
     const freshUntil =
-      period && new Date(Math.min(started.getTime() + MAX_FRESHNESS_MS, period.paidThrough.getTime()));
+      period &&
+      new Date(Math.min(started.getTime() + MAX_FRESHNESS_MS, period.paidThrough.getTime()));
     // No global customer revisions or retry loop. A discarded fill rereads the
     // shared winner; cancellation and selection changes always veto old results.
     await db.billingCustomer.updateMany({
@@ -141,7 +162,12 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
     const key = policyKey(config, selected);
     const hit = cached(selected, key, now());
     if (hit) return hit;
-    const flightKey = JSON.stringify([userId, selected.customerId, selected.selectedSubscriptionId, key]);
+    const flightKey = JSON.stringify([
+      userId,
+      selected.customerId,
+      selected.selectedSubscriptionId,
+      key,
+    ]);
     if (!pending.has(flightKey)) {
       const work = refresh(selected, config, key).finally(() => pending.delete(flightKey));
       pending.set(flightKey, work);
@@ -166,19 +192,20 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
     if (event?.type !== 'customer.subscription.deleted') return;
     const config = settings(),
       subscription = event.data?.object;
-    check(
+    const supportedEvent =
       event.object === 'event' &&
-        /^evt_[A-Za-z0-9_]+$/.test(event.id) &&
-        stripeDate(event.created) &&
-        event.api_version === API_VERSION &&
-        event.livemode === config.livemode &&
-        subscription?.object === 'subscription' &&
-        /^sub_[A-Za-z0-9_]+$/.test(subscription.id) &&
-        /^cus_[A-Za-z0-9_]+$/.test(id(subscription.customer)) &&
-        subscription.status === 'canceled' &&
-        subscription.livemode === config.livemode,
-      'ACCESS_CANCEL_ENVELOPE'
-    );
+      /^evt_[A-Za-z0-9_]+$/.test(event.id) &&
+      stripeDate(event.created) &&
+      event.api_version === API_VERSION &&
+      event.livemode === config.livemode;
+    check(supportedEvent, 'ACCESS_CANCEL_ENVELOPE');
+    const canceledSelection =
+      subscription?.object === 'subscription' &&
+      /^sub_[A-Za-z0-9_]+$/.test(subscription.id) &&
+      /^cus_[A-Za-z0-9_]+$/.test(id(subscription.customer)) &&
+      subscription.status === 'canceled' &&
+      subscription.livemode === config.livemode;
+    check(canceledSelection, 'ACCESS_CANCEL_ENVELOPE');
     await cancel(id(subscription.customer), subscription.id, config.livemode);
   }
   return { readEntitlement, processEvent };

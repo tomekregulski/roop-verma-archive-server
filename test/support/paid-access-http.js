@@ -3,18 +3,13 @@ const { createPaidAccess } = require('../../billing/paid-access');
 const { config } = require('./billing-provider');
 
 module.exports = async function paidAccessFixture(options = {}) {
-  let access, clock;
+  let access;
+  const clock = () => f.clock();
   const signatures = [];
   let f;
   f = await createIdentityFixture({
     ...options,
-    billingAdapter: (context) => {
-      clock = context.now;
-      access = createPaidAccess({ ...context, config });
-      return access;
-    },
     playbackAdapters: () => ({
-      readEntitlement: (userId) => access.readEntitlement(userId),
       resolveAsset: async (trackId) => {
         if (f.mappingHook) await f.mappingHook();
         return {
@@ -30,7 +25,7 @@ module.exports = async function paidAccessFixture(options = {}) {
       },
     }),
   });
-  f.clock = () => new Date(clock());
+  access = f.runtime.access;
   f.signatures = signatures;
   f.access = () => access;
   f.restartAccess = () => {

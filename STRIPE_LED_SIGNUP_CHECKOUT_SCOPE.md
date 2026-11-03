@@ -1,3 +1,7 @@
+> Historical scope: C1 local cutover/removal is now authorized and implemented.
+> Current composition, evidence and remaining activation gates are in
+> [STRIPE_LED_PURCHASE_IMPLEMENTATION.md](STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+
 # D1/D8 signup and Checkout refactoring proposal — 2026-11-01
 
 **Status: the owner authorized this isolated local slice; implemented.** D1–D10 remain

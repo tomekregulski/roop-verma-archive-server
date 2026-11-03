@@ -1,155 +1,97 @@
-# Billing and playback: a reader's guide
+# Billing and playback: current local composition
 
-**Stripe-led replacement status:** D1–D10 are approved in
-[STRIPE_LED_DECISIONS.md](STRIPE_LED_DECISIONS.md). The isolated access adapter,
-shared cache and terminal veto are implemented with local test evidence in
-[PAID_ACCESS_IMPLEMENTATION.md](PAID_ACCESS_IMPLEMENTATION.md). No runtime cutover,
-signup/frontend/owner UI changes or old-engine removal occurred. The guide below
-describes the existing runtime engine, not the approved replacement policy.
+D1–D10 in [STRIPE_LED_DECISIONS.md](STRIPE_LED_DECISIONS.md) govern policy.
+C1 selects one backend/frontend path; old engine and reconciliation are removed.
+Current evidence, reduction and migration blockers are in
+[STRIPE_LED_PURCHASE_IMPLEMENTATION.md](STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+Local verification uses fake providers; activation is not deployment approval.
 
-The local flow is implemented and tested. Stripe supplies payment facts; this
-application decides whether those facts permit playback under the approved policy.
-Real Stripe validation and private media delivery remain separate prerequisites.
-Service restoration is deferred.
+## Flow and authority
 
-## Follow one payment
+1. Signup creates a minimal unprivileged app account, with no Stripe customer.
+   Email proof establishes a persisted session before purchase.
+2. Checkout reserves one owned immutable BillingOperation before its provider POST.
+   Repeated clicks resume the known Session; uncertain outcomes retry only the
+   same key/request within the conservative 23-hour window. Old/future unknown
+   outcomes require help; there is no history discovery or recovery worker.
+3. Signed completion and owned server lookup share association validation. Exact
+   attempt, mode, customer, subscription and tier checks commit trusted selection.
+   No completion creates a User; redirect, association and display state grant no access.
+4. Playback reads current identity/binding, then a shared cache. A miss retrieves
+   the exact selected subscription and one most-recent paid invoice scoped to it.
+   Positive paid current evidence and the supported line/plan/mode are required.
+   Coverage is `[max(line.start, paid_at), line.end)`, with no grace or added time.
+5. Freshness starts before provider reads, ends within 15 minutes and never exceeds
+   the paid-period end. There is no stale-on-error extension. A matching verified
+   cancellation installs a terminal veto; old events/fills cannot undo it or affect
+   a replacement. Authorization is checked again after mapping, before signing.
+6. Portal uses only the trusted customer. Stripe owns recurring billing, management
+   and configured payment recovery; Dashboard/support handles rare exceptions.
+7. Deletion request blocks new purchases/association while preserving login/Portal
+   and ordinary paid access. Owner review/withdrawal/completion requires a current
+   persisted administrator session, exact closure checks and Dashboard attestation.
+   Completion deletes identity transactionally and retains security tombstones.
 
-```mermaid
-flowchart LR
-  A[Signed Stripe event] --> B[Verify raw bytes]
-  B --> C[Persist pending receipt]
-  C --> D[Read current Stripe evidence]
-  D --> E[Commit billing state and receipt together]
-  E --> F[(PostgreSQL)]
-  R[Reconciliation CLI] --> D
-  F --> G[Playback entitlement reader]
-  G --> H[Recheck after mapping, before signing]
-```
+Refund alone does not revoke or cancel (D4/D5); immediate reported cancellation
+vetoes new paid issuance (D3). Dispute-related cancellation/settings and exceptional
+refunds/duplicates/compensation belong to Stripe Dashboard/support (D6–D8). There
+is no refund/dispute ledger, restoration engine or stacking of subscription time.
+Public catalog access remains separate from protected media authorization.
 
-The event is a notification. Access comes from a retrieved, finalized paid invoice,
-its successful PaymentIntent/captured Charge, and its one approved recurring line.
-The line supplies the original service period. Access is
-`[max(serviceFrom, settledAt), serviceThrough)`: no added second, unpaid gap,
-grace period or extra month on retry. Subscription status alone grants nothing.
+## Code map
 
-## Where to read the code
-
-| File | Responsibility | Start here |
-| --- | --- | --- |
-| `controllers/payments/controller.post.js` | Verify the original body/signature; return an acknowledgement only after processing | `webhooks` |
-| `billing/evidence.js` | Validate invoice/payment relationships, tier, amounts and periods; calculate refund/dispute state | `readInvoiceEvidence`, `revocationState` |
-| `billing/service.js` | Retrieve a fresh snapshot and commit it atomically | `sync` → `readSnapshot` → `applySnapshot` |
-| `billing/operations.js` | Registration, one Checkout reservation, recovery and billing-aware deletion | `checkout`, `deleteAccount`, `recoverPending` |
-| `billing/reader.js`, `playback/service.js` | Read local authority, then reread after mapping before signing | `readEntitlement`, `issue` |
-| `billing/reconcile.js`, `scripts/reconcile-billing.js` | Inspect/repair missing updates in bounded resumable batches | `reconcileCustomer`, `reconcileBatch` |
-
-Inside `applySnapshot`, `saveSubscriptions` applies admission/lifecycle and
-`saveInvoice` retains original invoice evidence and updates revocation. Display
-status is updated for compatibility, then the event receipt completes. These
-writes share one database transaction. There are no provider calls inside it.
-
-## The rules the code must preserve
-
-| Situation | Result |
+| File | Responsibility |
 | --- | --- |
-| Public track | No login or entitlement required |
-| Subscriber track | Verified login plus a current, eligible persisted paid period |
-| Cancellation, including immediate cancellation | Keep original unrevoked paid coverage |
-| Failed renewal / `past_due` | No new time; existing paid coverage can finish |
-| `incomplete`, `incomplete_expired`, `unpaid`, unknown lifecycle | Deny subscriber access |
-| Full refund or lost dispute | Retain evidence and permanently revoke that invoice's period |
-| Open dispute | Hold that period; absence from a later response does not clear it |
-| Verified won/withdrawn dispute | Fresh payment/refund checks can restore only the original remaining period |
-| Partial refund | Flag review and preserve remaining coverage unless independently revoked |
-| Unexpected second ongoing subscription | Quarantine it; keep established coverage without adding its duration |
-| Deletion with open/uncertain billing | Keep the account available, block new Checkout, wait for confirmed closure |
-| Confirmed local deletion | Remove identity/session data; retain billing history and a tombstone |
+| `billing/runtime.js`, `billing/compose.js` | One shared Stripe client and one access/purchase/deletion composition; provider injection only for tests |
+| `controllers/payments/controller.post.js` | Raw signature/timestamp verification before dispatch; owned completion lookup |
+| `billing/purchase.js` | Local signup, immutable attempts, association, server action summary and trusted Portal |
+| `billing/paid-period.js`, `billing/evidence.js` | Current paid-invoice qualification and small shared date/tier/relationship helpers |
+| `billing/paid-access.js` | Shared PostgreSQL cache, ownership checks and cancellation veto |
+| `billing/deletion.js`, `identity/deletion-http.js` | Authenticated request and protected owner closure/withdrawal/completion |
+| `playback/service.js`, `playback/runtime.js` | Final authorization and delivery boundary; normal mapping/signing remain unavailable |
 
-Trials, zero-cost payments, credits, discounts, manual/out-of-band/mixed settlement,
-tax/other adjustments, schedules, plan changes, collection pauses and ambiguous
-lines create no new grants. Unsupported pause/trial arrangements do not extend any
-previously legitimate period. Other dispute resolutions remain review. Conflicting
-original invoice dates/payment IDs hold access and preserve the original row;
-reconciliation must never manufacture a new end date to resolve a conflict.
+## Normal HTTP routes
 
-## What protects retries and concurrent work
+All paths below are under `/api/v1`. `:key` is the existing public API key, never
+identity or administrator authority. Authenticated browser routes require the
+cookie session and `X-RVDL-CSRF: 1` with configured-origin checks, including the
+account/owner GETs. The admin user list retains its existing read-only guards.
 
-1. Persist a minimal event receipt. `pending` is not completed work.
-2. Read the trusted customer binding and its revision **before** authoritative
-   Stripe retrieval. Discovery reads can identify the customer first.
-3. In the transaction, increment that revision only if it still matches. Save
-   subscriptions, grants, compatibility display and receipt outcome together.
-4. A conflict reruns the reads, up to six attempts. Duplicate invoice/line/payment
-   IDs cannot create another grant. Event timestamps do not decide write order.
-5. Failed persistence, provider errors, incomplete pages or exhausted limits return
-   generic 5xx. Deterministic unsupported arrangements become durable review with
-   no new access. Completed duplicates can acknowledge safely.
+| Method / path | Contract |
+| --- | --- |
+| `POST /user/:key` | Validated local registration, generic 202; CSRF + registration limit |
+| `GET /user/:key` | Current administrator only; minimal identity list |
+| `GET /payment/account/:key` | Server-owned purchase/manage/pending/help action |
+| `POST /payment/checkout/:key` | Empty body; create/resume one owned attempt |
+| `POST /payment/checkout-session-object/:key` | Only sessionId; ownership checked before provider reads |
+| `POST /user/create-portal-session/:key` | Empty body; trusted customer only |
+| `POST /payment/webhooks` | Original raw JSON, signature, mode/version and relevant envelope checks |
+| `POST /user/account-deletion/:key` | Session-derived identity; explicit confirm=true |
+| `GET /user/owner/deletions/:key` | Current administrator pending list |
+| `GET /user/owner/deletions/:userId/:key` | Current administrator exact review + fingerprint |
+| `POST /user/owner/deletions/:userId/:action/:key` | withdraw, exact-session or complete; validated bodies and current review/closure confirmation |
 
-`budget.js` explicitly bounds each caller's provider requests: at most 120 calls
-and 20 seconds before starting another call. The shared Stripe client bounds an
-in-flight request to 10 seconds. Pagination is bounded too. Exhaustion requires
-retry or smaller reconciliation batches; it does not establish absence.
+Only `checkout.session.completed` association and `customer.subscription.deleted`
+veto are dispatched. Other verified notifications perform no provisioning/ledger
+work. Missing/invalid signatures never reach billing/storage/provider processing.
+No creation GET, resubscribe alias, payment-method API, historical-account lookup,
+receipt-log API or direct administrative deletion bypass remains.
 
-Registration and Checkout persist fixed parameters and an operation UUID before
-a provider POST. The UUID is the idempotency key. Existing unfinished Checkouts
-are reused. A fresh retry repeats the same key; after 23 hours, only discovery of
-a unique existing result permits automatic recovery. `finishCheckout` is the
-single ownership/operation commit used by normal requests and repair. Recovery
-never creates a new key, charges again, cancels or refunds.
+## Schema and activation
 
-## Database and integration boundaries
+Retained billing tables: BillingCustomer (trusted selection/cache/veto and deletion/
+security tombstones) and BillingOperation (owned attempts and closure tombstones).
+Forward migration `20261102120000_c1_billing_consolidation` removes five superseded
+tables and seven synchronization/display columns only after strict preconditions.
+It refuses every nonempty removed table, unsupported/orphan attempts, unresolved
+legacy flags and missing/inconsistent trusted selection. D9's former legacy
+CheckoutOwnership closure check is therefore not silently discarded. Historical
+migrations are unchanged; no selection backfill or retention disposition is supplied.
 
-Migration `20261101120000_billing_evidence` adds `BillingCustomer`,
-`PaidInvoiceGrant`, `StripeEventReceipt` and `BillingOperation`, and retains
-Subscription history with nullable user ownership, admission and lifecycle fields.
-Bindings/history survive User deletion. SQL enforces valid periods, positive
-amounts, unique invoice/line/payment IDs, foreign keys, receipt outcomes and one
-accepted ongoing subscription per customer. Prisma 4 cannot express all of those
-CHECKs or the partial admission index.
-
-Existing user/customer pairs backfill with unknown mode. Legacy statuses, price
-placeholders and cancellation strings create **no grants or admissions**.
-Inconsistent legacy ownership stops migration. No applied historical migration
-was edited, and no existing/remote database migration is authorized here.
-
-Stripe **17.5.0**, request API **2024-12-18.acacia**, Prisma **4.12.0** and Node
-**24.19.0** are unchanged. Explicit server settings are `BILLING_PRICE_ID`,
-`BILLING_PRODUCT_ID`, `BILLING_CURRENCY`, `BILLING_LIVEMODE` and the existing
-provider/signing secrets. One shared runtime client serves billing controllers.
-Only supported Acacia snapshot envelopes can process; malformed/thin/foreign-mode
-or unknown-version envelopes remain review. Raw signature verification retains
-the 16 KiB limit, compression rejection and timestamp checks.
-
-The supported event list lives in `billing/service.js`. It covers paid/failed/
-action-required invoices, subscription lifecycle, refunds, disputes and customer
-notifications. Customer events alone cannot provision identity, delete a login
-account or revive a tombstone. Provider email changes do not rebind login identity.
-
-Playback performs no Stripe call. Its reader uses a repeatable-read database
-snapshot, checks environment/ownership and returns one containing period.
-Absent/expired/ineligible evidence is 403; unavailable/inconsistent authority is
-503. Asset mapping and signing are still unavailable in normal runtime. The
-existing two-hour URL contract remains; database revocation cannot recall issued
-URLs or bytes, and provider changes can lag until an event or reconciliation.
-
-## Verification and operations
-
-See [test/README.md](test/README.md) for current results and reproducible commands,
-[Operations.md](Operations.md) for inspection/recovery, and
-[BILLING_ENTITLEMENT_DESIGN.md](BILLING_ENTITLEMENT_DESIGN.md) for the original
-approved design. The same lifecycle cases run with memory storage and disposable
-PostgreSQL. Stripe resources, mail and media are fake; PostgreSQL/Prisma are real.
-The separate strict `NetworkError.errorCode` schema diagnostic remains failing.
-
-Still separate: named Stripe test-mode validation of tier/mode/API/event/body-size
-and financial behavior; daily reconciliation invocation and lag acceptance;
-private storage/signing, legacy public-URL retirement, deployed behavior and
-restoration. No real provider calls, remote SQL, uploads, infrastructure changes,
-deployment, push or merge occurred. Local tests establish no live billing or
-media-protection guarantee.
-
-Official references: [Acacia invoices](https://docs.stripe.com/api/invoices/object?api-version=2024-12-18.acacia),
-[PaymentIntents](https://docs.stripe.com/api/payment_intents/object?api-version=2024-12-18.acacia),
-[Charges](https://docs.stripe.com/api/charges/object?api-version=2024-12-18.acacia),
-[disputes](https://docs.stripe.com/api/disputes/object?api-version=2024-12-18.acacia),
-[verified withdrawals](https://support.stripe.com/questions/dispute-withdrawals-faq?locale=en-GB).
+Use [Operations.md](Operations.md) for exact activation/preflight and owner work,
+and [test/README.md](test/README.md) for reproducible verification. Node 24.19.0,
+Stripe 17.5.0/2024-12-18.acacia and Prisma 4.12.0 remain the compatible baseline.
+Unknown existing data, actual Stripe/mail settings/behavior, deployment and real
+private-media delivery remain separate gates. New authorization can lag a missed
+cancellation by up to 15 minutes, plus provider delay and existing URL lifetime
+(up to two hours). Local tests establish no quarterly maintenance or launch claim.

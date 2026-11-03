@@ -1,4 +1,4 @@
-// Isolated D9 composition. No financial mutations, discovery, retry worker or ledger.
+// D9 owner-assisted deletion. No financial mutations, discovery, retry worker or ledger.
 const { failure } = require('../identity/service');
 const { lockAccount } = require('../identity/account-lock');
 const { digest, cleared, sessionId } = require('./purchase');
@@ -37,18 +37,9 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
       where: owned,
       orderBy: { id: 'asc' },
     });
-    const subscriptions = await database.subscription.findMany({
-      where:
-        user.stripeId && binding?.customerId === user.stripeId
-          ? { OR: [{ userId }, { stripeId: user.stripeId }] }
-          : { userId },
-      orderBy: { id: 'asc' },
-    });
-    const ownerships = await database.checkoutOwnership.findMany({
-      where: owned,
-      orderBy: { sessionId: 'asc' },
-    });
-    return { user, binding, attempts, subscriptions, ownerships };
+    // C1 migration refuses all historical Subscription/CheckoutOwnership rows.
+    // Every purchase remaining here is an owned immutable attempt; none is discarded.
+    return { user, binding, attempts };
   }
   async function request(userId) {
     const recorded = await db.$transaction(async (tx) => {
@@ -142,10 +133,6 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
       addCustomer(b.customerId);
       addSubscription(b.selectedSubscriptionId, b.customerId);
     }
-    for (const row of state.subscriptions) addSubscription(row.id, row.stripeId);
-    for (const row of state.ownerships)
-      if (!state.attempts.some((op) => op.externalId === row.sessionId))
-        blockers.push('legacy_checkout:' + row.sessionId);
     for (const op of state.attempts) {
       const outcome = {
         attempt: op.id,
@@ -316,12 +303,6 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
           deletionRevision: { increment: 1 },
         },
       });
-      // Clear only the transitional request flag, never terminal/deleted markers.
-      if (state.binding)
-        await tx.billingCustomer.update({
-          where: { customerId: state.binding.customerId },
-          data: { deletionRequestedAt: null },
-        });
     });
     return { withdrawn: true };
   }
@@ -395,10 +376,7 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
         const data = {
           deletedAt,
           userId: null,
-          deletionRequestedAt: null,
           ...cleared,
-          syncIssueCode: null,
-          reconcileCursor: null,
           selectedSubscriptionId: selection,
           livemode: settings().livemode,
         };

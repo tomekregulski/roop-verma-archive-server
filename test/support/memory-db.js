@@ -4,14 +4,10 @@ module.exports = function memoryDatabase(calls) {
   const tables = Object.fromEntries(
     [
       'user',
-      'subscription',
       'loginProof',
       'identitySession',
-      'checkoutOwnership',
       'identityRateLimit',
       'billingCustomer',
-      'paidInvoiceGrant',
-      'stripeEventReceipt',
       'billingOperation',
       'token',
       'trackPlay',
@@ -55,14 +51,10 @@ module.exports = function memoryDatabase(calls) {
       ...(name === 'identitySession' ? { revokedAt: null } : {}),
       ...(name === 'billingCustomer'
         ? {
-            revision: 0,
             livemode: null,
             userId: null,
             deletedAt: null,
-            deletionRequestedAt: null,
             stripeDeletedAt: null,
-            syncIssueCode: null,
-            reconcileCursor: null,
             selectedSubscriptionId: null,
             selectedCanceledAt: null,
             accessCheckedAt: null,
@@ -70,14 +62,6 @@ module.exports = function memoryDatabase(calls) {
             cachedPaidFrom: null,
             cachedPaidThrough: null,
             accessFreshUntil: null,
-          }
-        : {}),
-      ...(name === 'stripeEventReceipt'
-        ? {
-            outcome: 'pending',
-            attempts: 0,
-            receivedAt: new Date(),
-            errorCode: null,
           }
         : {}),
       ...(name === 'billingOperation'
@@ -128,16 +112,7 @@ module.exports = function memoryDatabase(calls) {
               ...(include?.user
                 ? { user: tables.user.find((u) => u.id === row.userId) || null }
                 : {}),
-              ...(include?.subscriptions
-                ? {
-                    subscriptions: tables.subscription
-                      .filter((s) => s.stripeId === row.customerId)
-                      .map((s) => ({
-                        ...s,
-                        grants: tables.paidInvoiceGrant.filter((g) => g.subscriptionId === s.id),
-                      })),
-                  }
-                : {}),
+
             })
           : null;
       }),
@@ -176,11 +151,11 @@ module.exports = function memoryDatabase(calls) {
         if (!row) throw new Error('synthetic missing row');
         tables[name] = tables[name].filter((r) => r !== row);
         if (name === 'user')
-          for (const child of ['loginProof', 'identitySession', 'checkoutOwnership']) {
+          for (const child of ['loginProof', 'identitySession']) {
             tables[child] = tables[child].filter((r) => r.userId !== row.id);
           }
         if (name === 'user')
-          for (const child of ['subscription', 'billingCustomer', 'billingOperation'])
+          for (const child of ['billingCustomer', 'billingOperation'])
             for (const r of tables[child]) if (r.userId === row.id) r.userId = null;
         return structuredClone(row);
       }),

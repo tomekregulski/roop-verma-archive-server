@@ -38,7 +38,7 @@ function purchaseCases({ test, fixture }) {
     f.calls.length = 0;
     assert.equal((await f.play(cookie)).status, 200);
     assert.deepEqual(providerCalls(f), []);
-    assert.equal(await f.prisma.checkoutOwnership.count({ where: { userId: user.id } }), 0);
+    assert.equal('checkoutOwnership' in f.prisma, false, 'only the owned attempt stores Checkout ownership');
   });
   test('signup repeats do not overwrite account names or create Stripe customers', async () => {
     const f = fixture();

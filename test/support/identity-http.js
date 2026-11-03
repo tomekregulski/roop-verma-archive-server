@@ -35,63 +35,24 @@ module.exports = async function createIdentityFixture(options = {}) {
     responseFloorMs: 0,
   });
   const stripe = options.stripe || require('./billing-provider').provider(calls);
-  // Test-only composition. Normal application runtime has no alternate-adapter flag.
-  const billingAdapter = options.billingAdapter?.({
-    db,
-    stripe,
-    now: () => time,
-  });
-  const purchase = options.purchaseAdapter?.({
-    db,
-    stripe,
-    config: options.billingConfiguration || require('./billing-provider').config,
-    clientOrigin: config.clientOrigin,
-    now: () => time,
-    access: billingAdapter,
-  });
   const notifications = [];
-  const deletion =
-    purchase &&
-    require('../../billing/deletion').createDeletion({
-      db,
-      purchase,
-      clientOrigin: config.clientOrigin,
-      now: () => time,
-      sendNotification: options.noDeletionMail
-        ? null
-        : require('../../identity/mail').createDeletionMailer(
-            { ...config, deletionSupportEmail: 'support@example.invalid' },
-            async (_url, request) => {
-              calls.push('deletion.mail.send');
-              notifications.push(JSON.parse(request.body));
-              if (mailFailure) throw Error('synthetic notification failure');
-              return {
-                ok: true,
-                json: async () => ({ id: 'synthetic-notification-id' }),
-              };
-            }
-          ),
-    });
-  let operations;
-  const billing = require('../../billing/service').createBilling({
+  const runtime = require('../../billing/compose').createBillingRuntime({
     db,
     stripe,
     config: options.billingConfiguration || require('./billing-provider').config,
+    identityConfig: {
+      ...config,
+      deletionSupportEmail: options.noDeletionMail ? null : 'support@example.invalid',
+    },
     now: () => time,
-    recoverCustomer: (id) => operations.recoverCustomer(id),
+    mailTransport: async (_url, request) => {
+      calls.push('deletion.mail.send');
+      notifications.push(JSON.parse(request.body));
+      if (mailFailure) throw Error('synthetic notification failure');
+      return { ok: true, json: async () => ({ id: 'synthetic-notification-id' }) };
+    },
   });
-  operations = require('../../billing/operations').createOperations({
-    db,
-    stripe,
-    billing,
-    clientOrigin: config.clientOrigin,
-    now: () => time,
-  });
-  const readEntitlement = require('../../billing/reader').createEntitlementReader({
-    db,
-    config: options.billingConfiguration || require('./billing-provider').config,
-    now: () => time,
-  });
+  const { purchase, deletion, readEntitlement } = runtime;
   const priorEnv = {
     API_KEY: process.env.API_KEY,
     CLIENT_URL: process.env.CLIENT_URL,
@@ -104,13 +65,6 @@ module.exports = async function createIdentityFixture(options = {}) {
   let app;
   try {
     Module._load = function (request, ...args) {
-      if (
-        purchase &&
-        ['/routes/v1/payments/index.js', '/routes/v1/user/index.js'].some((path) =>
-          Module._resolveFilename(request, args[0]).endsWith(path)
-        )
-      )
-        return originalLoad.call(this, request, ...args).createPurchaseRouter(purchase, deletion);
       if (request === '@prisma/client')
         return {
           PrismaClient: class {
@@ -129,18 +83,11 @@ module.exports = async function createIdentityFixture(options = {}) {
           db,
           identity,
           now: () => time,
+          readEntitlement,
           ...options.playbackAdapters({ db, calls, now: () => time }),
         });
       }
-      if (Module._resolveFilename(request, args[0]).endsWith('/billing/runtime.js'))
-        return {
-          stripe,
-          billing: billingAdapter
-            ? { ...billing, processEvent: billingAdapter.processEvent }
-            : billing,
-          operations,
-          readEntitlement,
-        };
+      if (Module._resolveFilename(request, args[0]).endsWith('/billing/runtime.js')) return runtime;
       if (Module._resolveFilename(request, args[0]).endsWith('/identity/runtime.js'))
         return { db, config, identity };
       return originalLoad.call(this, request, ...args);
@@ -178,13 +125,12 @@ module.exports = async function createIdentityFixture(options = {}) {
     config,
     stripe,
     identity,
-    billing,
-    billingAdapter,
+    runtime,
     purchase,
     deletion,
     notifications,
-    operations,
     readEntitlement,
+    clock: () => new Date(time),
     advance(ms) {
       time = new Date(time.getTime() + ms);
     },
@@ -209,7 +155,6 @@ module.exports = async function createIdentityFixture(options = {}) {
             firstName: 'A',
             lastName: 'Test',
             isAdmin: false,
-            subscriptionActive: 'active',
           },
           {
             id: 2,
@@ -218,7 +163,6 @@ module.exports = async function createIdentityFixture(options = {}) {
             firstName: 'B',
             lastName: 'Test',
             isAdmin: false,
-            subscriptionActive: 'active',
           },
           {
             id: 3,
@@ -227,24 +171,16 @@ module.exports = async function createIdentityFixture(options = {}) {
             firstName: 'Admin',
             lastName: 'Test',
             isAdmin: true,
-            subscriptionActive: null,
           }
-        );
-        db.tables.subscription.push(
-          { id: 'sub_test_a', userId: 1, stripeId: 'cus_test_a' },
-          { id: 'sub_test_b', userId: 2, stripeId: 'cus_test_b' }
         );
         for (const user of db.tables.user)
           db.tables.billingCustomer.push({
             customerId: user.stripeId,
             userId: user.id,
             livemode: false,
-            revision: 0,
             deletedAt: null,
-            deletionRequestedAt: null,
             stripeDeletedAt: null,
-            syncIssueCode: null,
-            reconcileCursor: null,
+            selectedSubscriptionId: null,
           });
         fixture.user = db.tables.user[0];
       }

@@ -1,3 +1,13 @@
+# Current C1 selection — 2026-11-02
+
+Normal runtime now selects this adapter through `billing/compose.js`; owned
+purchase supplies the trusted binding and D9 uses the same account lock/tombstones.
+The old engine is removed. Current evidence and activation/preflight requirements:
+[STRIPE_LED_PURCHASE_IMPLEMENTATION.md](STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+The following is historical slice evidence; its cutover gates are superseded by C1.
+
+---
+
 # Isolated Stripe-led paid-access slice — 2026-11-01
 
 Subsequent local D1/D8 integration now supplies a trusted binding through owned

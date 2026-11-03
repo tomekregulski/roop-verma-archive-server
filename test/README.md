@@ -1,3 +1,97 @@
+# Latest cleanup verification — 2026-11-03
+
+276 synthetic backend tests and 156 fresh disposable PostgreSQL tests pass after
+the evidence/paid-period/access readability cleanup. Nine additional shared
+negative scenarios retain denial for absent required declarations, numeric
+strings and malformed discounts. Original SQL/cache/veto/ownership race tests
+remain enabled; no schema/migration or provider behavior was changed.
+
+Client: 36 purchase/owner UI assertions (including uncertain Checkout, unchanged-
+fingerprint attestation reset, stale review disposal, successful-mutation/list-
+refresh failure, conditional exact-Session recovery), 23 playback and 14 unit
+checks pass. TypeScript, changed-source ESLint, Vite build, changed JS syntax and
+diff whitespace pass. Normal HTTP/cookie/disposable-PG browser journey passes
+through owner withdrawal/re-request/completion and late-event rejection. The
+focused React pages use Axios/Audio doubles; every provider/media adapter is fake.
+Current commands below still apply. The separate strict telemetry drift was not
+rerun for this code-only cleanup; its last 6-pass/1-fail evidence remains visible.
+
+---
+
+# Current verification — C1 normal composition, 2026-11-02
+
+Current behavior/reduction/activation blockers:
+[STRIPE_LED_PURCHASE_IMPLEMENTATION.md](../STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+Use Node **24.19.0**, locked Stripe **17.5.0/Acacia**, Prisma **4.12.0**.
+Normal HTTP routes and the shared normal billing composition are tested with fake
+Stripe/mail/media. Browser journey uses normal AppContainer, no candidate routers.
+
+| Check run for C1 | Result |
+| --- | --- |
+| Backend full synthetic suite | **267 pass**, baseline reproduced 350 before removal |
+| Full new disposable PostgreSQL suite | **147 pass**, including 18 populated prior-schema upgrade/refusal fixtures |
+| Browser real HTTP/cookies/PG journey | Signup/verify, unpaid denial, paid authorization, Portal, request/review/withdraw/re-request/closure/completion, late-event rejection, same-email re-registration |
+| Browser normal security contract | **19 pass + 1 wrong-origin CORS pass** |
+| Focused React purchase/deletion and playback | **29 / 23 pass**, Axios/Audio doubles |
+| Frontend unit tests | **14 pass** |
+| TypeScript / changed-source ESLint / build / Prisma / syntax / whitespace | Pass; existing bundle/browser-data warnings |
+| Separate strict schema diagnostic | **6 pass / 1 fail**, solely pre-existing NetworkError.errorCode Required→Nullable drift |
+
+Old-engine/refund-ledger/reconciliation-only tests were removed; counts are not a
+completion criterion. Current suites retain identity/proof/session/admin ownership,
+immutable retries/concurrency/late completion, D9 races/rollback/tombstones, cache
+freshness/veto/outages/final signing checks and protected catalog/media boundaries.
+No existing DB or real provider was used; local passes establish neither actual
+provider behavior nor the maintenance/launch target.
+
+## Current commands
+
+Generate the local client after schema changes, using synthetic configuration:
+
+```sh
+DATABASE_URL=postgresql://synthetic@127.0.0.1:5432/rvdl_identity_test \
+HEROKU_POSTGRESQL_BROWN_URL=postgresql://synthetic@127.0.0.1:5432/rvdl_identity_shadow \
+node node_modules/prisma/build/index.js generate
+node --test test/*.test.js
+# Optional embedded-postgres tool setup remains documented in the historical setup below.
+EMBEDDED_POSTGRES_MODULE=/absolute/path/to/embedded-postgres/dist/index.js npm run test:billing:local
+# Strict diagnostic deliberately remains separately failing.
+EMBEDDED_POSTGRES_MODULE=/absolute/path/to/embedded-postgres/dist/index.js npm run assess:schema:local
+```
+
+The launcher creates/stops/removes a new loopback cluster with generated credentials;
+it never consumes an existing DATABASE_URL. Guarded `test:billing:db` is only for
+the explicit dedicated disposable rvdl_identity_test database. Upgrade tests create
+prior-schema fixtures in fresh schemas and verify both successful retention and
+refused-migration rollback. Prisma 4 may mask refusal text; tests also execute the
+same precondition block to verify specific reasons. No shadow/existing DB is used.
+
+From the frontend, same compatible runtime and optional PG module:
+
+```sh
+node --test test/*.test.cjs
+node node_modules/typescript/bin/tsc --noEmit --emitDeclarationOnly false
+EMBEDDED_POSTGRES_MODULE=/absolute/path/to/embedded-postgres/dist/index.js node test/browser-harness.mjs
+```
+
+Open `http://127.0.0.1:3000/signup`; test-only captured mail/hosted controls are at
+port 8091. The launcher always uses disposable PG and the single normal route
+composition, with a test-only redirect callback/fake delivery. No `--purchase`
+selection is needed. Focused pages: `/test/purchase-ui-browser.html`,
+`/test/playback-browser.html`. `/test/browser-checks.html` runs the 19 contract
+checks on a new ordinary verified synthetic account; the localhost hostname
+variant checks unconfigured-origin CORS. Normal builds never import test controls.
+Ignored evidence: client `test/evidence/c1-*`. Stop the launcher to discard its DB.
+
+---
+
+# Historical results/setup (dated; superseded runtime and engine commands)
+
+The older slice results below are historical, not current command/API guidance.
+References to removed code, old provisioning or candidate selectors are retained
+only as dated evidence. Use the current commands above; optional local PG tool
+installation and its platform prerequisite instructions below still apply.
+
 # Current verification — isolated D9 deletion, 2026-11-02
 
 Current evidence/limits: [purchase and D9 handoff](../STRIPE_LED_PURCHASE_IMPLEMENTATION.md).

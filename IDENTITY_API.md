@@ -1,18 +1,18 @@
-# Billing lifecycle update — 2026-11-01
+# Current identity and Stripe-led composition — C1, 2026-11-02
 
-[BILLING_API.md](BILLING_API.md) describes the current registration intent,
-customer binding, shared Checkout reservation, subscription history and billing-aware
-deletion rules. Those replace the older billing-path limitations below. Session,
-CSRF, API-key and cross-account guards are preserved. Status is display only;
-customer events alone cannot create/delete login identity or revive tombstones.
-The latest backend evidence is in [test/README.md](test/README.md); earlier browser
-results retain their dates/limits and were not rerun for this backend-only pass.
+[BILLING_API.md](BILLING_API.md) maps the single current purchase/access/deletion
+path. Signup creates local identity before email verification and purchase;
+customer events never provision accounts. BillingOperation is the only Checkout
+ownership record. Current evidence and activation/preflight blockers are in
+[STRIPE_LED_PURCHASE_IMPLEMENTATION.md](STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+Session, CSRF, API-key, ownership and administrator protections remain required.
+Historical dated evidence below does not establish deployed/provider behavior.
 
 # Playback contract update — 2026-10-28
 
 See [PLAYBACK_API.md](PLAYBACK_API.md) for the new local issuance endpoint and
-catalog response projection. Identity's subscription display fields remain
-untrusted for playback. Billing and real delivery adapters are incomplete;
+catalog response projection. Identity never supplies paid authority. The billing adapter is now selected;
+real delivery adapters remain incomplete;
 service restoration remains deferred. Earlier identity evidence follows.
 
 # Backend email login and account identity — 2026-10-17
@@ -50,26 +50,23 @@ Bodies are limited to 16 KiB. Email input must be a bounded ASCII address. Login
 
 Normal initiation responses have a 5.5-second response floor, covering the provider's five-second timeout and reducing ordinary known/unknown timing differences. Database/network stalls can exceed that floor; this is not a constant-time guarantee. Tests inject a clock and omit waiting, without changing production configuration.
 
-## Existing account/payment routes
+## Current account/payment routes
 
-The shared :key remains for compatibility on existing routes and is public application configuration, not user authorization. These routes now require the verified session:
+The public `:key` remains for compatibility, never authentication. The complete
+current route/body/guard map is maintained in [BILLING_API.md](BILLING_API.md).
+Identity is `/auth/session`; normal billing summary is `/payment/account/:key`.
+Checkout is an empty-body POST `/payment/checkout/:key`; owned completion lookup
+accepts only sessionId. Portal derives the customer from the trusted binding.
+Owner-assisted deletion uses a session-derived request and persisted-admin
+review/withdrawal/completion, with explicit closure checks. Direct/bulk deletion,
+legacy account lookup, creation GETs, duplicate resubscribe, payment-method update
+and receipt-log APIs are removed (404), including for administrators.
 
-| Route | Authorization / behavior |
-| --- | --- |
-| GET /user/:key | Current database admin role required |
-| DELETE /user/:key?id=... | Admin only, validated positive integer; deletes local record, cascades identity data; 204 |
-| DELETE /user/all/:key | Permanently removed, 410; no database calls |
-| GET /user/find-by-stripe-id/:key?stripeId=... | Self only; optional identifier must match; data comes from acting user's server record |
-| POST /user/create-portal-session/:key | Optional customerId must match; actual Stripe customer always comes from acting user |
-| GET /payment/checkout-session/:key/:stripeId | Target must match acting user; store Checkout ownership before returning the session |
-| GET /payment/checkout-session-resubscribe/:key/:stripeId | Same ownership enforcement and persistence |
-| POST /payment/checkout-session-object/:key | `{sessionId}` must have a local ownership record matching user and current customer, before Stripe retrieval |
-| PUT /payment/update-payment/:key | Optional stripe_id must match; subscription_id must match the acting user's local subscription and customer; validate payment_method; actual customer comes from acting user |
-| GET /payment/webhookLogs | Admin session required |
-
-Paths above are relative to /api/v1. Authentication failures precede any Stripe call. Cross-account targets are denied before Stripe. Synthetic tests also verify authorized requests still execute their original provider operations. Checkout lifecycle/allowlist now follows the billing contract above; payment updates remain association-only. The payment provider remains responsible for rejecting a payment method already attached to another customer; the backend does not possess a local ownership ledger for arbitrary payment-method IDs.
-
-Checkout lookup rejects old/unrecorded IDs. The backend records IDs only when it creates a session for the verified user. If Stripe creation succeeds but ownership persistence fails, the response fails and the durable reservation retains its original key. Retry or operation reconciliation recovers the same session; no new reservation is created from an uncertain outcome.
+Unauthenticated/foreign authority is rejected before provider work. A browser ID
+cannot adopt an unknown Checkout: owned immutable attempts retain their same key
+and exact request. Safe uncertain retries use that key only within 23 hours;
+known open Sessions resume; old/future unknown outcomes require support. No generic
+reconciliation/recovery engine or financial-history discovery remains.
 
 Legacy email-token, session-token, admin-token and account-update-token GETs return 410 and perform no credential issuance. Old JWT headers/cookies cannot authenticate. Admins use the same mailbox-proof flow as everyone else; the role must already exist in trusted database state. There is no public admin provisioning API.
 
@@ -128,11 +125,16 @@ The authorized React integration now implements:
 - Read the proof from /login-gate#token=..., remove it immediately from browser history, then POST /auth/verify once. Do not log it or forward it into analytics/error reports. Do not auto-consume proof on a backend GET (mail scanners may follow links).
 - Use Axios withCredentials/fetch credentials: include and the CSRF header. Remove JWT decoding and document.cookie login checks; initialize identity with GET /auth/session.
 - Call server logout, then clear client state.
-- Verify mailbox ownership before requesting Checkout; wait for local account provisioning from the existing customer.created webhook if needed. Registration's returned customer ID is not login.
+- Register locally, request one proof email, and verify mailbox ownership before Checkout. Registration returns no customer or login credential.
 - Use self identity for account UI; treat 401 as logged out and refresh account state after portal return.
 - Test browser cookie acceptance, CORS, CSRF, duplicate React effects, email links, expiry, logout and Checkout/portal return behavior.
 
-These client changes are implemented in the separate frontend checkout. See its `IDENTITY_HANDOFF.md` for tested working-tree hashes, 18 automated in-browser contract checks plus a wrong-origin check, manual-style React browser checks, and local reproduction. Signup requests login at most three times over 40 seconds while waiting for customer.created provisioning, then offers manual retry/help; no account-readiness endpoint or delivery guarantee is introduced. The standalone `test/support/browser-fixture.js` is test-only and exposes synthetic mail controls outside the application. Browser evidence uses HTTP/non-Secure loopback cookies, fake mail/Stripe and memory storage. Production HTTPS cookie/proxy behavior, real delivery and deployed behavior are unverified.
+Normal React routing now selects this flow and `/owner/deletions`. Signup requests
+one email proof, then offers manual retry/help. The standalone browser harness
+uses normal routes, disposable PostgreSQL and fake providers; it exposes mail and
+hosted navigation controls only in tests. See the frontend `IDENTITY_HANDOFF.md`
+for current browser evidence. Production HTTPS/proxy/cookies, real inbox delivery
+and Stripe behavior remain separately unverified.
 
 ## Manual API walkthrough — no real services
 
@@ -169,12 +171,13 @@ curl -sS http://127.0.0.1:8090/api/v1/auth/verify \
   -c "$RVDL_DEMO_DIR/cookies" --data-binary "@$RVDL_DEMO_DIR/verify.json"
 curl -sS -b "$RVDL_DEMO_DIR/cookies" http://127.0.0.1:8090/api/v1/auth/session
 
-# Same proof again: 401. A's request targeting B: 403, without a Stripe call.
+# Same proof again: 401. Ordinary identity cannot read owner requests: 403.
 curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8090/api/v1/auth/verify \
   -H 'Content-Type: application/json' -H 'X-RVDL-CSRF: 1' \
   --data-binary "@$RVDL_DEMO_DIR/verify.json"
 curl -sS -o /dev/null -w '%{http_code}\n' -b "$RVDL_DEMO_DIR/cookies" \
-  'http://127.0.0.1:8090/api/v1/user/find-by-stripe-id/synthetic-public-key?stripeId=cus_test_b'
+  -H 'X-RVDL-CSRF: 1' \
+  'http://127.0.0.1:8090/api/v1/user/owner/deletions/synthetic-public-key'
 
 # 204, then GET /auth/session returns 401.
 curl -sS -o /dev/null -w '%{http_code}\n' -X POST \
@@ -196,12 +199,12 @@ Only disposable local schemas/clusters were migrated. Real PostgreSQL tests use 
 
 Before deploying, review existing migration history/state separately. This branch does not establish remote migration readiness or compatibility with real existing data. Fresh replay has no existing nullable timestamp/duplicate data to expose older migration hazards.
 
-Run `npm run cleanup:identity` only against an explicitly selected database to remove expired proofs, sessions and rate counters. It prints no rows or credentials. No remote cleanup was run and no hosting schedule was installed. Checkout ownership rows remain until account deletion; lifecycle/retention beyond that is future work.
+Run `npm run cleanup:identity` only against an explicitly selected database to remove expired proofs, sessions and rate counters. It prints no rows or credentials. No remote cleanup was run and no hosting schedule was installed. Owned attempts retain immutable evidence until owner-assisted deletion, then retain security tombstones with scrubbed request JSON; no automatic tombstone expiry is approved.
 
 Still unresolved:
 - Webhook signatures are enforced and locally tested as of 2026-10-22 (see the current BACKEND_BASELINE.md handoff). Deployed enforcement and synchronization/retry integrity remain unverified; route ownership does not establish lifecycle correctness.
 - Private audio entitlement, media URL access and catalog/admin write authorization remain outside this backend identity task. Those endpoints must not be assumed protected by the new session system.
-- Stripe provider integration, registration webhook timing, resubscription integrity, admin local deletion versus ongoing Stripe billing, deployment/proxy behavior and production data remain unverified.
+- Real Stripe/mail settings and behavior, existing-data/retention preflight and deployment/proxy behavior remain unverified. Current purchase/deletion security is tested locally with fake providers.
 - Registration still distinguishes an already registered address with 409. Login initiation itself has the generic response contract; broader signup enumeration policy remains a follow-up.
 - Real mail delivery, deployed browser behavior and shared-domain configuration remain pending; local frontend/browser integration is verified as described above.
 

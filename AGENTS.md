@@ -5,8 +5,22 @@
 - Current outcome: backend email login and account/session ownership guards implemented after the owner approved the design checkpoint. Read `IDENTITY_API.md` and the current handoff at the top of `BACKEND_BASELINE.md`. The eight original identity acceptance targets pass. Webhook signatures are enforced and locally tested (2026-10-22); signing-secret deployment setup/verification, media/catalog authorization and other ranked blockers remain unresolved. Browser integration and deployed verification remain incomplete.
 - Owner preference for this unreleased app with no real subscribers: favor small, complete functional fixes. If a fix cannot fit, document findings, reproduce them safely, and prepare the implementation contract. Do not disable development flows solely to fit session scope. Establish exposure or obtain an explicit owner choice before using containment as the deliverable; deployed reachability is currently unknown.
 - Do not access production data, change infrastructure, or run migrations against remote databases without explicit authorization. Never print secrets, environment values, tokens, customer payloads, or private audio URLs. Use synthetic fixtures and disposable local databases for tests.
-- Owner confirms Heroku backend/PostgreSQL and Cloudinary audio. Frontend at `../roop-verma-archive-client` is authorized only for the isolated D1/D8 scope described below; normal frontend routing/runtime cutover remains gated. Intended UX is magic-email login and Stripe-hosted Checkout/Billing Portal with one monthly tier. Refresh tokens are not implemented in the reviewed flow; do not assume they exist.
+- Owner confirms Heroku backend/PostgreSQL and Cloudinary audio. Frontend at `../roop-verma-archive-client` is included in the authorized local C1 composition/removal described below. Intended UX is magic-email login and Stripe-hosted Checkout/Billing Portal with one monthly tier. Refresh tokens are not implemented in the reviewed flow; do not assume they exist.
 - Read `BACKEND_BASELINE.md` for confirmed risks, open deployment questions, and the proposed next session. Keep findings distinct from assumptions.
+
+## C1 local consolidation — 2026-11-02
+
+The owner explicitly authorized local backend/frontend cutover and superseded
+engine/schema/test removal with fake providers and disposable PostgreSQL only.
+Normal composition now selects purchase, paid access and D9 deletion; legacy
+provisioning/ledger/reconciliation are removed. Read the current C1 handoff at the
+top of `STRIPE_LED_PURCHASE_IMPLEMENTATION.md`, `BILLING_API.md`, `Operations.md`
+and `test/README.md`. The forward removal migration refuses nonempty legacy
+tables, unsupported/orphan attempts, unresolved flags and untrusted selection;
+existing contents are unknown. No retention decision, selection backfill or real
+provider/existing DB/deployment/commit/push/merge action is authorized. Preserve
+working-tree changes. These local C1 permissions supersede older cutover/removal
+gates below; all older dated slice status/results are historical.
 
 ## D9 local update — 2026-11-02
 

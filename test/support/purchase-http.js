@@ -1,9 +1,8 @@
 const createAccessFixture = require('./paid-access-http');
-const { createPurchase } = require('../../billing/purchase');
 const { config, event } = require('./billing-provider');
 const { postEvent } = require('./paid-access-cases');
 module.exports = async function purchaseFixture(options = {}) {
-  const f = await createAccessFixture({ ...options, select: false, purchaseAdapter: createPurchase });
+  const f = await createAccessFixture({ ...options, select: false });
   f.signup = (email = 'new@example.invalid') =>
     f.json('user/synthetic-public-key', { firstName: 'New', lastName: 'Account', email });
   f.start = (cookie) => f.json('payment/checkout/synthetic-public-key', {}, cookie);
