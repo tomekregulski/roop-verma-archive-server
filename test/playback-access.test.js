@@ -61,7 +61,7 @@ test('valid session plus normalized synthetic paid interval signs only the reque
   const cookie = await f.login(); entitlement = paid();
   const result = await request(20, cookie);
   assert.equal(result.status, 200); assert.equal(result.body.trackId, 20);
-  assert.deepEqual(lookups, [1]);
+  assert.deepEqual(lookups, [1, 1]);
   assert.equal(signatures[0].asset.key, 'playback/track-20.mp3');
   assert.equal(signatures[0].expiresAt.getTime(), start + 7200000);
 });

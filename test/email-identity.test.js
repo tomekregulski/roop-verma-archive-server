@@ -193,72 +193,58 @@ test('legacy JWT headers and tampered or missing cookies cannot authenticate', a
   assert.equal((await get('auth/session', f.config.cookieName + '=' + 'x'.repeat(43))).status, 401);
   assert.equal((await get('auth/session')).status, 401);
 });
-test('account lookup is self-only and ordinary users cannot list or delete users', async () => {
+test('session identity is self-only and ordinary users cannot enumerate or complete deletion', async () => {
   const cookie = await f.login();
-  assert.equal((await get('user/find-by-stripe-id/synthetic-public-key?stripeId=cus_test_a', cookie)).status, 200);
-  f.calls.length = 0;
-  assert.equal((await get('user/find-by-stripe-id/synthetic-public-key?stripeId=cus_test_b', cookie)).status, 403);
-  assert.equal(f.calls.includes('subscription.findMany'), false);
+  const own = await get('auth/session', cookie);
+  assert.equal(own.body.user.id, 1);
   assert.equal((await get('user/synthetic-public-key', cookie)).status, 403);
-  assert.equal((await f.request('user/synthetic-public-key?id=2', { method: 'DELETE', headers: { ...csrf, Cookie: cookie } })).status, 403);
+  assert.equal((await get('user/owner/deletions/2/synthetic-public-key', cookie)).status, 403);
+  assert.equal((await f.json('user/owner/deletions/2/complete/synthetic-public-key', { dashboardClosed: true, review: 'a'.repeat(64) }, cookie)).status, 403);
   assert.equal(f.prisma.tables.user.length, 3);
 });
-test('admin listing and individual deletion work; roles are checked fresh and bulk deletion is removed', async () => {
+test('admin listing checks fresh roles and direct/bulk deletion bypasses are removed', async () => {
   const cookie = await f.login('admin@example.invalid');
   assert.equal((await get('user/synthetic-public-key', cookie)).status, 200);
-  assert.equal((await f.request('user/synthetic-public-key?id=2oops', { method: 'DELETE', headers: { ...csrf, Cookie: cookie } })).status, 400);
-  assert.equal((await f.request('user/synthetic-public-key?id=2', { method: 'DELETE', headers: { ...csrf, Cookie: cookie } })).status, 204);
+  for (const path of ['user/synthetic-public-key?id=2','user/all/synthetic-public-key'])
+    assert.equal((await f.request(path, { method: 'DELETE', headers: { ...csrf, Cookie: cookie } })).status, 404);
   f.prisma.tables.user.find(u => u.id === 3).isAdmin = false;
   assert.equal((await get('user/synthetic-public-key', cookie)).status, 403);
-  assert.equal((await f.request('user/all/synthetic-public-key', { method: 'DELETE', headers: { ...csrf, Cookie: cookie } })).status, 410);
+  assert.equal((await get('user/owner/deletions/synthetic-public-key', cookie)).status, 403);
+  assert.equal(f.prisma.tables.user.length, 3);
 });
-const endpoints = [
-  ['user/create-portal-session/synthetic-public-key', 'POST', { customerId: 'cus_test_b' }],
-  ['payment/checkout-session/synthetic-public-key/cus_test_b', 'GET'],
-  ['payment/checkout-session-resubscribe/synthetic-public-key/cus_test_b', 'GET'],
-  ['payment/checkout-session-object/synthetic-public-key', 'POST', { sessionId: 'cs_test_b' }],
-  ['payment/update-payment/synthetic-public-key', 'PUT', { stripe_id: 'cus_test_b', subscription_id: 'sub_test_b', payment_method: 'pm_test_b' }],
-];
-for (const [path, method, body] of endpoints) test('account route rejects anonymous and cross-account before Stripe: ' + path.split('/')[1], async () => {
-  async function call(cookie) {
-    return f.request(path, { method, headers: { ...csrf, 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
-  }
-  f.prisma.tables.checkoutOwnership.push({ sessionId: 'cs_test_b', userId: 2, customerId: 'cus_test_b' });
-  assert.equal((await call()).status, 401); noStripe();
+for (const [path, body] of [
+  ['user/create-portal-session/synthetic-public-key', { customerId: 'cus_test_b' }],
+  ['payment/checkout/synthetic-public-key', { customerId: 'cus_test_b' }],
+  ['payment/checkout-session-object/synthetic-public-key', { sessionId: 'cs_test_b' }],
+]) test('normal account route rejects anonymous and foreign authority before Stripe: ' + path, async () => {
+  assert.equal((await f.json(path, body)).status, 401); noStripe();
   const cookie = await f.login(); f.calls.length = 0;
-  assert.equal((await call(cookie)).status, 403); noStripe();
+  assert.equal((await f.json(path, body, cookie)).status, path.includes('session-object') ? 403 : 400); noStripe();
 });
-test('authorized portal, checkout, resubscription, lookup and payment update still work', async () => {
+test('trusted Portal and ownership denial use only current identity and owned attempts', async () => {
   const cookie = await f.login(); f.calls.length = 0;
   const portal = await f.json('user/create-portal-session/synthetic-public-key', {}, cookie);
-  assert.equal(portal.status, 200); assert.equal(portal.body.session.customer, 'cus_test_a');
-  for (const endpoint of ['checkout-session', 'checkout-session-resubscribe']) {
-    const checkout = await get('payment/' + endpoint + '/synthetic-public-key/cus_test_a', cookie);
-    assert.equal(checkout.status, 200); assert.equal(checkout.body.customer, 'cus_test_a');
-    assert.equal(f.prisma.tables.checkoutOwnership.some(row => row.sessionId === checkout.body.id && row.userId === 1), true);
-    assert.equal((await f.json('payment/checkout-session-object/synthetic-public-key', { sessionId: checkout.body.id }, cookie)).status, 200);
-  }
-  const update = await f.request('payment/update-payment/synthetic-public-key', { method: 'PUT', headers: { ...csrf, Cookie: cookie, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ subscription_id: 'sub_test_a', payment_method: 'pm_test_a' }) });
-  assert.equal(update.status, 200);
-  assert.equal(f.calls.includes('stripe.paymentMethods.attach'), true);
-  assert.equal(f.calls.includes('stripe.customers.update'), true);
-});
-test('unrecorded checkout IDs and foreign subscriptions fail before Stripe', async () => {
-  const cookie = await f.login(); f.calls.length = 0;
+  assert.equal(portal.status, 200); assert.equal(portal.body.reason, 'portal_open');
+  assert.equal(f.calls.filter(c => c.startsWith('stripe.')).join(','), 'stripe.portal.create');
+  f.calls.length = 0;
   assert.equal((await f.json('payment/checkout-session-object/synthetic-public-key', { sessionId: 'cs_unrecorded' }, cookie)).status, 403);
-  assert.equal((await f.request('payment/update-payment/synthetic-public-key', { method: 'PUT', headers: { ...csrf, Cookie: cookie, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ stripe_id: 'cus_test_a', subscription_id: 'sub_test_b', payment_method: 'pm_test_a' }) })).status, 403);
   noStripe();
 });
-test('unsafe authenticated GETs require CSRF protection and wrong API keys cannot continue', async () => {
+test('normal purchase routes enforce CSRF, configured origin, public key and authority-free input', async () => {
   const cookie = await f.login(); f.calls.length = 0;
-  assert.equal((await f.request('payment/checkout-session/synthetic-public-key/cus_test_a', { headers: { Cookie: cookie } })).status, 403);
-  assert.equal((await get('payment/checkout-session/wrong/cus_test_a', cookie)).status, 403);
+  assert.equal((await f.request('payment/account/synthetic-public-key', { headers: { Cookie: cookie } })).status, 403);
+  assert.equal((await f.json('payment/checkout/wrong', {}, cookie)).status, 403);
+  assert.equal((await f.json('payment/checkout/synthetic-public-key', {}, cookie, { Origin: 'https://foreign.example.invalid' })).status, 403);
   noStripe();
 });
-test('webhook logs require an administrator session', async () => {
-  assert.equal((await get('payment/webhookLogs')).status, 401);
-  const cookie = await f.login();
-  assert.equal((await get('payment/webhookLogs', cookie)).status, 403);
+test('superseded financial/creation APIs are absent, including for administrators', async () => {
+  const cookie = await f.login('admin@example.invalid'); f.calls.length = 0;
+  for (const [method,path] of [
+    ['GET','payment/checkout-session/synthetic-public-key/cus_test_admin'],
+    ['GET','payment/checkout-session-resubscribe/synthetic-public-key/cus_test_admin'],
+    ['PUT','payment/update-payment/synthetic-public-key'],
+    ['GET','payment/webhookLogs'],
+    ['GET','user/find-by-stripe-id/synthetic-public-key'],
+  ]) assert.equal((await f.request(path, { method, headers: { ...csrf, Cookie: cookie } })).status, 404);
+  noStripe();
 });

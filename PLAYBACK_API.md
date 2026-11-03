@@ -1,3 +1,15 @@
+# Current billing reader — C1, 2026-11-02
+
+Normal composition uses `billing/paid-access.js` with the shared PostgreSQL
+maximum-15-minute cache clipped to the verified paid-period end, terminal
+cancellation veto and no stale-on-error extension;
+[BILLING_API.md](BILLING_API.md) contains the flow and approved lifecycle rules.
+Playback rereads entitlement after mapping, before signing. Absent/ineligible
+coverage is 403; storage, ownership or environment inconsistency is 503. Public
+tracks require no identity/billing read. Delivery adapters remain unavailable, so
+normal runtime issues no media URL. The two-hour URL contract and dated browser
+evidence below remain; latest backend checks are in [test/README.md](test/README.md).
+
 # Local playback access contract — 2026-10-28
 
 Implemented locally; service restoration remains deferred. This contract does
@@ -56,7 +68,7 @@ The small factory takes three server-owned asynchronous adapters:
    cancelled?: boolean}`. The interval is inclusive at paidFrom and exclusive at
    paidThrough. Extra/contradictory fields, arrays, foreign user IDs, malformed,
    future and expired intervals deny. A cancellation marker does not truncate a
-   paid interval. The paid boundary is rechecked after asset mapping, before signing.
+   paid interval. Persisted entitlement is reread and the paid boundary rechecked after asset mapping, before signing.
 2. `resolveAsset(trackId)` returns a server-controlled playback mapping
    `{trackId, namespace: 'playback', key: 'playback/<opaque-name>.mp3',
    contentType: 'audio/mpeg'}`. Key names allow letters, numbers, `_` and `-`;
@@ -68,20 +80,17 @@ The small factory takes three server-owned asynchronous adapters:
    credential. The future provider adapter must bind a fixed private playback
    bucket and read-only GET signing credentials without archive access.
 
-**Production integration is deliberately incomplete.** `playback/runtime.js`
-uses unavailable adapters, so even a public track receives 503 until delivery is
-implemented. Subscriber requests with valid sessions receive 503 while the
-entitlement adapter is unavailable. Existing User.subscriptionActive and
-Subscription.status/cancelAt cannot establish paid-through authority: the schema
-has no paid-period interval or reliable synchronized paid-entitlement record.
-Webhook code stores status strings; it is not an approved paid-entitlement adapter.
-No Stripe status, including `active`, is converted into a grant here.
+**Delivery integration remains incomplete.** `playback/runtime.js` uses the real
+Stripe-led billing reader and unavailable asset/signing adapters. Even public
+tracks receive 503 until delivery exists. A verified subscriber without a current
+paid interval receives 403; an eligible paid subscriber reaches unavailable
+delivery and receives 503. No display/subscription status grants playback.
+Cancellation and owner exceptions follow the linked D1–D10 billing contract.
 
-Trials, past-due grace, refunds/disputes, paused accounts, gifts and admin playback
-exceptions remain unresolved and grant nothing. Final provider approval remains
-pending. The intended separate private WAV archive and playback credential
-separation require actual provider enforcement later; a filename/interface check
-cannot prove object contents or bucket policy.
+The separate private WAV archive and playback credential separation require actual
+provider enforcement later; a filename/interface check cannot prove contents or
+bucket policy. Gifts, pauses/collection pauses, credits, discounts, plan changes
+and admin exceptions introduce no new grants in this initial scope.
 
 ## Catalog and frontend compatibility
 

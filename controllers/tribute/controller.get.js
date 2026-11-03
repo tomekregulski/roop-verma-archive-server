@@ -1,9 +1,4 @@
 const { PrismaClient } = require('@prisma/client');
-const { getUserByStripeId } = require('../../prisma/queries/user');
-const {
-  getSubscriptionByStripeId,
-} = require('../../prisma/queries/subscription');
-
 const prisma = new PrismaClient();
 
 module.exports = {

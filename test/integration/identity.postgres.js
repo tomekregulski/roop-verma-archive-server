@@ -32,11 +32,12 @@ before(async () => {
 beforeEach(async () => {
   if (!f) return;
   await f.reset();
-  for (const model of ['loginProof', 'identitySession', 'checkoutOwnership', 'identityRateLimit', 'subscription', 'user']) await db[model].deleteMany({});
+  for (const model of ['billingOperation', 'billingCustomer', 'loginProof', 'identitySession', 'identityRateLimit', 'user']) await db[model].deleteMany({});
   await db.user.createMany({ data: [
-    { id: 1, email: 'a@example.invalid', stripeId: 'cus_test_a', firstName: 'A', lastName: 'Test', isAdmin: false, subscriptionActive: 'active' },
+    { id: 1, email: 'a@example.invalid', stripeId: 'cus_test_a', firstName: 'A', lastName: 'Test', isAdmin: false },
     { id: 2, email: 'b@example.invalid', stripeId: 'cus_test_b', firstName: 'B', lastName: 'Test', isAdmin: false },
   ] });
+  await db.billingCustomer.createMany({ data: [{ customerId: 'cus_test_a', userId: 1, livemode: false }, { customerId: 'cus_test_b', userId: 2, livemode: false }] });
 });
 after(async () => {
   if (f) await f.close();
@@ -92,15 +93,18 @@ test('real PostgreSQL: concurrent login limits are atomic', async () => {
   assert.equal(responses.filter(r => r.status === 429).length, 7);
   assert.equal(f.mail.length, 0);
 });
-test('real PostgreSQL: checkout ownership persists and cross-account lookup never calls Stripe', async () => {
+test('real PostgreSQL: owned Checkout attempt persists and cross-account lookup never calls Stripe', async () => {
+  await db.billingCustomer.deleteMany({});
+  await db.user.updateMany({ data: { stripeId: null } });
   const cookieA = await f.login();
-  const checkout = await f.request('payment/checkout-session/synthetic-public-key/cus_test_a', { headers: { Cookie: cookieA, 'X-RVDL-CSRF': '1' } });
+  const checkout = await f.json('payment/checkout/synthetic-public-key', {}, cookieA);
   assert.equal(checkout.status, 200);
-  assert.equal(await db.checkoutOwnership.count({ where: { userId: 1, sessionId: checkout.body.id } }), 1);
+  const op = await db.billingOperation.findUnique({ where: { id: checkout.body.attempt } });
+  assert.equal(op.userId, 1); assert.ok(op.externalId);
   const cookieB = await f.login('b@example.invalid'); f.calls.length = 0;
-  assert.equal((await f.json('payment/checkout-session-object/synthetic-public-key', { sessionId: checkout.body.id }, cookieB)).status, 403);
+  assert.equal((await f.json('payment/checkout-session-object/synthetic-public-key', { sessionId: op.externalId }, cookieB)).status, 403);
   assert.equal(f.calls.some(call => call.startsWith('stripe.')), false);
-  assert.equal((await f.json('payment/checkout-session-object/synthetic-public-key', { sessionId: checkout.body.id }, cookieA)).status, 200);
+  assert.equal((await f.json('payment/checkout-session-object/synthetic-public-key', { sessionId: op.externalId }, cookieA)).status, 200);
 });
 test('real PostgreSQL: migration replay is idempotent', () => {
   assert.equal(cli(['migrate', 'deploy']).status, 0);

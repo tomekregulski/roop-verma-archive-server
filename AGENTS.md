@@ -5,8 +5,78 @@
 - Current outcome: backend email login and account/session ownership guards implemented after the owner approved the design checkpoint. Read `IDENTITY_API.md` and the current handoff at the top of `BACKEND_BASELINE.md`. The eight original identity acceptance targets pass. Webhook signatures are enforced and locally tested (2026-10-22); signing-secret deployment setup/verification, media/catalog authorization and other ranked blockers remain unresolved. Browser integration and deployed verification remain incomplete.
 - Owner preference for this unreleased app with no real subscribers: favor small, complete functional fixes. If a fix cannot fit, document findings, reproduce them safely, and prepare the implementation contract. Do not disable development flows solely to fit session scope. Establish exposure or obtain an explicit owner choice before using containment as the deliverable; deployed reachability is currently unknown.
 - Do not access production data, change infrastructure, or run migrations against remote databases without explicit authorization. Never print secrets, environment values, tokens, customer payloads, or private audio URLs. Use synthetic fixtures and disposable local databases for tests.
-- Owner confirms Heroku backend/PostgreSQL and Cloudinary audio. Frontend at `../roop-verma-archive-client` may be read only to assess backend integration; no frontend implementation work is currently authorized. Intended UX is magic-email login and Stripe-hosted Checkout/Billing Portal with one monthly tier. Refresh tokens are not implemented in the reviewed flow; do not assume they exist.
+- Owner confirms Heroku backend/PostgreSQL and Cloudinary audio. Frontend at `../roop-verma-archive-client` is included in the authorized local C1 composition/removal described below. Intended UX is magic-email login and Stripe-hosted Checkout/Billing Portal with one monthly tier. Refresh tokens are not implemented in the reviewed flow; do not assume they exist.
 - Read `BACKEND_BASELINE.md` for confirmed risks, open deployment questions, and the proposed next session. Keep findings distinct from assumptions.
+
+## C1 local consolidation — 2026-11-02
+
+The owner explicitly authorized local backend/frontend cutover and superseded
+engine/schema/test removal with fake providers and disposable PostgreSQL only.
+Normal composition now selects purchase, paid access and D9 deletion; legacy
+provisioning/ledger/reconciliation are removed. Read the current C1 handoff at the
+top of `STRIPE_LED_PURCHASE_IMPLEMENTATION.md`, `BILLING_API.md`, `Operations.md`
+and `test/README.md`. The forward removal migration refuses nonempty legacy
+tables, unsupported/orphan attempts, unresolved flags and untrusted selection;
+existing contents are unknown. No retention decision, selection backfill or real
+provider/existing DB/deployment/commit/push/merge action is authorized. Preserve
+working-tree changes. These local C1 permissions supersede older cutover/removal
+gates below; all older dated slice status/results are historical.
+
+## D9 local update — 2026-11-02
+
+Owner explicitly authorized the bounded isolated D9 request/list/review/withdraw/
+completion slice. It is implemented; current evidence and exact C1 work are in
+`STRIPE_LED_PURCHASE_IMPLEMENTATION.md`, owner checklist in `Operations.md`.
+350 synthetic / 214 disposable PG / 29 purchase-deletion React / 23 player React /
+14 frontend unit checks pass. Strict telemetry drift remains 6 pass / 1 fail.
+Existing support exposes no backend recipient: configure the staged
+ACCOUNT_DELETION_SUPPORT_EMAIL later. Unknown legacy attempts stay blocked for
+investigation. Normal runtime/frontend cutover, old-engine/schema removal, real
+providers/existing databases, deployment, commits/push/merge remain unauthorized.
+Older owner-control gates below are superseded only for this local D9 slice.
+
+## Current billing implementation — 2026-11-01
+
+- Owner explicitly authorized and the session completed the isolated D1/D8 scope
+  in `STRIPE_LED_SIGNUP_CHECKOUT_SCOPE.md`. Current handoff:
+  `STRIPE_LED_PURCHASE_IMPLEMENTATION.md`. Reuses BillingOperation and identity;
+  candidate signup/purchase supplies the existing paid-access adapter's binding.
+  323 synthetic / 183 disposable PostgreSQL checks, 15 purchase and 23 player React
+  browser assertions pass; separate known telemetry drift remains 6 pass / 1 fail.
+  No further implementation, normal runtime cutover, owner controls, old-engine or
+  schema removal, real provider/existing DB action, deployment, restoration,
+  push or merge is authorized. Completed local slices are not operational rollout.
+- `STRIPE_LED_DECISIONS.md` is policy authority: D1–D10 approved. D10 retains the
+  shared PostgreSQL maximum-15-minute cache clipped to paid period, terminal
+  selected-subscription veto and no stale-on-error extension. Its completed first
+  slice remains documented in `PAID_ACCESS_IMPLEMENTATION.md`.
+- Remaining billing transition planning is 8–14 active engineer hours: D9 controls
+  3–5, bounded C1 cutover/removal 3–5 after D9, real provider verification 2–4.
+  These are estimates requiring separate scope approval; owner/tool waiting time
+  and unrelated delivery/deployment work are separate. Target remains zero routine
+  engineering most months / roughly five hours per quarter, not yet validated.
+- Owner course correction: minimizing ongoing maintenance is an architectural
+  requirement. Prefer Stripe-hosted Checkout for purchase/subscription signup,
+  Customer Portal for billing management, and Stripe-managed billing lifecycle.
+  Keep application code for verified identity, trusted customer association and
+  playback authorization; justify any additional lifecycle machinery explicitly.
+  Prefer documented operator handling of rare exceptions when it avoids a complex
+  automatic recovery system. Review signup/provisioning as part of this boundary.
+- The existing invoice-backed implementation is a tested local candidate, not the
+  required target architecture. Reassess it against this constraint before further
+  expansion. Existing lifecycle tests are useful evaluation scenarios; changes to
+  product access policy must be explicit rather than silently weakened to simplify
+  code. Do not equate a passing test suite with architectural approval.
+- Start with `BILLING_API.md` for the flow/file map and the newest `BACKEND_BASELINE.md`
+  handoff. Current commands/results live in `test/README.md`; repair is in `Operations.md`.
+  The approved invoice-backed lifecycle is implemented locally; delivery is still unavailable.
+- The completed readability pass kept policy/schema/dependency/API behavior,
+  explicit request limits, atomic customer revision/receipt/grant writes and
+  operation recovery; it did not resolve the architecture/maintenance concern
+  above. The strict telemetry nullability diagnostic remains separately failing.
+- No real provider calls, remote migrations, hosting changes or restoration are authorized.
+  Reconciliation is inspect-only by default with explicit DB/provider choices. A real-provider
+  selection needs separate authorization. Status strings/customer events alone grant nothing.
 
 ## Commands and setup verified from source (2026-10-17)
 

@@ -19,8 +19,8 @@ after(async () => { if (f) await f.close(); });
 
 function payload(type = 'customer.created') {
   return JSON.stringify({
-    id: 'evt_synthetic_webhook', object: 'event', type,
-    data: { object: { id: 'cus_test_webhook', name: 'Synthetic Listener', email: 'listener@example.invalid' } },
+    ...require('./support/billing-provider').event(type, 'cus_test_webhook', 'evt_synthetic_webhook'),
+    data: { object: { id: 'cus_test_webhook', object: 'customer', name: 'Synthetic Listener', email: 'listener@example.invalid' } },
   }, null, 2); // Deliberate whitespace: reserializing JSON must not substitute for raw bytes.
 }
 function sign(body, options = {}) {
@@ -42,36 +42,12 @@ async function assertRejected(body, signature, status = 400, contentType) {
   assert.deepEqual(logs, [], 'do not log SDK errors, signatures or event/customer payloads');
 }
 
-test('valid signature dispatches customer.created and persists the signed customer fields', async () => {
-  const body = payload();
-  const response = await post(body, sign(body));
-  assert.equal(response.status, 200);
-  assert.deepEqual(response.body, { received: true });
-  assert.deepEqual(f.calls, ['user.create']);
-  assert.equal(f.prisma.tables.user.length, 4);
-  assert.deepEqual(f.prisma.tables.user.at(-1), {
-    email: 'listener@example.invalid', firstName: 'Synthetic', lastName: 'Listener',
-    stripeId: 'cus_test_webhook', isAdmin: false,
-  });
-  assert.deepEqual(logs, []);
-});
-
-test('valid signature dispatches the existing customer.deleted lookup and deletion', async () => {
-  const event = JSON.parse(payload('customer.deleted'));
-  event.data.object.id = 'cus_test_a';
-  const body = JSON.stringify(event, null, 2);
-  const response = await post(body, sign(body));
-  assert.equal(response.status, 200);
-  assert.deepEqual(f.calls, ['user.findUnique', 'user.delete']);
-  assert.deepEqual(f.prisma.tables.user.map(user => user.stripeId), ['cus_test_b', 'cus_test_admin']);
-  assert.deepEqual(logs, []);
-});
-
-test('a verified unhandled event retains acknowledgement without service calls or payload logging', async () => {
-  const body = payload('synthetic.unhandled');
-  const response = await post(body, sign(body));
-  assert.equal(response.status, 200);
-  assert.deepEqual(response.body, { received: true });
+for (const type of ['customer.created', 'customer.deleted', 'synthetic.unhandled'])
+ test('verified unrelated notification performs no provisioning, ledger or provider work: ' + type, async () => {
+  const snapshot = structuredClone(f.prisma.tables);
+  const body = payload(type);
+  assert.equal((await post(body, sign(body))).status, 200);
+  assert.deepEqual(f.prisma.tables, snapshot);
   assert.deepEqual(f.calls, []);
   assert.deepEqual(logs, []);
 });
@@ -121,17 +97,15 @@ test('signed malformed JSON is rejected without exposing parser errors or touchi
   await assertRejected(body, sign(body));
 });
 
-test('ordinary JSON registration still parses fields and passes them to the intended Stripe service', async () => {
-  const original = f.stripe.customers.create;
-  let customerParameters;
-  f.stripe.customers.create = async params => { customerParameters = params; return original(params); };
-  try {
-    const result = await f.json('user/synthetic-public-key', {
-      firstName: 'JSON', lastName: 'Listener', email: 'json@example.invalid',
-    });
-    assert.equal(result.status, 200);
-    assert.deepEqual(customerParameters, { name: 'JSON Listener', email: 'json@example.invalid' });
-    assert.deepEqual(f.calls, ['rateLimit.increment', 'user.findMany', 'stripe.customers.create']);
-    assert.deepEqual(result.body, { newUserStripeId: 'cus_test_new' });
-  } finally { f.stripe.customers.create = original; }
+test('ordinary JSON registration retains parsing and creates a local verified-before-purchase identity', async () => {
+  const result = await f.json('user/synthetic-public-key', {
+    firstName: 'JSON', lastName: 'Listener', email: 'json@example.invalid',
+  });
+  assert.equal(result.status, 202);
+  const user = f.prisma.tables.user.find(u => u.email === 'json@example.invalid');
+  assert.equal(user.firstName, 'JSON');
+  assert.equal(user.stripeId, null);
+  assert.equal(user.isAdmin, false);
+  assert.equal(f.calls.some(c => c.startsWith('stripe.')), false);
+  assert.deepEqual(result.body, { accepted: true });
 });

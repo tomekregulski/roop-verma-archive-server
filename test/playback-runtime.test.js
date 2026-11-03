@@ -16,6 +16,6 @@ test('normal runtime never issues fake or legacy URLs, even for public tracks an
   const cookie = await f.login('admin@example.invalid');
   f.prisma.tables.user[2].subscriptionActive = 'active';
   const result = await f.json('track/2/playback-access/synthetic-public-key', {}, cookie);
-  assert.equal(result.status, 503); assert.equal(result.body.url, undefined);
+  assert.equal(result.status, 403); assert.equal(result.body.url, undefined);
   assert.equal(f.calls.includes('subscription.findUnique'), false, 'legacy billing fields must not be used as paid proof');
 });

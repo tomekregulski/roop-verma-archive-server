@@ -1,81 +1,158 @@
-# Current identity operations
+# Current Stripe-led operations — C1 local consolidation, 2026-11-02
 
-Use [IDENTITY_API.md](IDENTITY_API.md) and [test/README.md](test/README.md) for configuration, local checks and the manual walkthrough. Provider sender setup and a designated test inbox remain pending; no real delivery has been verified. The local demo never loads real service credentials. No remote migration or cleanup has been run.
+Normal backend/frontend composition selects purchase, paid access and owner-assisted
+account deletion. Stripe owns Checkout, Portal, recurring billing and configured
+recovery. Owners use Dashboard/support for rare financial exceptions. There is
+no reconciliation CLI, daily application reconciliation, grant/financial-history
+repair, generic operation recovery sweep or receipt-log monitoring procedure.
+[BILLING_API.md](BILLING_API.md) maps the one normal path; current verification and
+reduction are in [STRIPE_LED_PURCHASE_IMPLEMENTATION.md](STRIPE_LED_PURCHASE_IMPLEMENTATION.md).
+No real provider, existing database, deployment or private delivery was exercised.
 
-## Webhook authenticity — local verification, 2026-10-22
+## Activation dependencies — separately authorized work
 
-`POST /api/v1/payment/webhooks` requires `Stripe-Signature` and the server-only
-`STRIPE_WEBHOOK_SECRET`. Set it through server environment/secret management;
-the placeholder in `.env.example` is not a usable secret. This is the endpoint's
-`whsec_...` signing secret, **not** `STRIPE_SECRET_KEY` (the API key). Use the
-secret for the exact endpoint and environment. Dashboard-managed endpoints and
-CLI listeners have different secrets; test and live endpoints also differ.
-Never put it in frontend configuration, source control, request bodies or logs.
+- Preserve reviewed D1–D10 settings: one positive monthly card tier, no trial/
+  discount/credit arrangements; Checkout return URLs, Portal period-end cancellation,
+  recurring recovery and supported dispute cancellation configuration. Verify the
+  pinned Stripe 17.5.0 / Acacia request, expansion, event and retry shapes in a
+  designated real test environment. Local fakes establish none of those settings.
+- Supply DATABASE_URL and separately disposable shadow URL only under authorized
+  deployment procedures; API_KEY, CLIENT_URL, AUTH_RATE_LIMIT_SECRET, cookie/proxy
+  settings, Stripe API key, endpoint-specific STRIPE_WEBHOOK_SECRET, explicit
+  BILLING_PRICE_ID / BILLING_PRODUCT_ID / BILLING_CURRENCY / BILLING_LIVEMODE,
+  RESEND_API_KEY and LOGIN_EMAIL_FROM. See `.env.example` / `IDENTITY_API.md`.
+- Owner must supply ACCOUNT_DELETION_SUPPORT_EMAIL; no recipient is inferred from
+  EmailJS or invented. Verify sender/inbox behavior separately. Missing/uncertain
+  mail does not erase a saved request; inspect the protected pending list.
+- Establish the intended owner's verified persisted identity/current isAdmin role
+  through a separately approved process. `/owner/deletions` is now normally routed;
+  frontend development AdminLogin does not supply authority. Agree support contact,
+  response expectations and applicable retention policy; no SLA is promised.
+- Complete the existing-data preflight below before migration/activation. Stop old
+  writers and coordinate schema/client rollout; the new generated client requires
+  the complete forward schema. Do not run new code on an unmigrated database or
+  old provisioning/recovery beside new deletion. No mixed-version deployment is verified.
+- Actual media mapping/signing, public-URL retirement, streaming/expiry verification,
+  deployed HTTPS/proxy/cookies, restoration and launch approval remain separate.
 
-The app preserves the raw JSON body before shared parsing, retaining the existing
-16 KB limit and rejecting compressed bodies to avoid transforming signed bytes.
-The locked Stripe 17.5.0 SDK's `constructEvent` verifies the body/header/secret
-and applies its default 300-second timestamp tolerance before returning the
-event used by the existing billing switch. Missing/blank configuration returns
-503; missing, invalid, stale or body-mismatched signatures return 400. Rejections
-perform no database reads/writes or downstream Stripe calls. Responses are
-generic; the webhook does not log signatures, SDK errors or event/customer data.
-Other JSON routes retain normal parsing.
+## Existing-data preflight and retention blockers
 
-Required setup and deployment verification **remain pending**. Before enabling
-deliveries in a separately authorized deployment, configure the correct endpoint
-signing secret, confirm the deployed commit/runtime and HTTPS/proxy accessibility,
-header/raw-body preservation, server clock accuracy, existing event subscriptions
-and snapshot payload/API-version compatibility. Verify legitimate processing
-using a designated Stripe test environment and confirm rejection of unsigned
-and tampered requests without service effects. Record sanitized outcomes only.
-No hosted setting or infrastructure was inspected or changed here, and no real
-Stripe event was sent. A missing secret deliberately prevents webhook processing.
+Existing contents are unknown and were not inspected. Under separate explicit DB
+access authorization, inspect a reviewed backup/snapshot and decide disposition:
 
-Signature verification does not provide duplicate-event handling, event ordering,
-synchronization, retries/reconciliation, atomic writes, account-deletion versus
-billing policy, or other lifecycle correctness. Existing swallowed failures,
-uncaught async errors and placeholder billing fields remain deferred; existing
-verified-event behavior is preserved. Backend/billing beta readiness is not
-established. See [BACKEND_BASELINE.md](BACKEND_BASELINE.md) for remaining blockers.
+| Removed structure | Required condition / treatment |
+| --- | --- |
+| CheckoutOwnership | **Zero rows**. Every row, even one matching an attempt, blocks migration. Investigate exact ownership/Checkout closure first; never erase unresolved evidence to bypass D9. |
+| Historical Subscription and PaidInvoiceGrant | **Zero rows**. Owner-approved retention/disposition is required for any historical mirror/grant; no financial selection or conversion is inferred. |
+| StripeEventReceipt and WebhookLog | **Zero rows**, including applied/ignored receipts. Owner must decide audit retention/disposition; pending/review outcomes need investigation. |
+| BillingOperation | Keep owned immutable v2 Checkout attempts and deleted security tombstones. Registration, old parameter formats or live orphan attempts block migration; do not rewrite/scrub live parameters or assign ownership. |
+| BillingCustomer legacy flags | No deletionRequestedAt, syncIssueCode or reconcileCursor evidence. Investigate flags, keep terminal stripeDeletedAt/deletedAt tombstones, and resolve pending requests without silently losing them. |
+| Trusted selection | Every live association must have exact matching User/customer ownership, known mode and a securely established selection. No selection backfill exists. Ambiguous emails/associations or unsupported arrangements require owner/engineering review. |
+| Removed metadata | User.subscriptionActive is display-only; BillingCustomer revision, lastSyncedAt and lastFullScanAt are obsolete old-engine coordination timestamps/counters. Their removal does not grant access. |
 
-References checked 2026-10-22: Stripe's [snapshot verification example](https://docs.stripe.com/events/set-up-events),
-[Express middleware ordering and endpoint-secret guidance](https://docs.stripe.com/events/manage-webhook-endpoints#signature-errors),
-[Node SDK signing/test headers](https://github.com/stripe/stripe-node#webhook-signing),
-and [17.5.0 verification/timestamp implementation](https://github.com/stripe/stripe-node/blob/v17.5.0/src/Webhooks.ts).
+The migration locks affected tables, checks these conditions, and drops only empty
+legacy tables. It does not delete legacy rows, export/archive them, choose a
+retention period, reassign ownership or reconstruct history. Populated fixtures
+prove refusal/rollback, not compatibility with unknown existing records. Owner
+retention decisions and any supported-data investigation are concrete blockers to
+applying this migration if those cases exist. Resolve them in separately scoped,
+reviewed work before activation; do not disable the guards. Prisma 4 may mask a
+transactional refusal as `current transaction is aborted`; the DO precondition
+block can be checked independently in the separately authorized disposable copy.
+Never repeatedly apply a failed migration to an existing DB or manually mark it
+applied to bypass review. Historical migration files remain unchanged.
 
----
+## Owner-assisted deletion
 
-The notes below are historical and include obsolete commands and the former browser EmailJS flow.
+A customer explicitly requests deletion in Account. This blocks new
+purchases/association, preserving login, trusted Portal and normal playback policy.
+Subscription cancellation stays separate and retains the app account. A pending
+request sends one best-effort templated notification with email/time/protected
+review link. Acceptance is not inbox delivery. Failed/uncertain/missing delivery
+never rolls back the request; no retries or external exactly-once guarantee.
+Owners should inspect the pending list even if no notification arrived. No
+response-time promise is approved. Withdrawal is support-assisted through the
+owner review and does not change Stripe billing or ordinary purchase safeguards.
 
-Start server: npm run sstart
-Start client: pnpm run dev
-Stat HTTPS forwarding: ngrok http http://localhost:8080
-Start Stripe webhooks: {httpsUrl}/api/v1/payment/webhooks
+Before **Complete app account deletion**, review the correct account and:
 
-- customer.created
-- customer.updated
-- customer.deleted
-- product.created
-- product.updated
-- product.deleted
-- customer.subscription.created
-- customer.subscription.updated
-- customer.subscription.paused
-- customer.subscription.resumed
-- customer.subscription.deleted
+1. Verify the exact Stripe mode, trusted customer and every owned Checkout attempt.
+   Email alone is insufficient; include inactive attempts and unassociated results.
+2. Resolve each Checkout outcome. Open Sessions must close/expire. Unknown/missing
+   Session IDs, old attempts, absent bindings, timeouts or missing webhooks do not
+   prove no purchase. For a lost ID, enter only an exact Dashboard Session matching
+   the retained immutable attempt metadata/mode/ownership. No fresh Checkout or
+   broad provider-history discovery is used. Unknown cases stay pending and may
+   require engineering; do not delete the attempt to bypass a blocker.
+3. Review **all** subscriptions and duplicates, including unassociated ones.
+   Normal period-end cancellation means wait for actual closure; a scheduled
+   cancellation alone cannot complete deletion.
+4. Review schedules, draft/open invoices, retries and pending invoice items. Make
+   an explicit Dashboard disposition for every item; the app does not inspect or
+   reconstruct these financial histories.
+5. Apply approved D3–D8 exceptions: refund alone does not cancel or revoke ordinary
+   access; refund-and-end-service needs explicit cancellation. Handle partial
+   refunds, disputes, duplicate cleanup and any agreed compensation in Dashboard /
+   support. There is no automatic restoration, refund or entitlement editor.
+6. Recheck Dashboard immediately before attesting actual closure. Completion does
+   fresh exact reads and rejects stale local review, open/unknown outcomes or
+   ongoing known subscriptions. Provider trouble blocks completion; local review
+   still permits support withdrawal. Refresh/review after any stale or ambiguous
+   result before retrying. A repeated completed request never recreates identity.
 
-Test Login
+Completion atomically deletes User, all sessions/login links,
+legacy Token and individual TrackPlay rows; aggregate Track.plays is preserved.
+It clears cache, retains customer/subscription/attempt deletion tombstones without
+automatic expiry, and removes names/email/request JSON from deleted live-v2 app
+attempts. Linked diagnostics lose structured identity and entire message/type
+fields; known embedded identifiers are also detected in unlinked error messages.
+Codes/times remain. Unknown encodings, arbitrary unlinked author text (including
+Tribute), provider mail, logs and backups are not an erasure guarantee or a new
+retention policy. Unsupported legacy immutable requests block completion pending
+investigation/C1 retention preflight. Existing public legacy telemetry/listening
+writers and play counting were not repaired by D9.
 
-- Enter email address
-- If "invalid grant" error - reconnect Gmail service in MailJS
+Stripe customers, payments, invoices, refunds and other financial records remain.
+App deletion does not immediately invalidate issued media URLs (up to their
+existing expiry). Late callbacks cannot recreate identity or associate
+retained billing with a later same-email account. The old provisioning/recovery paths have been removed by C1.
 
-Confirmed Customer Lifecycle:
+## Financial exceptions and outage behavior
 
-- Regitration through Stripe sessions
-- Local DB creates customer through Stripe webhooks
-- Daily subscription runs
-- Customer can pause/resume
-- WHAT HAPPENS WHEN CUSTOMER PAUSES?
-  - Expected: upon next refresh, loses access to private tracks but can still log in
-- If customer is deleted from Stripe Dashboard, DB updates accordingly and customer is logged out upon next refresh
+Customers cancel at period end in Portal and keep their paid remainder. An actual
+canceled subscription vetoes new paid playback. For refund-only, explicitly leave
+renewal/access unchanged; refund-and-end-service requires explicit immediate
+cancellation plus refund in Dashboard. Partial refunds, unsupported disputes,
+duplicates and agreed compensation are owner/support work. Won/withdrawn disputes
+do not restore canceled access/time automatically; an agreed new purchase charges
+again. No app cancellation, refund or restoration endpoint exists.
+
+A cold/expired access cache fails closed during Stripe or DB outages. Valid cache
+hits remain usable only to their fixed deadline; errors/retries never extend it.
+For uncertain purchases, reuse only the owned same-key attempt within its safe
+window; old unknown outcomes stay at help for exact investigation. Do not create
+another Checkout key or guess by email to clear a blocker.
+
+## Webhook authenticity and verification
+
+`POST /api/v1/payment/webhooks` consumes original raw JSON before shared parsing,
+with the existing 16 KiB limit and compression rejection. Configure the exact
+endpoint/environment's signing secret, separately from the API key. The SDK
+verifies bytes/header and default timestamp tolerance before dispatch. Missing
+secret is 503; missing/invalid/stale/tampered signatures are 400 with no service
+work. Do not log credentials, signatures, provider bodies or private media URLs.
+
+Separately verify deployed HTTPS/proxy/header preservation, clock, snapshot/API
+version, subscribed `checkout.session.completed` / `customer.subscription.deleted`
+events and genuine payload sizes. Unknown notifications do no provisioning or
+ledger work. Cookie ownership, signed events and provider email are distinct
+trust boundaries. Existing paid-invoice verification, cache/veto, final playback
+checks and transactional tombstones remain necessary.
+
+## Local checks
+
+Use compatible Node 24.19.0 and generated Prisma 4.12.0 client. See
+[test/README.md](test/README.md) for synthetic/disposable PostgreSQL/browser commands.
+The strict schema diagnostic deliberately retains the unrelated telemetry
+nullability failure. Local checks never prove real delivery, launch readiness or
+the zero-routine-engineering / roughly five-hours-per-quarter target.

@@ -1,4 +1,5 @@
 const { createHash, createHmac, randomBytes } = require('node:crypto');
+const { lockAccount } = require('./account-lock');
 const { setTimeout: delay } = require('node:timers/promises');
 const hash = value => createHash('sha256').update(value).digest('hex');
 const credential = () => randomBytes(32).toString('base64url');
@@ -6,7 +7,7 @@ const validCredential = value => typeof value === 'string' && /^[A-Za-z0-9_-]{43
 const failure = (status, message) => Object.assign(new Error(message), { status });
 const publicUser = user => ({
   id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName,
-  stripeId: user.stripeId, subscriptionActive: user.subscriptionActive, isAdmin: user.isAdmin,
+  stripeId: user.stripeId, isAdmin: user.isAdmin,
 });
 function emailAddress(value) {
   if (typeof value !== 'string') throw failure(400, 'Invalid email address');
@@ -14,6 +15,14 @@ function emailAddress(value) {
   if (email.length > 254 || !/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,63}$/.test(email) ||
       email.split('@')[0].length > 64 || email.includes('..')) throw failure(400, 'Invalid email address');
   return email;
+}
+
+function registrationInput(body) {
+  const { firstName, lastName } = body;
+  const email = emailAddress(body.email);
+  if ([firstName, lastName].some(name => typeof name !== 'string' || !name.trim() || name.length > 100 || /[\x00-\x1f]/.test(name)) ||
+      Object.keys(body).some(key => !['firstName', 'lastName', 'email'].includes(key))) throw failure(400, 'Invalid registration input');
+  return { email, firstName: firstName.trim(), lastName: lastName.trim() };
 }
 
 function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = delay, responseFloorMs = 5500 }) {
@@ -66,6 +75,7 @@ function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = 
     const user = await db.$transaction(async tx => {
       const proof = await tx.loginProof.findUnique({ where: { tokenHash } });
       if (!proof) throw failure(401, 'Invalid or expired login link');
+      await lockAccount(tx, proof.userId);
       const current = await tx.user.findUnique({ where: { id: proof.userId } });
       if (!current || current.email !== proof.email) throw failure(401, 'Invalid or expired login link');
       // PostgreSQL rechecks this predicate after a competing update commits.
@@ -95,4 +105,4 @@ function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = 
   }
   return { requestLogin, verify, authenticate, logout, limit };
 }
-module.exports = { createIdentity, emailAddress, hash, publicUser, failure };
+module.exports = { createIdentity, emailAddress, registrationInput, hash, publicUser, failure };

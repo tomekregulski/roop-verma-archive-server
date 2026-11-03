@@ -4,6 +4,7 @@ module.exports = function addCatalogDatabase(db, calls) {
   const models = ['artist', 'category', 'event', 'location', 'mediaType', 'raga',
     'tape', 'track', 'tribute', 'trackPlay', 'networkError'];
   for (const model of models) {
+    if (['trackPlay', 'networkError'].includes(model) && db[model]) continue;
     db.tables[model] = [];
     const matches = (row, where = {}) => Object.entries(where).every(([key, value]) => row[key] === value);
     const record = (method, action) => async (args = {}) => {
