@@ -4,14 +4,15 @@ const { test, before, beforeEach, after } = require('node:test');
 const { PrismaClient } = require('@prisma/client');
 const { randomUUID } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
-const { createPaidAccess, MAX_FRESHNESS_MS } = require('../../billing/paid-access');
+const { createPaidAccess, MAX_FRESHNESS_MS,
+} = require('../../billing/paid-access');
 const { config } = require('../support/billing-provider');
 const {
   paidAccessCases,
   reads,
   cancellation,
   postEvent,
-  pauseInvoice,
+  pauseSubscription,
 } = require('../support/paid-access-cases');
 let db, admin, f, schema, url;
 
@@ -38,7 +39,8 @@ before(async () => {
     cwd: require('node:path').resolve(__dirname, '../..'),
     encoding: 'utf8',
     timeout: 60000,
-    env: { ...process.env, DATABASE_URL: url.href, HEROKU_POSTGRESQL_BROWN_URL: url.href },
+    env: { ...process.env, DATABASE_URL: url.href, HEROKU_POSTGRESQL_BROWN_URL: url.href,
+      },
   });
   assert.equal(migrated.status, 0, 'full forward migration replay in fresh schema');
   db = new PrismaClient({ datasources: { db: { url: url.href } } });
@@ -49,7 +51,8 @@ before(async () => {
   await db.category.create({ data: { id: 1, name: 'Synthetic event' } });
   await db.location.create({ data: { id: 1, name: 'Synthetic location' } });
   await db.event.create({
-    data: { id: 1, eventName: 'Synthetic', date: '2026-10-17', locationId: 1, categoryId: 1 },
+    data: { id: 1, eventName: 'Synthetic', date: '2026-10-17', locationId: 1, categoryId: 1,
+    },
   });
   await db.tape.create({ data: { id: 1, tapeId: 1, eventId: 1 } });
   for (const id of [10, 20])
@@ -126,7 +129,8 @@ paidAccessCases({ test, fixture: () => f });
 
 async function independent(work) {
   const other = new PrismaClient({ datasources: { db: { url: url.href } } });
-  const access = createPaidAccess({ db: other, stripe: f.stripe, config, now: f.clock });
+  const access = createPaidAccess({ db: other, stripe: f.stripe, config, now: f.clock,
+  });
   try {
     return await work(other, access);
   } finally {
@@ -139,7 +143,7 @@ test('PostgreSQL: a second client/adapter reuses shared cache with zero extra GE
   await f.access().readEntitlement(1);
   f.calls.length = 0;
   await independent(async (_other, access) => {
-    assert.equal((await access.readEntitlement(1)).kind, 'paid');
+    assert.equal((await access.readEntitlement(1)).kind, 'subscription');
   });
   assert.deepEqual(reads(f), []);
 });
@@ -148,7 +152,7 @@ for (const action of ['cancellation', 'deletion', 'selection replacement']) {
   test('PostgreSQL: independent ' + action + ' defeats a suspended HTTP fill', async () => {
     const p = f.stripe.paidInvoice(),
       cookie = await f.login(),
-      gate = pauseInvoice(f);
+      gate = pauseSubscription(f);
     const pending = f.play(cookie);
     try {
       await gate.arrived;
@@ -176,13 +180,13 @@ for (const action of ['cancellation', 'deletion', 'selection replacement']) {
 
 test('PostgreSQL: newer denied snapshot wins over an older positive in-flight result', async () => {
   const p = f.stripe.paidInvoice(),
-    gate = pauseInvoice(f);
+    gate = pauseSubscription(f);
   const old = f.access().readEntitlement(1);
   try {
     await gate.arrived;
     gate.restore();
     f.advance(1);
-    p.invoice.paid_out_of_band = true;
+    p.sub.status = 'unpaid';
     await independent(async (_other, access) => {
       assert.equal(await access.readEntitlement(1), null);
     });
@@ -199,21 +203,22 @@ test('PostgreSQL: newer denied snapshot wins over an older positive in-flight re
   }
 });
 
-test('PostgreSQL: newer qualifying provider period wins over an older qualifying fill', async () => {
+test('PostgreSQL: newer allowed status snapshot wins over an older qualifying fill', async () => {
   const p = f.stripe.paidInvoice(),
-    gate = pauseInvoice(f);
+    gate = pauseSubscription(f);
   const old = f.access().readEntitlement(1);
   try {
     await gate.arrived;
     gate.restore();
     f.advance(1);
-    p.line.period.end -= 3600;
+    p.sub.status = 'past_due';
     await independent(async (_other, access) => {
       await access.readEntitlement(1);
     });
     const newer = await f.binding();
     gate.release();
-    assert.equal((await old).paidThrough.getTime(), newer.cachedPaidThrough.getTime());
+    assert.equal((await old).freshUntil.getTime(),
+      newer.accessFreshUntil.getTime());
     assert.equal((await f.binding()).accessCheckedAt.getTime(), newer.accessCheckedAt.getTime());
   } finally {
     gate.release();
@@ -270,10 +275,11 @@ test('PostgreSQL: unique selection and finite/coherent freshness constraints enf
     })
   );
   for (const data of [
-    { accessFreshUntil: new Date(row.accessCheckedAt.getTime() + MAX_FRESHNESS_MS + 1) },
-    { cachedPaidThrough: row.cachedPaidFrom },
+    { accessFreshUntil: new Date(row.accessCheckedAt.getTime() + MAX_FRESHNESS_MS + 1),
+    },
+    { cachedStatus: 'unpaid' },
     { selectedCanceledAt: f.clock() },
-    { cachedPaidFrom: null },
+    { cachedStatus: null },
     { accessPolicyKey: null },
   ])
     await assert.rejects(db.billingCustomer.update({ where: { customerId: 'cus_test_a' }, data }));

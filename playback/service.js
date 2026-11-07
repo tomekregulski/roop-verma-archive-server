@@ -1,28 +1,26 @@
 const { failure } = require('../identity/service');
 const URL_LIFETIME_MS = 2 * 60 * 60 * 1000;
 
-// Accept only an explicit paid interval for this user, including its start but
-// excluding its end. Cancellation preserves access through that paid interval;
-// malformed, ambiguous or unapproved entitlement shapes cannot grant access.
-function paidAt(entitlement, userId, time) {
+// Only normalized, bounded status evidence from the server reader can authorize.
+function accessAt(entitlement, userId, time) {
   return (
     entitlement &&
     !Array.isArray(entitlement) &&
-    entitlement.kind === 'paid' &&
+    entitlement.kind === 'subscription' &&
     entitlement.userId === userId &&
+    ['active', 'past_due'].includes(entitlement.status) &&
     Object.keys(entitlement).every((key) =>
-      ['kind', 'userId', 'paidFrom', 'paidThrough', 'cancelled'].includes(key)
+      ['kind', 'userId', 'status', 'checkedAt', 'freshUntil'].includes(key)
     ) &&
-    (entitlement.cancelled === undefined || typeof entitlement.cancelled === 'boolean') &&
-    entitlement.paidFrom instanceof Date &&
-    entitlement.paidThrough instanceof Date &&
-    entitlement.paidFrom.getTime() <= time.getTime() &&
-    time.getTime() < entitlement.paidThrough.getTime()
+    entitlement.checkedAt instanceof Date &&
+    entitlement.freshUntil instanceof Date &&
+    entitlement.checkedAt <= time &&
+    time < entitlement.freshUntil &&
+    entitlement.freshUntil - entitlement.checkedAt <= 15 * 60 * 1000
   );
 }
 
-// Adapters are supplied by server composition, never request input. Entitlements
-// are normalized paid intervals, not Stripe status strings or User display fields.
+// Adapters are server supplied; request telemetry never grants playback authority.
 function createPlayback({
   db,
   identity,
@@ -32,7 +30,8 @@ function createPlayback({
   now = () => new Date(),
 }) {
   return async function issue({ trackId, credential }) {
-    const track = await db.track.findUnique({ where: { id: trackId }, select: { id: true, public: true } });
+    const track = await db.track.findUnique({ where: { id: trackId }, select: { id: true, public: true },
+    });
     if (!track) throw failure(404, 'Track not found');
     if (track.public !== true && track.public !== false) throw failure(503, 'Track visibility unavailable');
 
@@ -44,12 +43,18 @@ function createPlayback({
     if (!track.public) {
       try {
         entitlement = await readEntitlement(session.user.id);
-      } catch {
-        throw failure(503, 'Playback entitlement unavailable');
+      } catch (error) {
+        require('../handlers/log').logFailure('playback.access', error);
+        throw failure(
+          503,
+          'Unable to check playback access. Retry or contact support.'
+        );
       }
     }
-    if (!track.public && !paidAt(entitlement, session.user.id, now())) {
-      throw failure(403, 'Current paid subscription required');
+    if (!track.public && !accessAt(entitlement, session.user.id, now())) {
+      throw failure(403,
+        'A current subscription is required. Manage billing in your account.'
+      );
     }
 
     // This mapping is independent of the legacy Track.url. Only the playback
@@ -71,25 +76,32 @@ function createPlayback({
       throw failure(503, 'Playback delivery unavailable');
     }
 
-    // Reread persisted authority after asynchronous mapping; a cached interval
-    // cannot detect a refund/dispute committed while mapping awaited.
+    // Reread persisted authority after mapping; logout and revocation must also win.
     if (!track.public) {
+      await identity.authenticate(credential);
       try {
         entitlement = await readEntitlement(session.user.id);
-      } catch {
-        throw failure(503, 'Playback entitlement unavailable');
+      } catch (error) {
+        require('../handlers/log').logFailure('playback.access', error);
+        throw failure(
+          503,
+          'Unable to check playback access. Retry or contact support.'
+        );
       }
     }
-    // Recheck the exclusive paid boundary immediately before signing.
+    // Recheck freshness immediately before signing.
     const time = now();
-    if (!track.public && !paidAt(entitlement, session.user.id, time))
-      throw failure(403, 'Current paid subscription required');
+    if (!track.public && !accessAt(entitlement, session.user.id, time))
+      throw failure(403,
+        'A current subscription is required. Manage billing in your account.'
+      );
     const expiresAt = new Date(time.getTime() + URL_LIFETIME_MS);
 
     let url;
     try {
       url = await signPlayback({
-        asset: { namespace: 'playback', key: asset.key, contentType: 'audio/mpeg' },
+        asset: { namespace: 'playback', key: asset.key, contentType: 'audio/mpeg',
+        },
         expiresAt,
       });
       if (typeof url !== 'string') throw new Error('Invalid signed URL');

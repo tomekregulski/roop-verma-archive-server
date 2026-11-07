@@ -59,7 +59,7 @@ test('mounted catalog and tribute route inventory has no unreviewed mutation pat
     return layers[0].handle;
   }
   const v1 = mounted(f.app._router, '/api/v1');
-  const reviewedMounts = [...catalogResources, 'tribute', 'user', 'auth', 'payment', 'network-error'];
+  const reviewedMounts = [...catalogResources, 'tribute', 'user', 'auth', 'payment'];
   assert.equal(v1.stack.length, reviewedMounts.length, 'review any new top-level router or catalog alias');
   for (const path of reviewedMounts) mounted(v1, '/' + path);
   for (const resource of [...catalogResources, 'tribute']) {
@@ -68,7 +68,7 @@ test('mounted catalog and tribute route inventory has no unreviewed mutation pat
     const actual = router.stack.flatMap(layer => Object.keys(layer.route.methods)
       .map(method => `${method.toUpperCase()} ${layer.route.path}`)).sort();
     const expected = ['GET /:key', 'POST /:key', 'PUT /:key', 'DELETE /:key'];
-    if (resource === 'track') expected.push('GET /public/:key', 'POST /track-play/:key', 'POST /:trackId/playback-access/:key');
+    if (resource === 'track') expected.push('GET /public/:key', 'POST /:trackId/listen/:key', 'POST /:trackId/playback-access/:key');
     assert.deepEqual(actual, expected.sort(), resource + ' routes must match HTTP coverage');
   }
 });
@@ -199,6 +199,5 @@ test('catalog and tribute GETs and playback telemetry retain their existing acce
     assert.equal((await f.request(resource + '/synthetic-public-key')).status, 200);
   }
   assert.equal((await f.request('track/public/synthetic-public-key')).status, 200);
-  assert.equal((await f.json('track/track-play/synthetic-public-key', { userId: 1, trackId: 1, secondsListened: 10 })).status, 200);
-  assert.equal(f.prisma.tables.trackPlay.length, 1);
+  assert.equal((await f.json('track/track-play/synthetic-public-key', { userId: 1, trackId: 1, secondsListened: 10 })).status, 404);
 });

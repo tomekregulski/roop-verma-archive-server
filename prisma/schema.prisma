@@ -21,7 +21,6 @@ model User {
   stripeId            String? @unique
   deletionRequestedAt DateTime?
   deletionRevision    Int @default(0)
-  deletionNotice      String?
   isAdmin             Boolean
   loginProofs         LoginProof[]
   identitySessions    IdentitySession[]
@@ -151,12 +150,6 @@ model TrackArtist {
   trackId             Int 
 }
 
-model TrackPlay {
-  id                  Int       @id @default(autoincrement())
-  userId              Int
-  trackId             Int 
-  secondsListened     Int
-}
 
 model Tribute {
   id                  Int       @id @default(autoincrement())
@@ -165,16 +158,6 @@ model Tribute {
   content             String
 }
 
-model NetworkError {
-  id                  Int     @id @default(autoincrement())
-  errorCode           Int?
-  errorMessage        String
-  isRegisteredUser    Boolean
-  userId              Int?
-  userEmailAddress    String?
-  timestamp           DateTime
-  errorType           String?
-}
 
 // Trusted selected subscription, shared access cache and retained deletion/security tombstones.
 model BillingCustomer {
@@ -189,8 +172,7 @@ model BillingCustomer {
   selectedCanceledAt  DateTime?
   accessCheckedAt     DateTime?
   accessPolicyKey     String?
-  cachedPaidFrom      DateTime?
-  cachedPaidThrough   DateTime?
+  cachedStatus        String?
   accessFreshUntil    DateTime?
 }
 

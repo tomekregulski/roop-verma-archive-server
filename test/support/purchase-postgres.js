@@ -29,7 +29,8 @@ module.exports = async function purchasePostgres(source) {
       cwd: require('node:path').resolve(__dirname, '../..'),
       encoding: 'utf8',
       timeout: 60000,
-      env: { ...process.env, DATABASE_URL: url.href, HEROKU_POSTGRESQL_BROWN_URL: url.href },
+      env: { ...process.env, DATABASE_URL: url.href, HEROKU_POSTGRESQL_BROWN_URL: url.href,
+        },
     });
     if (result.status !== 0) throw Error('Disposable migration replay failed');
     db = new PrismaClient({ datasources: { db: { url: url.href } } });
@@ -39,7 +40,8 @@ module.exports = async function purchasePostgres(source) {
     await db.category.create({ data: { id: 1, name: 'Synthetic' } });
     await db.location.create({ data: { id: 1, name: 'Synthetic' } });
     await db.event.create({
-      data: { id: 1, eventName: 'Synthetic', date: '2026-10-17', locationId: 1, categoryId: 1 },
+      data: { id: 1, eventName: 'Synthetic', date: '2026-10-17', locationId: 1, categoryId: 1,
+      },
     });
     await db.tape.create({ data: { id: 1, tapeId: 1, eventId: 1 } });
     for (const id of [10, 20])
@@ -66,8 +68,6 @@ module.exports = async function purchasePostgres(source) {
     const clear = async () => {
       for (const model of [
         'token',
-        'trackPlay',
-        'networkError',
         'billingOperation',
         'billingCustomer',
         'loginProof',

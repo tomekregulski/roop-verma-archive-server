@@ -11,6 +11,7 @@ async function owner(f) {
 async function setup(f) {
   const a = await buyer(f);
   const o = await owner(f);
+  f.supportOwner = o;
   return { a, o };
 }
 const review = (f, o, a) =>
@@ -23,8 +24,8 @@ const action = (f, o, a, kind, body) =>
     body,
     o.cookie
   );
-const request = (f, a, body = { confirm: true }) =>
-  f.json('user/account-deletion/synthetic-public-key', body, a.cookie);
+const request = (f, a, body = { accountEmail: a.user.email, ownershipConfirmed: true }
+) => action(f, f.supportOwner, a, 'initiate', body);
 const finish = (f, o, a, token) =>
   action(f, o, a, 'complete', { review: token, dashboardClosed: true });
 const gate = () => {
@@ -41,62 +42,79 @@ const gate = () => {
   };
 };
 function deletionCases({ test, fixture }) {
-  test('D9: persisted-session request is idempotent, notified once and does not revoke login', async () => {
+  test('support deletion: persisted owner initiation is idempotent and preserves login', async () => {
     const f = fixture(),
       { a, o } = await setup(f);
     const results = await Promise.all(Array.from({ length: 5 }, () => request(f, a)));
     assert.ok(results.every((r) => r.status === 200 && r.body.pending));
-    assert.equal(f.notifications.length, 1);
-    assert.equal(f.notifications[0].to[0], 'support@example.invalid');
-    assert.ok(f.notifications[0].text.includes(a.user.email));
-    assert.ok(f.notifications[0].text.includes('/owner/deletions?account=' + a.user.id));
-    assert.ok(f.notifications[0].text.includes(f.clock().toISOString()));
     assert.equal((await f.me(a.cookie)).id, a.user.id);
     assert.equal((await f.summary(a.cookie)).body.reason, 'deletion_pending');
     assert.equal((await f.start(a.cookie)).body.reason, 'deletion_pending');
-    assert.equal((await review(f, o, a)).body.account.notification, 'accepted');
-    const list = await f.request('user/owner/deletions/synthetic-public-key', {
+    assert.equal((await review(f, o, a)).body.account.notification, undefined);
+    assert.equal(
+      (await f.prisma.user.findUnique({ where: { id: a.user.id } }))
+        .deletionRevision,
+      1
+    );
+    assert.equal(
+      (
+        await f.request('user/owner/deletions/synthetic-public-key', {
       headers: { Cookie: o.cookie, 'X-RVDL-CSRF': '1' },
-    });
-    assert.deepEqual(
-      list.body.requests.map((r) => r.id),
-      [a.user.id]
+    })
+      ).status,
+      404
     );
     assert.equal(results[0].headers.get('cache-control'), 'no-store');
     assert.deepEqual(providerCalls(f), []);
   });
-  test('D9: authentication, forged target, malformed confirmation and CSRF/origin are rejected', async () => {
+  test('support deletion: customer workflow is gone; owner identity, email confirmation and CSRF remain required', async () => {
     const f = fixture(),
-      { a } = await setup(f);
+      { a, o } = await setup(f);
     assert.equal(
       (
         await f.json('user/account-deletion/synthetic-public-key', {
-          confirm: true,
-        })
+          confirm: true },
+          a.cookie
+        )
+      ).status,
+      404
+    );
+    const path =
+      'user/owner/deletions/' + a.user.id + '/initiate/synthetic-public-key';
+    const body = { accountEmail: a.user.email, ownershipConfirmed: true };
+    assert.equal((await f.json(path, body)
       ).status,
       401
     );
-    for (const body of [
+    assert.equal((await f.json(path, body, a.cookie)).status, 403);
+    for (const invalid of [
       {},
-      { confirm: 'true' },
-      { confirm: true, userId: 999 },
-      { confirm: true, customerId: 'cus_other' },
+      { accountEmail: a.user.email, ownershipConfirmed: 'true' },
+      { ...body, userId: 999 },
+      { ...body, customerId: 'cus_other' },
       [],
     ])
-      assert.equal((await request(f, a, body)).status, 400);
-    for (const headers of [{ 'X-RVDL-CSRF': '' }, { Origin: 'https://evil.invalid' }])
+      assert.equal((await request(f, a, invalid)).status, 400);
+    assert.equal(
+      (await request(f, a, { ...body, accountEmail: 'other@example.invalid' }))
+        .status,
+      409
+    );
+    for (const headers of [{ 'X-RVDL-CSRF': '' }, { Origin: 'https://evil.invalid' },
+    ])
       assert.equal(
         (
-          await f.json(
-            'user/account-deletion/synthetic-public-key',
-            { confirm: true },
-            a.cookie,
+          await f.json(path, body, o.cookie,
             headers
           )
         ).status,
         403
       );
-    assert.equal(f.notifications.length, 0);
+    await f.prisma.user.update({
+      where: { id: o.user.id },
+      data: { isAdmin: false },
+    });
+    assert.equal((await request(f, a)).status, 403);
     assert.equal(
       (await f.prisma.user.findUnique({ where: { id: a.user.id } })).deletionRequestedAt,
       null
@@ -162,30 +180,6 @@ function deletionCases({ test, fixture }) {
     assert.equal((await review(f, o, a)).status, 403);
     assert.equal((await finish(f, o, a, r.body.review)).status, 403);
   });
-  test('D9: notification failure/uncertainty leaves durable pending state and never resends', async () => {
-    const f = fixture(),
-      { a, o } = await setup(f);
-    f.failMail();
-    assert.equal((await request(f, a)).body.notification, 'uncertain');
-    f.failMail(false);
-    assert.equal((await request(f, a)).body.notification, 'uncertain');
-    assert.equal(f.notifications.length, 1);
-    assert.equal((await f.start(a.cookie)).body.reason, 'deletion_pending');
-    assert.equal((await review(f, o, a)).body.account.notification, 'uncertain');
-  });
-  test('D9: absent support destination is explicit and does not undo the purchase block', async () => {
-    const f = fixture(),
-      { a } = await setup(f);
-    const deletion = require('../../billing/deletion').createDeletion({
-      db: f.prisma,
-      purchase: f.purchase,
-      now: f.clock,
-      clientOrigin: f.config.clientOrigin,
-    });
-    assert.equal((await deletion.request(a.user.id)).notification, 'unconfigured');
-    assert.equal((await f.start(a.cookie)).body.reason, 'deletion_pending');
-    assert.equal(f.notifications.length, 0);
-  });
   test('D9: trusted Portal and paid playback remain available while deletion is pending', async () => {
     const f = fixture(),
       { a } = await setup(f);
@@ -226,7 +220,6 @@ function deletionCases({ test, fixture }) {
     assert.equal((await f.start(a.cookie)).body.attempt, op.id);
     assert.equal(f.stripe.resources.sessions.length, 1);
     await request(f, a);
-    assert.equal(f.notifications.length, 2);
     assert.equal((await finish(f, o, a, r.body.review)).status, 409);
   });
   test('D9: in-flight provider creation retains late Session evidence without URL or association', async () => {
@@ -346,7 +339,8 @@ function deletionCases({ test, fixture }) {
       403
     );
     const s = f.stripe.resources.sessions[0];
-    for (const field of ['livemode', 'mode', 'metadata', 'client_reference_id']) {
+    for (const field of ['livemode', 'mode', 'metadata', 'client_reference_id',
+    ]) {
       const old = structuredClone(s[field]);
       s[field] =
         field === 'livemode'
@@ -470,7 +464,7 @@ function deletionCases({ test, fixture }) {
       e.sub.status = 'canceled';
       assert.equal((await finish(f, o, a, (await review(f, o, a)).body.review)).status, 200);
       hold.release();
-      assert.equal((await playing).status, 403);
+      assert.equal((await playing).status, 401);
       assert.equal(f.signatures.length, 0);
     } finally {
       hold.release();
@@ -511,7 +505,7 @@ function deletionCases({ test, fixture }) {
     for (const customerId of ['cus_purchase_1', 'cus_purchase_2'])
       assert.ok((await f.prisma.billingCustomer.findUnique({ where: { customerId } })).deletedAt);
   });
-  test('D9: completion deletes identity/sessions/proofs/legacy tokens/individual plays and scrubs diagnostics', async () => {
+  test('D9: completion deletes identity/sessions/proofs/legacy tokens and preserves aggregate plays', async () => {
     const f = fixture(),
       { a, o } = await setup(f);
     await f.start(a.cookie);
@@ -530,48 +524,13 @@ function deletionCases({ test, fixture }) {
         expiration: 60,
       },
     });
-    await f.prisma.trackPlay.create({
-      data: { userId: a.user.id, trackId: 20, secondsListened: 50 },
-    });
     const track = await f.prisma.track.findUnique({ where: { id: 20 } });
-    for (const data of [
-      {
-        userId: a.user.id,
-        userEmailAddress: a.user.email,
-        errorMessage: 'New Account failed in request',
-        errorType: 'raw personal data',
-      },
-      {
-        userId: null,
-        userEmailAddress: null,
-        errorMessage: 'https://app.invalid/?email=new%40example.invalid',
-        errorType: null,
-      },
-    ])
-      await f.prisma.networkError.create({
-        data: {
-          ...data,
-          errorCode: 503,
-          isRegisteredUser: true,
-          timestamp: f.clock(),
-        },
-      });
-    await f.prisma.networkError.create({
-      data: {
-        errorCode: 503,
-        isRegisteredUser: false,
-        userId: null,
-        userEmailAddress: null,
-        errorMessage: 'Request userId: ' + a.user.id,
-        timestamp: f.clock(),
-      },
-    });
     await request(f, a);
     const r = await review(f, o, a);
     assert.equal((await finish(f, o, a, r.body.review)).status, 200);
     assert.equal((await finish(f, o, a, r.body.review)).status, 200);
     assert.equal(await f.prisma.user.findUnique({ where: { id: a.user.id } }), null);
-    for (const model of ['identitySession', 'loginProof', 'token', 'trackPlay'])
+    for (const model of ['identitySession', 'loginProof', 'token'])
       assert.equal(await f.prisma[model].count({ where: { userId: a.user.id } }), 0);
     const b = await f.prisma.billingCustomer.findUnique({
       where: { customerId: 'cus_purchase_1' },
@@ -588,15 +547,6 @@ function deletionCases({ test, fixture }) {
     assert.equal(tombstone.closureSubscriptionId, 'sub_purchase_1');
     assert.deepEqual(tombstone.parameters, {});
     assert.equal(tombstone.digest, '');
-    const errors = await f.prisma.networkError.findMany({});
-    assert.equal(errors.length, 3);
-    for (const e of errors) {
-      assert.equal(e.userId, null);
-      assert.equal(e.userEmailAddress, null);
-      assert.equal(e.errorCode, 503);
-      assert.equal(e.errorType, null);
-      assert.equal(e.errorMessage, 'Account details removed during deletion');
-    }
     assert.deepEqual(await f.prisma.track.findUnique({ where: { id: 20 } }), track);
     assert.equal((await f.json('auth/verify', { token: proof })).status, 401);
     assert.equal((await f.request('auth/session', { headers: { Cookie: a.cookie } })).status, 401);
@@ -636,9 +586,10 @@ function deletionCases({ test, fixture }) {
     const e = f.complete(op.externalId);
     await f.notify(op.externalId);
     const hold = gate(),
-      original = f.stripe.invoices.list;
-    f.stripe.invoices.list = async (...args) => {
+      original = f.stripe.subscriptions.retrieve;
+    f.stripe.subscriptions.retrieve = async (...args) => {
       const result = await original(...args);
+      f.stripe.subscriptions.retrieve = original;
       hold.arrive();
       await hold.wait;
       return result;
@@ -662,7 +613,7 @@ function deletionCases({ test, fixture }) {
       assert.equal(f.signatures.length, 0);
     } finally {
       hold.release();
-      f.stripe.invoices.list = original;
+      f.stripe.subscriptions.retrieve = original;
       await playing;
     }
   });

@@ -10,7 +10,13 @@ module.exports = function createApp() {
     origin: config.clientOrigin, credentials: true,
     allowedHeaders: ['Content-Type', 'X-RVDL-CSRF'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  }));
+  })
+  );
+  app.use((req, res, next) => {
+    req.requestId = require('node:crypto').randomUUID();
+    res.set('X-Request-Id', req.requestId);
+    next();
+  });
   app.use(cookieParser());
   // This route must consume the original bytes before the shared JSON parser.
   // The payment controller verifies them before dispatching any event.

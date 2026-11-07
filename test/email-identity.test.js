@@ -209,7 +209,7 @@ test('admin listing checks fresh roles and direct/bulk deletion bypasses are rem
     assert.equal((await f.request(path, { method: 'DELETE', headers: { ...csrf, Cookie: cookie } })).status, 404);
   f.prisma.tables.user.find(u => u.id === 3).isAdmin = false;
   assert.equal((await get('user/synthetic-public-key', cookie)).status, 403);
-  assert.equal((await get('user/owner/deletions/synthetic-public-key', cookie)).status, 403);
+  assert.equal((await get('user/owner/deletions/2/synthetic-public-key', cookie)).status, 403);
   assert.equal(f.prisma.tables.user.length, 3);
 });
 for (const [path, body] of [

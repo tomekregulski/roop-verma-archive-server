@@ -22,7 +22,8 @@ function cli(url, schema) {
       cwd: path.resolve(__dirname, '../..'),
       encoding: 'utf8',
       timeout: 60000,
-      env: { ...process.env, DATABASE_URL: url, HEROKU_POSTGRESQL_BROWN_URL: url },
+      env: { ...process.env, DATABASE_URL: url, HEROKU_POSTGRESQL_BROWN_URL: url,
+      },
     }
   );
 }
@@ -40,7 +41,7 @@ before(async () => {
   await fs.copyFile('prisma/schema.prisma', path.join(directory, 'schema.prisma'));
   await fs.mkdir(path.join(directory, 'migrations'));
   for (const name of await fs.readdir('prisma/migrations'))
-    if (name !== removal)
+    if (name < removal || name === 'migration_lock.toml')
       await fs.cp(path.join('prisma/migrations', name), path.join(directory, 'migrations', name), {
         recursive: true,
       });
@@ -61,7 +62,17 @@ async function prior(work) {
       0,
       'prior migration replay'
     );
-    return await work(db, () => cli(url.href));
+    return await work(db, () => {
+      // Deploy exactly the C1 prefix. Revised simplification is checked separately.
+      const { cpSync, rmSync } = require('node:fs');
+      const target = path.join(directory, 'migrations', removal);
+      cpSync(path.join('prisma/migrations', removal), target, {
+        recursive: true,
+      });
+      const result = cli(url.href, path.join(directory, 'schema.prisma'));
+      rmSync(target, { recursive: true });
+      return result;
+    });
   } finally {
     await db.$disconnect();
     await admin.$executeRawUnsafe(`DROP SCHEMA "${schema}" CASCADE`);
@@ -94,7 +105,9 @@ async function attempt(db, userId, parameters, kind = 'checkout') {
   const digest = require('../../billing/purchase').digest(parameters);
   await db.$executeRaw`INSERT INTO "BillingOperation" (id,"activeKey",kind,"userId","customerId",digest,parameters,"externalId") VALUES ('upgrade',${
     'purchase:user:' + userId
-  },${kind},${userId},'cus_upgrade',${digest},${JSON.stringify(parameters)}::jsonb,'cs_upgrade')`;
+  },${kind},${userId},'cus_upgrade',${digest},${JSON.stringify(
+    parameters
+  )}::jsonb,'cs_upgrade')`;
 }
 async function subscription(db, userId) {
   await db.$executeRaw`INSERT INTO "Subscription" (id,name,"userId","stripeId","priceId","productId",status) VALUES ('sub_upgrade','Synthetic',${userId},'cus_upgrade','price_test_monthly','prod_test_archive','active')`;
@@ -145,7 +158,7 @@ test('C1 upgrade preserves populated identities, proof/session ownership, immuta
     await db.$executeRaw`INSERT INTO "BillingOperation" (id,kind,digest,parameters,"deletedAt","closureCustomerId","closureSubscriptionId") VALUES ('deleted','checkout','','{}','2026-10-16','cus_deleted','sub_deleted')`;
     await db.$executeRaw`INSERT INTO "IdentitySession" ("tokenHash","userId",email,"expiresAt") VALUES ('synthetic-session',${u.id},'upgrade@example.invalid','2026-12-01')`;
     await db.$executeRaw`INSERT INTO "LoginProof" ("tokenHash","userId",email,"expiresAt") VALUES ('synthetic-proof',${u.id},'upgrade@example.invalid','2026-12-01')`;
-    const before = await db.billingCustomer.findMany({ orderBy: { customerId: 'asc' } });
+    const before = await db.$queryRaw`SELECT "customerId","userId",livemode,"selectedSubscriptionId","selectedCanceledAt","accessCheckedAt","accessPolicyKey","cachedPaidFrom","cachedPaidThrough","accessFreshUntil","deletedAt","stripeDeletedAt" FROM "BillingCustomer" ORDER BY "customerId"`;
     const ops = await db.billingOperation.findMany({ orderBy: { id: 'asc' } });
     assert.equal(deploy().status, 0);
     const config = require('../support/billing-provider').config;
@@ -160,7 +173,7 @@ test('C1 upgrade preserves populated identities, proof/session ownership, immuta
       () => purchase.deletionChecks.trusted(ops.find((op) => op.id === 'upgrade')),
       'retained attempt still validates as immutable purchase evidence'
     );
-    assert.deepEqual(await db.billingCustomer.findMany({ orderBy: { customerId: 'asc' } }), before);
+    assert.deepEqual(await db.$queryRaw`SELECT "customerId","userId",livemode,"selectedSubscriptionId","selectedCanceledAt","accessCheckedAt","accessPolicyKey","cachedPaidFrom","cachedPaidThrough","accessFreshUntil","deletedAt","stripeDeletedAt" FROM "BillingCustomer" ORDER BY "customerId"`, before);
     assert.deepEqual(await db.billingOperation.findMany({ orderBy: { id: 'asc' } }), ops);
     assert.equal((await db.user.findUnique({ where: { id: u.id } })).deletionRevision, 3);
     assert.equal(await db.identitySession.count(), 1);
@@ -252,7 +265,8 @@ for (const kind of ['registration', 'checkout', 'orphan'])
         );
       })
   );
-for (const column of ['deletionRequestedAt', 'syncIssueCode', 'reconcileCursor'])
+for (const column of ['deletionRequestedAt', 'syncIssueCode', 'reconcileCursor',
+])
   test('C1 refuses unresolved binding evidence: ' + column, async () =>
     prior(async (db, deploy) => {
       await identity(db, 'cus_upgrade');

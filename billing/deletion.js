@@ -15,7 +15,7 @@ const dashboardChecklist = [
   'Handle D3–D8 refund/cancellation/dispute exceptions in Dashboard. Refund alone does not cancel.',
   'Recheck Dashboard immediately before completion. App deletion preserves Stripe financial records and already-issued media URLs may remain valid until expiry.',
 ];
-function createDeletion({ db, purchase, sendNotification, clientOrigin, now = () => new Date() }) {
+function createDeletion({ db, purchase, now = () => new Date() }) {
   const { trusted, validateSession, retrieve, provider, settings } = purchase.deletionChecks;
   async function admin(database, ownerId) {
     if ((await database.user.findUnique({ where: { id: ownerId } }))?.isAdmin !== true)
@@ -41,68 +41,33 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
     // Every purchase remaining here is an owned immutable attempt; none is discarded.
     return { user, binding, attempts };
   }
-  async function request(userId) {
-    const recorded = await db.$transaction(async (tx) => {
+  async function initiate(ownerId, userId, accountEmail, ownershipConfirmed) {
+    await admin(db, ownerId);
+    if (ownershipConfirmed !== true || typeof accountEmail !== 'string')
+      throw failure(
+        400,
+        'Verify the support request belongs to this account first'
+      );
+    return db.$transaction(async (tx) => {
       await lockAccount(tx, userId);
-      const user = await tx.user.findUnique({ where: { id: userId } });
-      if (!user) throw failure(401, 'Authentication required');
-      if (user.deletionRequestedAt) return { user, fresh: false };
-      const updated = await tx.user.update({
+      await admin(tx, ownerId);
+      const state = await snapshot(tx, userId);
+      if (!state) throw failure(404, 'Account not found');
+      if (state.user.email.toLowerCase() !== accountEmail.trim().toLowerCase())
+        throw failure(
+          409,
+          'Account email does not match; check the support request'
+        );
+      if (!state.user.deletionRequestedAt)
+        await tx.user.update({
         where: { id: userId },
         data: {
           deletionRequestedAt: now(),
           deletionRevision: { increment: 1 },
-          deletionNotice: 'attempted',
-        },
-      });
-      return { user: updated, fresh: true };
+          },
+        });
+      return { pending: true };
     });
-    let notice = recorded.user.deletionNotice;
-    if (recorded.fresh) {
-      // Durable request commits BEFORE sending. A crash or ambiguous send stays
-      // attempted/uncertain; repeats do not resend. No exactly-once delivery claim.
-      try {
-        if (!sendNotification) notice = 'unconfigured';
-        else {
-          await sendNotification({
-            email: recorded.user.email,
-            requestedAt: recorded.user.deletionRequestedAt.toISOString(),
-            link: clientOrigin + '/owner/deletions?account=' + userId,
-          });
-          notice = 'accepted';
-        }
-      } catch {
-        notice = 'uncertain';
-      }
-      await db.user.updateMany({
-        where: {
-          id: userId,
-          deletionRevision: recorded.user.deletionRevision,
-          deletionRequestedAt: recorded.user.deletionRequestedAt,
-        },
-        data: { deletionNotice: notice },
-      });
-    }
-    return {
-      pending: true,
-      requestedAt: recorded.user.deletionRequestedAt,
-      notification: notice,
-    };
-  }
-  async function list(ownerId) {
-    await admin(db, ownerId);
-    const users = await db.user.findMany({
-      where: { deletionRequestedAt: { not: null } },
-      orderBy: { id: 'asc' },
-    });
-    return {
-      requests: users.map((u) => ({
-        id: u.id,
-        email: u.email,
-        requestedAt: u.deletionRequestedAt,
-        notification: u.deletionNotice,
-      })),
-    };
   }
   async function closure(state) {
     const blockers = [],
@@ -222,6 +187,7 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
       if (![409, 503].includes(error.status)) throw error;
       // Local review/withdrawal stays available during provider trouble. These
       // references are explicitly unverified; completion still performs all reads.
+      require('../handlers/log').logFailure('deletion.review', error);
       checked = {
         blockers: [
           error.status === 503 ? 'provider_unavailable' : 'billing_requires_investigation',
@@ -244,7 +210,6 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
         firstName: state.user.firstName,
         lastName: state.user.lastName,
         requestedAt: state.user.deletionRequestedAt,
-        notification: state.user.deletionNotice,
       },
       binding: state.binding
         ? {
@@ -299,46 +264,11 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
         where: { id: userId },
         data: {
           deletionRequestedAt: null,
-          deletionNotice: null,
           deletionRevision: { increment: 1 },
         },
       });
     });
     return { withdrawn: true };
-  }
-  async function scrubDiagnostics(tx, user) {
-    // Structured linkage alone is insufficient: errors accept arbitrary message
-    // strings. Remove the whole free-text fields when linked or containing known
-    // identity strings, including JSON/URL-encoded email. Keep code/type-free time.
-    const identifiers = [
-      user.email,
-      encodeURIComponent(user.email),
-      user.email.replace('@', '%40'),
-      user.firstName + ' ' + user.lastName,
-    ].map((v) => v.toLowerCase());
-    for (const row of await tx.networkError.findMany({})) {
-      const freeText = (row.errorMessage + ' ' + (row.errorType || '')).toLowerCase();
-      const embeddedUserId = new RegExp(
-        String.raw`(?:^|\W)user(?:id)?["'\s:#=]*${user.id}(?![0-9])`,
-        'i'
-      ).test(freeText);
-      if (
-        embeddedUserId ||
-        row.userId === user.id ||
-        row.userEmailAddress?.toLowerCase() === user.email.toLowerCase() ||
-        identifiers.some((value) => freeText.includes(value))
-      )
-        await tx.networkError.update({
-          where: { id: row.id },
-          data: {
-            userId: null,
-            userEmailAddress: null,
-            isRegisteredUser: false,
-            errorMessage: 'Account details removed during deletion',
-            errorType: null,
-          },
-        });
-    }
   }
   async function complete(ownerId, userId, reviewToken, dashboardClosed) {
     await admin(db, ownerId);
@@ -403,14 +333,12 @@ function createDeletion({ db, purchase, sendNotification, clientOrigin, now = ()
           },
         });
       }
-      await tx.trackPlay.deleteMany({ where: { userId } });
       await tx.token.deleteMany({ where: { userId } }); // legacy Token has no FK
-      await scrubDiagnostics(tx, live.user);
       // Verified cascading FKs revoke proofs and ALL sessions in this transaction.
       await tx.user.delete({ where: { id: userId } });
     });
     return { completed: true };
   }
-  return { request, list, review, recordExact, withdraw, complete };
+  return { initiate, review, recordExact, withdraw, complete };
 }
 module.exports = { createDeletion, dashboardChecklist };
