@@ -1,3 +1,91 @@
+# Current owner hold — schema/sequence review pending, 2026-11-07
+
+Preserve the completed rehearsal evidence exactly as recorded; hashes for the
+12 evidence files are in [REHEARSAL_EVIDENCE_INDEX.json](REHEARSAL_EVIDENCE_INDEX.json).
+The prior local PASS remains historical evidence for that pinned b004 cleanup,
+schema and six-migration path. Account deletion and listening telemetry are being
+revised; error storage/payment qualification may change. **Do not proceed to live
+cleanup, migration or rollout.** After those decisions, review the final target
+schema and exact migration sequence and identify the required new local evidence.
+No old execution authorization or passing rehearsal carries over to that target.
+This hold supersedes earlier rollout/activation next-step suggestions below.
+
+---
+
+# Completed isolated retirement/migration rehearsal — 2026-11-07
+
+Owner-authorized [test-account retirement rehearsal](TEST_ACCOUNT_RETIREMENT_RESULTS.md)
+passed on an isolated b004 copy. Exactly six User rows were removed; no matching
+Token/TrackPlay rows existed. Archive/tribute/diagnostic fingerprints and retained
+sequence state were preserved. All six unchanged migrations passed, all nine
+pre-C1 guards were zero and the final ledger had 30 matching completed entries.
+All dumps/clusters/targets were removed. No live SQL, provider changes, app startup
+or deployment occurred. The local b004 transition blocker is resolved for this
+approved test-data disposition; live rollout and fresh signup/admin provisioning
+still need separately reviewed scopes and authorization.
+
+---
+
+# Accepted direction — retire six prelaunch test accounts, 2026-11-06
+
+Owner clarifies nobody has paid and the six accounts belong to owners/friends;
+owner accepted retiring them and recreating through the new workflows. Current
+source-only plan: [TEST_ACCOUNT_RETIREMENT_REHEARSAL.md](TEST_ACCOUNT_RETIREMENT_REHEARSAL.md).
+It supersedes the default preserve/reconcile proposal for these six accounts.
+Target only User and its scoped Token/TrackPlay test rows; preserve archive,
+tributes, media and aggregate plays. No existing-account deletion has occurred.
+The guarded SQL is prepared and ten synthetic-only validation scenarios passed;
+its disposable cluster was removed. Next is separately authorizing a new local
+b004 cleanup/migration rehearsal, with private runner/target review. No live or
+provider mutation is authorized.
+
+---
+
+# Proposed legacy-account transition — 2026-11-06
+
+[LEGACY_ACCOUNT_TRANSITION_DESIGN.md](LEGACY_ACCOUNT_TRANSITION_DESIGN.md) is now
+prepared from source and the aggregate rehearsal findings. Recommendation:
+preserve six identities and historical references; keep current C1 guards; use
+one-time evidence-reviewed association or safe unlink dispositions, with unknown
+cases blocking activation. Manual selection assignment is still a backfill and
+unlink is an explicit data/retention disposition; neither is authorized. Policy
+approval, read-only case/provider investigation and any implementation remain
+separate. This preparation made no data/provider calls or code/schema changes.
+
+---
+
+# Current handoff — b004 local migration rehearsal, 2026-11-06
+
+The explicitly authorized staged rehearsal is complete. On a disposable b004
+copy, five intermediate migrations succeeded and preserved user/link counts
+6/6, producing six BillingCustomer rows with NULL mode and selection. All nine
+C1 guards evaluated: seven zero, both selection/ownership predicates six.
+Final C1 was not executed. All temporary dumps/clusters were removed; no live
+SQL, remote changes, application startup or deployment occurred. Pinned source
+bytes remain unchanged. See [C1_REHEARSAL_RESULTS.md](C1_REHEARSAL_RESULTS.md).
+Next is a separately scoped legacy-account transition policy/design; no test-data
+classification, retention disposition, provider truth or selection is inferred.
+
+---
+
+# Current handoff — b004 isolated data preflight, 2026-11-06
+
+Owner-authorized b004 restore/aggregate inspection completed on a protected local
+PostgreSQL 18.4 target; all temporary dumps/clusters were removed. Application A
+and distinct BROWN mapping were reverified without live SQL. All 24 historical
+migrations match their local checksums; six newer migrations are absent.
+Subscription/WebhookLog rows, email diagnostics and earlier subscription-ownership
+failures are zero. Twelve modern-schema checks are NOT EVALUATED, so C1 readiness
+remains incomplete. See [C1_PREFLIGHT_RESULTS.md](C1_PREFLIGHT_RESULTS.md).
+The [local transition rehearsal](C1_MIGRATION_REHEARSAL.md) is now prepared, with
+pinned migration/query hashes and stage gates; execution needs separate
+authorization. Source predicts a C1 selection blocker if historical users exist
+and the intermediate association migration succeeds. No further backup access,
+migrations, app startup, deployment or remote settings changes occurred in that
+preparation.
+
+---
+
 # Current backend handoff — C1 local consolidation, 2026-11-02
 
 Normal backend/frontend now select one Stripe-led purchase/access/deletion
