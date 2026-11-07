@@ -38,11 +38,11 @@ test('normal routes select purchase and deletion with persisted session/admin pr
   assert.equal(
     (await fixture.json('user/account-deletion/synthetic-public-key', { confirm: true }, cookie))
       .status,
-    200
+    404
   );
   assert.equal(
     (
-      await fixture.request('user/owner/deletions/synthetic-public-key', {
+      await fixture.request('user/owner/deletions/1/synthetic-public-key', {
         headers: { Cookie: cookie, 'X-RVDL-CSRF': '1' },
       })
     ).status,

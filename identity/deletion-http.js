@@ -13,22 +13,6 @@ function account(req) {
 }
 function mount(router, deletion) {
   const guarded = [requireSession, browserGuard, apiKey];
-  router.post(
-    '/account-deletion/:key',
-    ...guarded,
-    wrap(async (req, res) => {
-      input(req.body, ['confirm']);
-      if (req.body.confirm !== true)
-        throw failure(400, 'Explicit deletion request confirmation required');
-      res.json(await deletion.request(req.identity.user.id));
-    })
-  );
-  router.get(
-    '/owner/deletions/:key',
-    ...guarded,
-    requireAdmin,
-    wrap(async (req, res) => res.json(await deletion.list(req.identity.user.id)))
-  );
   router.get(
     '/owner/deletions/:userId/:key',
     ...guarded,
@@ -43,7 +27,15 @@ function mount(router, deletion) {
       const ownerId = req.identity.user.id,
         userId = account(req);
       let result;
-      if (req.params.action === 'withdraw') {
+      if (req.params.action === 'initiate') {
+        input(req.body, ['accountEmail', 'ownershipConfirmed']);
+        result = await deletion.initiate(
+          ownerId,
+          userId,
+          req.body.accountEmail,
+          req.body.ownershipConfirmed
+        );
+      } else if (req.params.action === 'withdraw') {
         input(req.body, ['review']);
         result = await deletion.withdraw(ownerId, userId, req.body.review);
       } else if (req.params.action === 'complete') {

@@ -28,8 +28,7 @@ const help = (reason, operation) => answer('help', reason, operation);
 const cleared = {
   accessCheckedAt: null,
   accessPolicyKey: null,
-  cachedPaidFrom: null,
-  cachedPaidThrough: null,
+  cachedStatus: null,
   accessFreshUntil: null,
 };
 const sessionId = (value) => typeof value === 'string' && /^cs_[A-Za-z0-9_]{1,240}$/.test(value);
@@ -48,7 +47,10 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
       try {
         return await work(...args);
       } catch (error) {
-        if (error.code?.startsWith('PURCHASE_')) return help('purchase_needs_review');
+        if (error.code?.startsWith('PURCHASE_')) {
+          require('../handlers/log').logFailure('purchase.' + work.name, error);
+          return help('purchase_needs_review');
+        }
         throw error;
       }
     };
@@ -299,7 +301,7 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
     const state = await current(db, userId);
     if (blocked(state))
       return answer(state.user.stripeId ? 'manage' : 'help', 'deletion_pending', null, {
-        requestedAt: state.user.deletionRequestedAt, notification: state.user.deletionNotice,
+        requestedAt: state.user.deletionRequestedAt,
       });
     const operation = await db.billingOperation.findUnique({ where: { activeKey: key(userId) } });
     if (operation?.state === 'pending') return inspect(operation);

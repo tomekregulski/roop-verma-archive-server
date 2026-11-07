@@ -1,8 +1,7 @@
 // Normal paid-access reader: shared bounded cache and terminal cancellation veto.
-const { API_VERSION, id, check, stripeDate } = require('./evidence');
-const paidPeriod = require('./paid-period');
+const { API_VERSION, id, check, stripeDate, matchesMonthlyPrice } = require('./evidence');
 const MAX_FRESHNESS_MS = 15 * 60 * 1000;
-const cleared = { cachedPaidFrom: null, cachedPaidThrough: null, accessFreshUntil: null };
+const cleared = { cachedStatus: null, accessFreshUntil: null };
 
 function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
   const pending = new Map();
@@ -20,7 +19,7 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
   };
   const policyKey = (value, row) =>
     JSON.stringify([
-      'paid-access-v1',
+      'subscription-status-v2',
       API_VERSION,
       value.priceId,
       value.productId,
@@ -39,7 +38,8 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
     a.livemode === b.livemode;
 
   async function binding(userId, config) {
-    const row = await db.billingCustomer.findUnique({ where: { userId }, include: { user: true } });
+    const row = await db.billingCustomer.findUnique({ where: { userId }, include: { user: true },
+    });
     if (!row) return null;
     check(row.user?.id === userId && row.user.stripeId === row.customerId, 'ACCESS_ASSOCIATION');
     check(row.livemode === config.livemode, 'ACCESS_MODE');
@@ -56,31 +56,26 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
 
   function cached(row, key, time) {
     if (row.accessPolicyKey !== key || !row.accessCheckedAt || !row.accessFreshUntil) return null;
-    const {
-      cachedPaidFrom: paidFrom,
-      cachedPaidThrough: paidThrough,
-      accessCheckedAt,
-      accessFreshUntil,
-    } = row;
-    const datesValid = [paidFrom, paidThrough, accessCheckedAt, accessFreshUntil].every(
+    const { cachedStatus, accessCheckedAt, accessFreshUntil } = row;
+    check(
+      ['active', 'past_due'].includes(cachedStatus) &&
+        [accessCheckedAt, accessFreshUntil].every(
       (date) => date instanceof Date && Number.isFinite(date.getTime())
-    );
-    check(datesValid, 'ACCESS_CACHE');
-    const boundsValid =
-      paidFrom < paidThrough &&
-      accessFreshUntil <= paidThrough &&
-      accessFreshUntil.getTime() <= accessCheckedAt.getTime() + MAX_FRESHNESS_MS;
-    check(boundsValid, 'ACCESS_CACHE');
+    ) &&
+        accessFreshUntil > accessCheckedAt &&
+      accessFreshUntil.getTime() <= accessCheckedAt.getTime() + MAX_FRESHNESS_MS, 'ACCESS_CACHE');
     if (
       !(
         accessCheckedAt <= time &&
-        time < accessFreshUntil &&
-        paidFrom <= time &&
-        time < paidThrough
-      )
+        time < accessFreshUntil)
     )
       return null;
-    return { kind: 'paid', userId: row.userId, paidFrom, paidThrough };
+    return { kind: 'subscription',
+      userId: row.userId,
+      status: cachedStatus,
+      checkedAt: accessCheckedAt,
+      freshUntil: accessFreshUntil,
+    };
   }
 
   async function cancel(customerId, subscriptionId, livemode) {
@@ -109,24 +104,18 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
       await cancel(row.customerId, subscription.id, config.livemode);
       return started;
     }
-    const invoices = await stripe.invoices.list({
-      customer: row.customerId,
-      subscription: subscription.id,
-      status: 'paid',
-      limit: 1,
-    });
-    check(
-      Array.isArray(invoices?.data) &&
-        invoices.data.length <= 1 &&
-        typeof invoices.has_more === 'boolean' &&
-        (!invoices.has_more || invoices.data.length > 0),
-      'ACCESS_INVOICE_PAGE'
+    // Access checks only association, intended tier/mode and current status.
+    // Purchase completion keeps its separate, stricter supported-purchase checks.
+    const items = subscription.items;
+    const allowed =
+      items?.has_more === false &&
+      Array.isArray(items.data) &&
+      items.data.length === 1 &&
+      items.data[0]?.quantity === 1 &&
+      matchesMonthlyPrice(items.data[0].price, config) &&
+      ['active', 'past_due'].includes(subscription.status);
+    check(now() >= started && now() - started < MAX_FRESHNESS_MS, 'ACCESS_READ_EXPIRED'
     );
-    const period = paidPeriod(subscription, invoices.data[0], config, now());
-    check(now() >= started && now() - started < MAX_FRESHNESS_MS, 'ACCESS_READ_EXPIRED');
-    const freshUntil =
-      period &&
-      new Date(Math.min(started.getTime() + MAX_FRESHNESS_MS, period.paidThrough.getTime()));
     // No global customer revisions or retry loop. A discarded fill rereads the
     // shared winner; cancellation and selection changes always veto old results.
     await db.billingCustomer.updateMany({
@@ -143,11 +132,10 @@ function createPaidAccess({ db, stripe, config, now = () => new Date() }) {
       data: {
         accessCheckedAt: started,
         accessPolicyKey: key,
-        ...(period
+        ...(allowed
           ? {
-              cachedPaidFrom: period.paidFrom,
-              cachedPaidThrough: period.paidThrough,
-              accessFreshUntil: freshUntil,
+              cachedStatus: subscription.status,
+              accessFreshUntil: new Date(started.getTime() + MAX_FRESHNESS_MS),
             }
           : cleared),
       },

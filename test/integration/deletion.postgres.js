@@ -51,9 +51,6 @@ test('PostgreSQL D9: transaction failure rolls back deletion, cache, scrubbing a
   const op = await f.operation(a.user.id);
   f.complete(op.externalId, { status: 'canceled' });
   await f.notify(op.externalId);
-  await f.prisma.trackPlay.create({
-    data: { userId: a.user.id, trackId: 20, secondsListened: 10 },
-  });
   await request(f, a);
   const r = await review(f, o, a);
   await f.prisma.$executeRawUnsafe(
@@ -66,7 +63,6 @@ test('PostgreSQL D9: transaction failure rolls back deletion, cache, scrubbing a
     await f.prisma.$executeRawUnsafe('DROP TABLE synthetic_deletion_guard');
   }
   assert.ok((await f.me(a.cookie)).id);
-  assert.equal(await f.prisma.trackPlay.count(), 1);
   assert.equal((await f.operation(a.user.id)).deletedAt, null);
   assert.equal((await finish(f, o, a, r.body.review)).status, 200);
 });

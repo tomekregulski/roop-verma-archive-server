@@ -23,31 +23,3 @@ module.exports = function createMailer(config, transport = fetch) {
     // Provider acceptance is not evidence of inbox delivery.
   };
 };
-
-// Same Resend sender, timeout and acceptance conventions as login. The existing
-// frontend EmailJS template does not expose a backend notification destination.
-module.exports.createDeletionMailer = function createDeletionMailer(config, transport = fetch) {
-  if (!config.deletionSupportEmail) return null;
-  const to = require('./service').emailAddress(config.deletionSupportEmail);
-  return async ({ email, requestedAt, link }) => {
-    const response = await transport('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.resendKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: config.emailFrom,
-        to: [to],
-        subject: 'Account deletion requested — Roop Verma Archive',
-        text: `Account: ${email}\nRequested: ${requestedAt}\nOwner review (owner login required): ${link}\n\nFollow the Dashboard closure checklist before app deletion.`,
-      }),
-      signal: AbortSignal.timeout(5000),
-      redirect: 'error',
-    });
-    if (!response.ok) throw new Error('Email delivery was not accepted');
-    const data = await response.json();
-    if (!data || typeof data.id !== 'string' || !data.id)
-      throw new Error('Invalid email provider response');
-  };
-};

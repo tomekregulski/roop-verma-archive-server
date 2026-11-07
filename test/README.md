@@ -1,3 +1,23 @@
+# Bounded simplification verification — 2026-11-07
+
+Current local results: **260 synthetic / 142 disposable PostgreSQL / 7 strict
+schema / 38 React purchase-owner-support / 27 React player / 14 frontend unit
+checks pass**, plus 19 HTTP/browser security checks and one wrong-origin CORS
+check. See the current [handoff](../STRIPE_LED_PURCHASE_IMPLEMENTATION.md)
+for exact scope, reduction, support-test isolation caveat and evidence limits.
+The old NetworkError nullability failure is superseded only after guarded
+empty-table removal; populated refusal and the prior required column are asserted.
+Historical results below remain historical. Commands in the current C1 command
+section still apply; full billing now also includes simplification upgrades.
+
+The browser harness replaces EmailJS with `test/support-mail.ts` as well as the
+backend Stripe/mail/media doubles. The purchase/support test page refuses autorun
+without that fake-module identity. Restart the standalone harness after alias
+changes, close autorunning pages before editing provider-selection code, and never
+run these checks under ordinary development configuration.
+
+---
+
 # Latest cleanup verification — 2026-11-03
 
 276 synthetic backend tests and 156 fresh disposable PostgreSQL tests pass after

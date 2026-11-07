@@ -28,7 +28,7 @@ async function postEvent(f, value, signature = true) {
     },
   });
 }
-function pauseInvoice(f) {
+function pauseSubscription(f) {
   let entered, release;
   const arrived = new Promise((resolve) => {
     entered = resolve;
@@ -36,9 +36,10 @@ function pauseInvoice(f) {
   const released = new Promise((resolve) => {
     release = resolve;
   });
-  const original = f.stripe.invoices.list;
-  f.stripe.invoices.list = async (...args) => {
+  const original = f.stripe.subscriptions.retrieve;
+  f.stripe.subscriptions.retrieve = async (...args) => {
     const snapshot = await original(...args);
+    f.stripe.subscriptions.retrieve = original;
     entered();
     await released;
     return snapshot;
@@ -47,32 +48,22 @@ function pauseInvoice(f) {
     arrived,
     release,
     restore: () => {
-      f.stripe.invoices.list = original;
+      f.stripe.subscriptions.retrieve = original;
     },
   };
 }
 
 function paidAccessCases({ test, fixture }) {
-  test('cold HTTP playback uses two GETs; hot requests and signing recheck use zero more; public uses none', async () => {
-    const f = fixture(),
-      p = f.stripe.paidInvoice(),
-      cookie = await f.login();
-    const requested = [];
-    const original = f.stripe.invoices.list;
-    f.stripe.invoices.list = async (params) => {
-      requested.push(params);
-      return original(params);
-    };
-    try {
-      f.calls.length = 0;
+  test('cold playback reads only the selected subscription; hot cache and public playback need no reads', async () => {
+    const f = fixture();
+    f.stripe.paidInvoice();
+    const cookie = await f.login();
+    f.calls.length = 0;
       assert.equal((await f.play(cookie)).status, 200);
-      assert.deepEqual(reads(f), ['stripe.subscriptions.retrieve', 'stripe.invoices.list']);
-      assert.deepEqual(requested, [
-        { customer: 'cus_test_a', subscription: p.sub.id, status: 'paid', limit: 1 },
-      ]);
+      assert.deepEqual(reads(f), ['stripe.subscriptions.retrieve']);
       const before = await f.binding();
       for (let i = 0; i < 8; i++) assert.equal((await f.play(cookie)).status, 200);
-      assert.equal(reads(f).length, 2);
+      assert.equal(reads(f).length, 1);
       assert.equal(
         (await f.binding()).accessFreshUntil.getTime(),
         before.accessFreshUntil.getTime()
@@ -80,124 +71,62 @@ function paidAccessCases({ test, fixture }) {
       f.calls.length = 0;
       assert.equal((await f.json('track/10/playback-access/synthetic-public-key', {})).status, 200);
       assert.deepEqual(reads(f), []);
-      assert.equal('paidInvoiceGrant' in f.prisma, false, 'no financial grant delegate remains');
-    } finally {
-      f.stripe.invoices.list = original;
-    }
   });
 
   const invalid = {
-    'active but unpaid': (p) => {
-      p.invoice.status = 'open';
-      p.invoice.paid = false;
-    },
     trial: (p) => {
       p.sub.status = 'trialing';
     },
-    'unpaid lifecycle': (p) => {
+    unpaid: (p) => {
       p.sub.status = 'unpaid';
     },
-    'incomplete lifecycle': (p) => {
+    incomplete: (p) => {
       p.sub.status = 'incomplete';
     },
-    'unknown lifecycle': (p) => {
-      p.sub.status = 'future_unknown';
+    expired: (p) => {
+      p.sub.status = 'incomplete_expired';
     },
-    'collection pause': (p) => {
-      p.sub.pause_collection = { behavior: 'void' };
+    paused: (p) => {
+      p.sub.status = 'paused';
     },
-    'manual collection': (p) => {
-      p.sub.collection_method = 'send_invoice';
+    canceled: (p) => {
+      p.sub.status = 'canceled';
     },
-    schedule: (p) => {
-      p.sub.schedule = 'sub_sched_unsupported';
+    unknown: (p) => {
+      p.sub.status = 'future';
+    },
+    missing: (p) => {
+      delete p.sub.status;
+    },
+    malformed: (p) => {
+      p.sub.status = ['active'];
     },
     'wrong customer': (p) => {
-      p.invoice.customer = 'cus_test_b';
+      p.sub.customer = 'cus_test_b';
     },
-    'wrong invoice mode': (p) => {
-      p.invoice.livemode = true;
-    },
-    'wrong subscription mode': (p) => {
+    'wrong mode': (p) => {
       p.sub.livemode = true;
     },
     'wrong price': (p) => {
-      p.line.price.id = 'price_foreign';
+      p.sub.items.data[0].price.id = 'price_foreign';
     },
     'wrong product': (p) => {
-      p.line.price.product = 'prod_foreign';
+      p.sub.items.data[0].price.product = 'prod_foreign';
     },
     'wrong currency': (p) => {
-      p.invoice.currency = 'eur';
+      p.sub.items.data[0].price.currency = 'eur';
     },
-    'zero cost': (p) => {
-      p.invoice.total = p.invoice.amount_paid = p.invoice.amount_due = p.line.amount = 0;
+    'extra item': (p) => {
+      p.sub.items.data.push({ ...p.sub.items.data[0] });
     },
-    'customer credit': (p) => {
-      p.invoice.starting_balance = -1000;
-    },
-    'out of band': (p) => {
-      p.invoice.paid_out_of_band = true;
-    },
-    discount: (p) => {
-      p.invoice.discounts = ['di_unsupported'];
-    },
-    'credit used before payment': (p) => {
-      p.invoice.pre_payment_credit_notes_amount = 1000;
-    },
-    'line credit': (p) => {
-      p.line.pretax_credit_amounts = [{ amount: 1000 }];
-    },
-    proration: (p) => {
-      p.line.proration = true;
-    },
-    'missing paid declaration': (p) => {
-      delete p.invoice.paid;
-    },
-    'missing out-of-band declaration': (p) => {
-      delete p.invoice.paid_out_of_band;
-    },
-    'missing starting balance': (p) => {
-      delete p.invoice.starting_balance;
-    },
-    'missing ending balance': (p) => {
-      delete p.invoice.ending_balance;
-    },
-    'missing pre-payment credit amount': (p) => {
-      delete p.invoice.pre_payment_credit_notes_amount;
-    },
-    'missing proration declaration': (p) => {
-      delete p.line.proration;
+    'truncated items': (p) => {
+      p.sub.items.has_more = true;
     },
     'string quantity': (p) => {
-      p.line.quantity = '1';
+      p.sub.items.data[0].quantity = '1';
     },
     'string interval count': (p) => {
-      p.line.price.recurring.interval_count = '1';
-    },
-    'malformed discounts': (p) => {
-      p.invoice.discounts = {};
-    },
-    'truncated lines': (p) => {
-      p.invoice.lines.has_more = true;
-    },
-    'extra line': (p) => {
-      p.invoice.lines.data.push({ ...p.line, id: 'il_extra' });
-    },
-    'foreign line': (p) => {
-      p.line.subscription = 'sub_foreign';
-    },
-    'reversed period': (p) => {
-      p.line.period.end = p.line.period.start;
-    },
-    'expired period': (p) => {
-      p.line.period.end = epoch;
-    },
-    'future payment': (p) => {
-      p.invoice.status_transitions.paid_at = epoch + 1;
-    },
-    'unfinalized payment': (p) => {
-      p.invoice.status_transitions.finalized_at = null;
+      p.sub.items.data[0].price.recurring.interval_count = '1';
     },
   };
   for (const [name, change] of Object.entries(invalid)) {
@@ -214,13 +143,131 @@ function paidAccessCases({ test, fixture }) {
         assert.ok(reads(f).length <= 2);
         assert.ok(
           reads(f).every((call) =>
-            ['stripe.subscriptions.retrieve', 'stripe.invoices.list'].includes(call)
+            ['stripe.subscriptions.retrieve'].includes(call)
           )
         );
         assert.equal((await f.binding()).accessFreshUntil, null);
       }
     );
   }
+
+  test('aggregate listens increment atomically without identity, duration or playback authority', async () => {
+    const f = fixture();
+    await f.prisma.track.update({ where: { id: 20 }, data: { plays: null } });
+    const before = await f.prisma.track.findUnique({ where: { id: 10 } });
+    const results = await Promise.all(
+      Array.from({ length: 32 }, () =>
+        f.json('track/20/listen/synthetic-public-key', {})
+      )
+    );
+    assert.ok(results.every((r) => r.status === 204));
+    assert.equal(
+      (await f.prisma.track.findUnique({ where: { id: 20 } })).plays,
+      32
+    );
+    assert.deepEqual(
+      await f.prisma.track.findUnique({ where: { id: 10 } }),
+      before
+    );
+    assert.equal((await f.play()).status, 401);
+    assert.equal(f.signatures.length, 0);
+    assert.equal('trackPlay' in f.prisma, false);
+    assert.equal('networkError' in f.prisma, false);
+  });
+  test('aggregate input, CSRF, origin and key guards reject without increments', async () => {
+    const f = fixture();
+    const before = await f.prisma.track.findUnique({ where: { id: 20 } });
+    for (const id of ['0', '01', '-1', '2147483648', '1e1'])
+      assert.equal(
+        (await f.json('track/' + id + '/listen/synthetic-public-key', {}))
+          .status,
+        400
+      );
+    for (const body of [
+      { userId: 1 },
+      { secondsListened: 60 },
+      { trackId: 10 },
+      [],
+      { plays: 100 },
+    ])
+      assert.equal(
+        (await f.json('track/20/listen/synthetic-public-key', body)).status,
+        400
+      );
+    assert.equal(
+      (
+        await f.json('track/20/listen/synthetic-public-key', {}, null, {
+          'X-RVDL-CSRF': '',
+        })
+      ).status,
+      403
+    );
+    assert.equal(
+      (
+        await f.json('track/20/listen/synthetic-public-key', {}, null, {
+          Origin: 'https://evil.invalid',
+        })
+      ).status,
+      403
+    );
+    assert.equal((await f.json('track/20/listen/wrong', {})).status, 403);
+    assert.equal(
+      (await f.json('track/20/listen/synthetic-public-key?userId=1', {}))
+        .status,
+      400
+    );
+    assert.equal(
+      (await f.json('track/999/listen/synthetic-public-key', {})).status,
+      404
+    );
+    assert.equal(
+      (
+        await f.json('track/track-play/synthetic-public-key', {
+          userId: 1,
+          trackId: 20,
+          secondsListened: 3,
+        })
+      ).status,
+      404
+    );
+    for (const method of ['GET', 'POST', 'PUT', 'DELETE'])
+      assert.equal(
+        (
+          await f.request('network-error/synthetic-public-key', {
+            method,
+            ...(method === 'GET'
+              ? {}
+              : {
+                  body: '{}',
+                  headers: { 'Content-Type': 'application/json' },
+                }),
+          })
+        ).status,
+        404
+      );
+    assert.deepEqual(
+      await f.prisma.track.findUnique({ where: { id: 20 } }),
+      before
+    );
+  });
+  test('aggregate rate limits reuse expiring keyed counters and never grant media', async () => {
+    const f = fixture();
+    for (let i = 0; i < 120; i++)
+      assert.equal(
+        (await f.json('track/10/listen/synthetic-public-key', {})).status,
+        204
+      );
+    assert.equal(
+      (await f.json('track/10/listen/synthetic-public-key', {})).status,
+      429
+    );
+    f.advance(15 * 60 * 1000);
+    assert.equal(
+      (await f.json('track/10/listen/synthetic-public-key', {})).status,
+      204
+    );
+    assert.equal(f.signatures.length, 0);
+  });
 
   test('unselected binding and foreign verified user cannot borrow cached access', async () => {
     const f = fixture();
@@ -239,9 +286,9 @@ function paidAccessCases({ test, fixture }) {
     const f = fixture(),
       p = f.stripe.paidInvoice(),
       cookie = await f.login();
-    p.invoice.status = 'open';
+    p.sub.status = 'unpaid';
     assert.equal((await f.play(cookie)).status, 403);
-    p.invoice.status = 'paid';
+    p.sub.status = 'active';
     f.advance(1);
     assert.equal((await f.play(cookie)).status, 200);
   });
@@ -255,7 +302,7 @@ function paidAccessCases({ test, fixture }) {
       key: 'unpaid_replacement',
       subscriptionId: 'sub_unpaid_replacement',
     });
-    next.invoice.status = 'open';
+    next.sub.status = 'unpaid';
     f.advance(1);
     // Deliberately leave the old cache columns in place: the key must bind it to
     // the previous selection even if a future writer forgets to clear those columns.
@@ -266,35 +313,31 @@ function paidAccessCases({ test, fixture }) {
     assert.equal((await f.play(cookie)).status, 403);
   });
 
-  test('late payment, failed renewal and scheduled cancellation preserve only the original remaining period', async () => {
+  for (const status of ['active', 'past_due'])
+    test(
+      'status ' +
+        status +
+        ' allows without invoice settlement, amounts, history or a paid-period cap', async () => {
     const f = fixture(),
-      p = f.stripe.paidInvoice({ settled: epoch - 30, through: epoch + 60 });
-    p.sub.status = 'past_due';
+      p = f.stripe.paidInvoice({ through: epoch + 1 });
+    p.sub.status = status;
     p.sub.cancel_at_period_end = true;
-    const next = f.stripe.paidInvoice({
-      key: 'unpaid_renewal',
-      created: epoch,
-      from: epoch + 60,
-      through: epoch + 86400,
-    });
-    next.invoice.status = 'open';
+        p.sub.discount = { id: 'di_incidental' };
+        p.sub.trial_end = epoch - 100;
+        f.stripe.resources.invoices.length = 0;
+        f.stripe.invoices.list = async () => {
+          throw Error('invoice reads must be removed');
+        };
     const cookie = await f.login();
     assert.equal((await f.play(cookie)).status, 200);
-    const stored = await f.binding();
-    assert.equal(stored.cachedPaidFrom.getTime(), (epoch - 30) * 1000);
-    assert.equal(stored.accessFreshUntil.getTime(), (epoch + 60) * 1000);
-    f.advance(60000);
-    assert.equal((await f.play(cookie)).status, 403);
-  });
-
-  test('latest unsupported/future paid invoice does not trigger historical search or stack coverage', async () => {
-    const f = fixture();
-    f.stripe.paidInvoice();
-    f.stripe.paidInvoice({ key: 'future', created: epoch, from: epoch + 3600, settled: epoch - 1 });
-    const cookie = await f.login();
-    f.calls.length = 0;
-    assert.equal((await f.play(cookie)).status, 403);
-    assert.equal(reads(f).length, 2);
+        f.advance(MAX_FRESHNESS_MS);
+    assert.equal((await f.play(cookie)).status, 200);
+        const row = await f.binding();
+        assert.equal(row.cachedStatus, status);
+        assert.equal(
+          row.accessFreshUntil - row.accessCheckedAt,
+          MAX_FRESHNESS_MS
+        );
   });
 
   test('refund-only and dispute events neither revoke nor restore: only canceled state vetoes', async () => {
@@ -317,7 +360,7 @@ function paidAccessCases({ test, fixture }) {
     f.advance(MAX_FRESHNESS_MS);
     f.calls.length = 0;
     assert.equal((await f.play(cookie)).status, 200);
-    assert.equal(reads(f).length, 2);
+    assert.equal(reads(f).length, 1);
     assert.equal((await f.binding()).selectedCanceledAt, null);
   });
 
@@ -336,7 +379,7 @@ function paidAccessCases({ test, fixture }) {
       f.restartAccess();
       assert.equal(
         (await f.access().readEntitlement(1)).kind,
-        'paid',
+        'subscription',
         'a new adapter instance reuses only the shared cache'
       );
       f.calls.length = 0;
@@ -359,9 +402,9 @@ function paidAccessCases({ test, fixture }) {
     const f = fixture();
     f.stripe.paidInvoice();
     const cookie = await f.login();
-    const original = f.stripe.invoices.list,
+    const original = f.stripe.subscriptions.retrieve,
       started = f.clock();
-    f.stripe.invoices.list = async (...args) => {
+    f.stripe.subscriptions.retrieve = async (...args) => {
       const rows = await original(...args);
       f.advance(30000);
       return rows;
@@ -372,10 +415,10 @@ function paidAccessCases({ test, fixture }) {
       assert.equal(row.accessCheckedAt.getTime(), started.getTime());
       assert.equal(row.accessFreshUntil.getTime(), started.getTime() + MAX_FRESHNESS_MS);
     } finally {
-      f.stripe.invoices.list = original;
+      f.stripe.subscriptions.retrieve = original;
     }
     await f.select();
-    f.stripe.invoices.list = async (...args) => {
+    f.stripe.subscriptions.retrieve = async (...args) => {
       const rows = await original(...args);
       f.advance(MAX_FRESHNESS_MS);
       return rows;
@@ -384,24 +427,34 @@ function paidAccessCases({ test, fixture }) {
       assert.equal((await f.play(cookie)).status, 503);
       assert.equal((await f.binding()).accessFreshUntil, null);
     } finally {
-      f.stripe.invoices.list = original;
+      f.stripe.subscriptions.retrieve = original;
     }
   });
 
   test('concurrent same-process cold reads coalesce to two GETs', async () => {
     const f = fixture();
     f.stripe.paidInvoice();
-    const gate = pauseInvoice(f);
+    const gate = pauseSubscription(f);
     try {
       const work = Array.from({ length: 10 }, () => f.access().readEntitlement(1));
       await gate.arrived;
       gate.release();
-      assert.ok((await Promise.all(work)).every((value) => value?.kind === 'paid'));
-      assert.equal(reads(f).length, 2);
+      assert.ok((await Promise.all(work)).every((value) => value?.kind === 'subscription'
+        ));
+      assert.equal(reads(f).length, 1);
     } finally {
       gate.release();
       gate.restore();
     }
+  });
+
+  test('logout during mapping defeats fresh status evidence at the final signing boundary', async () => {
+    const f = fixture();
+    f.stripe.paidInvoice();
+    const cookie = await f.login();
+    f.mappingHook = () => f.json('auth/logout', {}, cookie);
+    assert.equal((await f.play(cookie)).status, 401);
+    assert.equal(f.signatures.length, 0);
   });
 
   test('signed cancellation during mapping beats cached access; duplicates/paid events cannot clear it', async () => {
@@ -435,7 +488,8 @@ function paidAccessCases({ test, fixture }) {
     const f = fixture(),
       p = f.stripe.paidInvoice();
     assert.equal((await postEvent(f, cancellation(p.sub))).status, 200);
-    const next = f.stripe.paidInvoice({ key: 'replacement', subscriptionId: 'sub_replacement' });
+    const next = f.stripe.paidInvoice({ key: 'replacement', subscriptionId: 'sub_replacement',
+    });
     await f.select({ selectedSubscriptionId: next.sub.id });
     assert.equal((await postEvent(f, cancellation(p.sub))).status, 200);
     const cookie = await f.login();
@@ -461,17 +515,18 @@ function paidAccessCases({ test, fixture }) {
     assert.deepEqual(reads(f), []);
   });
 
-  test('mapping across cache expiry refreshes; mapping across paid end never signs', async () => {
-    const f = fixture();
-    f.stripe.paidInvoice();
-    const cookie = await f.login();
+  test('mapping across cache expiry refreshes and rechecks changed status before signing', async () => {
+    const f = fixture(),
+      p = f.stripe.paidInvoice(),
+      cookie = await f.login();
     f.mappingHook = () => f.advance(MAX_FRESHNESS_MS);
     assert.equal((await f.play(cookie)).status, 200);
-    assert.equal(reads(f).length, 4);
+    assert.equal(reads(f).length, 2);
     await f.select();
-    f.mappingHook = () => f.advance(1000);
-    const p = f.stripe.resources.invoices[0];
-    p.lines.data[0].period.end = Math.floor(f.clock() / 1000) + 1;
+    f.mappingHook = () => {
+      f.advance(MAX_FRESHNESS_MS);
+      p.sub.status = 'unpaid';
+    };
     const count = f.signatures.length;
     assert.equal((await f.play(cookie)).status, 403);
     assert.equal(f.signatures.length, count);
@@ -518,8 +573,11 @@ function paidAccessCases({ test, fixture }) {
     } finally {
       f.prisma.billingCustomer.findUnique = original;
     }
-    await f.prisma.user.update({ where: { id: 1 }, data: { stripeId: 'cus_changed' } });
+    await f.prisma.user.update({ where: { id: 1 }, data: { stripeId: 'cus_changed' },
+    });
     assert.equal((await f.play(cookie)).status, 503);
   });
 }
-module.exports = { paidAccessCases, reads, cancellation, postEvent, pauseInvoice };
+module.exports = { paidAccessCases, reads, cancellation, postEvent,
+  pauseSubscription,
+};

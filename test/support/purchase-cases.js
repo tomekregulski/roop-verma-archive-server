@@ -8,7 +8,7 @@ async function buyer(f, email) {
 }
 const providerCalls = (f) => f.calls.filter((c) => c.startsWith('stripe.'));
 function purchaseCases({ test, fixture }) {
-  test('D1: verified local signup has no customer/provider work; positive evidence alone enables playback', async () => {
+  test('D1: verified local signup has no customer/provider work; secure association and current allowed status enable playback', async () => {
     const f = fixture(),
       { cookie, user } = await buyer(f);
     assert.equal(user.stripeId, null);
@@ -24,17 +24,11 @@ function purchaseCases({ test, fixture }) {
     assert.equal(await f.customer(user.id), null);
     f.complete(operation.externalId, { invoice: false });
     assert.equal((await f.confirm(cookie, operation.externalId)).body.action, 'manage');
-    assert.equal((await f.play(cookie)).status, 403);
-    const sub = (await f.customer(user.id)).selectedSubscriptionId;
-    f.stripe.paidInvoice({
-      key: 'later',
-      customerId: (await f.customer(user.id)).customerId,
-      subscriptionId: sub,
-    });
-    f.advance(1);
     f.calls.length = 0;
-    assert.equal((await f.play(cookie)).status, 200);
-    assert.deepEqual(providerCalls(f), ['stripe.subscriptions.retrieve', 'stripe.invoices.list']);
+    assert.equal((await f.play(cookie)).status, 200,
+      'associated active status needs no invoice'
+    );
+    assert.deepEqual(providerCalls(f), ['stripe.subscriptions.retrieve']);
     f.calls.length = 0;
     assert.equal((await f.play(cookie)).status, 200);
     assert.deepEqual(providerCalls(f), []);
@@ -93,7 +87,8 @@ function purchaseCases({ test, fixture }) {
     );
     const before = providerCalls(f).length;
     assert.equal((await f.start(cookie)).body.reason, 'checkout_open');
-    assert.deepEqual(providerCalls(f).slice(before), ['stripe.sessions.retrieve']);
+    assert.deepEqual(providerCalls(f).slice(before), ['stripe.sessions.retrieve',
+    ]);
   });
   for (const order of ['webhook-first', 'return-first', 'missed-return'])
     test('completion converges: ' + order, async () => {
@@ -127,7 +122,8 @@ function purchaseCases({ test, fixture }) {
     assert.equal(await f.customer(a.user.id), null);
     assert.equal(await f.customer(b.user.id), null);
   });
-  for (const change of ['mode', 'livemode', 'price', 'quantity', 'metadata', 'trial', 'zero'])
+  for (const change of ['mode', 'livemode', 'price', 'quantity', 'metadata', 'trial', 'zero',
+  ])
     test('unsupported completion fails closed: ' + change, async () => {
       const f = fixture(),
         { cookie, user } = await buyer(f);
@@ -166,7 +162,8 @@ function purchaseCases({ test, fixture }) {
     const op = await f.operation(user.id);
     f.advance(24 * 3600000);
     assert.equal((await f.start(cookie)).body.reason, 'checkout_open');
-    await f.prisma.billingOperation.update({ where: { id: op.id }, data: { externalId: null } });
+    await f.prisma.billingOperation.update({ where: { id: op.id }, data: { externalId: null },
+    });
     f.calls.length = 0;
     assert.equal((await f.start(cookie)).body.action, 'help');
     assert.deepEqual(providerCalls(f), []);
@@ -224,7 +221,8 @@ function purchaseCases({ test, fixture }) {
       const op = await f.operation(user.id);
       f.complete(op.externalId);
       if (when === 'after-customer') await f.notify(op.externalId);
-      await f.prisma.user.update({ where: { id: user.id }, data: { deletionRequestedAt: f.clock() } });
+      await f.prisma.user.update({ where: { id: user.id }, data: { deletionRequestedAt: f.clock() },
+        });
       const before = await f.customer(user.id);
       assert.equal((await f.start(cookie)).body.action, 'help');
       assert.equal((await f.notify(op.externalId)).status, 200);
@@ -299,7 +297,8 @@ function purchaseCases({ test, fixture }) {
     await f.start(cookie);
     const op = await f.operation(user.id);
     f.complete(op.externalId);
-    await f.prisma.billingOperation.update({ where: { id: op.id }, data: { externalId: null } });
+    await f.prisma.billingOperation.update({ where: { id: op.id }, data: { externalId: null },
+    });
     f.calls.length = 0;
     assert.equal((await f.confirm(cookie, op.externalId)).body.action, 'manage');
     assert.equal((await f.operation(user.id)).id, op.id);
@@ -345,7 +344,8 @@ function purchaseCases({ test, fixture }) {
     const op = await f.operation(user.id);
     await f.prisma.billingOperation.update({
       where: { id: op.id },
-      data: { externalId: null, createdAt: new Date(f.clock().getTime() + 60000) },
+      data: { externalId: null, createdAt: new Date(f.clock().getTime() + 60000),
+      },
     });
     f.calls.length = 0;
     assert.equal((await f.start(cookie)).body.action, 'help');
@@ -364,16 +364,18 @@ function purchaseCases({ test, fixture }) {
     f.complete(op.externalId);
     f.calls.length = 0;
     await f.confirm(cookie, op.externalId);
-    assert.deepEqual(providerCalls(f), ['stripe.sessions.retrieve', 'stripe.subscriptions.retrieve']);
+    assert.deepEqual(providerCalls(f), ['stripe.sessions.retrieve', 'stripe.subscriptions.retrieve',
+    ]);
     f.calls.length = 0;
     await f.notify(op.externalId);
-    assert.deepEqual(providerCalls(f), ['stripe.sessions.retrieve', 'stripe.subscriptions.retrieve']);
+    assert.deepEqual(providerCalls(f), ['stripe.sessions.retrieve', 'stripe.subscriptions.retrieve',
+    ]);
     f.calls.length = 0;
     await f.summary(cookie);
     assert.deepEqual(providerCalls(f), ['stripe.subscriptions.retrieve']);
     f.calls.length = 0;
     assert.equal((await f.play(cookie)).status, 200);
-    assert.deepEqual(providerCalls(f), ['stripe.subscriptions.retrieve', 'stripe.invoices.list']);
+    assert.deepEqual(providerCalls(f), ['stripe.subscriptions.retrieve']);
     f.calls.length = 0;
     assert.equal((await f.play(cookie)).status, 200);
     assert.deepEqual(providerCalls(f), []);

@@ -35,22 +35,12 @@ module.exports = async function createIdentityFixture(options = {}) {
     responseFloorMs: 0,
   });
   const stripe = options.stripe || require('./billing-provider').provider(calls);
-  const notifications = [];
   const runtime = require('../../billing/compose').createBillingRuntime({
     db,
     stripe,
     config: options.billingConfiguration || require('./billing-provider').config,
-    identityConfig: {
-      ...config,
-      deletionSupportEmail: options.noDeletionMail ? null : 'support@example.invalid',
-    },
+    identityConfig: config,
     now: () => time,
-    mailTransport: async (_url, request) => {
-      calls.push('deletion.mail.send');
-      notifications.push(JSON.parse(request.body));
-      if (mailFailure) throw Error('synthetic notification failure');
-      return { ok: true, json: async () => ({ id: 'synthetic-notification-id' }) };
-    },
   });
   const { purchase, deletion, readEntitlement } = runtime;
   const priorEnv = {
@@ -128,7 +118,6 @@ module.exports = async function createIdentityFixture(options = {}) {
     runtime,
     purchase,
     deletion,
-    notifications,
     readEntitlement,
     clock: () => new Date(time),
     advance(ms) {
@@ -140,7 +129,6 @@ module.exports = async function createIdentityFixture(options = {}) {
     async reset() {
       calls.length = 0;
       mail.length = 0;
-      notifications.length = 0;
       warnings.length = 0;
       mailFailure = false;
       time = new Date('2026-10-17T16:00:00Z');
