@@ -1,5 +1,15 @@
 # Current Stripe-led operations — C1 local consolidation, 2026-11-02
 
+**Owner hold — 2026-11-07:** preserve the completed rehearsal evidence, indexed in
+[REHEARSAL_EVIDENCE_INDEX.json](REHEARSAL_EVIDENCE_INDEX.json). Account deletion
+and listening telemetry are being revised; error storage/payment qualification
+may also change. Do not proceed to live cleanup, migration or rollout. Review the
+final target schema and migration sequence after those decisions, then determine
+the necessary fresh local checks/rehearsal. The prior PASS applies only to its
+recorded snapshot and sequence; the older operational steps below are not current
+execution instructions. No source-data, provider, schema or migration action is
+authorized by recording this hold.
+
 Normal backend/frontend composition selects purchase, paid access and owner-assisted
 account deletion. Stripe owns Checkout, Portal, recurring billing and configured
 recovery. Owners use Dashboard/support for rare financial exceptions. There is
@@ -37,8 +47,36 @@ No real provider, existing database, deployment or private delivery was exercise
 
 ## Existing-data preflight and retention blockers
 
-Existing contents are unknown and were not inspected. Under separate explicit DB
-access authorization, inspect a reviewed backup/snapshot and decide disposition:
+The explicitly authorized 2026-11-07 isolated cleanup/migration rehearsal
+**passed**: [TEST_ACCOUNT_RETIREMENT_RESULTS.md](TEST_ACCOUNT_RETIREMENT_RESULTS.md).
+Six local test users were retired; no matching auth/listening rows existed.
+Archive content stayed unchanged, all nine C1 guards were zero and all six
+migrations completed with 30 checksum-matched ledger entries. The temporary
+copies were removed. This is local snapshot evidence, not live cleanup or rollout
+approval. Fresh signup/verified-owner admin provisioning remain separately gated.
+
+Owner clarified that nobody has paid and the six legacy accounts belong to
+owners/friends, and accepted retiring them for fresh workflow testing. The
+[targeted test-account retirement plan](TEST_ACCOUNT_RETIREMENT_REHEARSAL.md)
+supersedes the earlier preserve/reconcile proposal for those accounts. Cleanup
+was executed only on the isolated copy as recorded above; any live cleanup or
+rollout remains separate. No live deletion occurred; archive content and media
+stay preserved.
+
+The subsequent owner-authorized local rehearsal completed on 2026-11-06:
+[C1_REHEARSAL_RESULTS.md](C1_REHEARSAL_RESULTS.md). Six historical users produced
+six mode-unknown, unselected associations after the five intermediate migrations;
+both C1 selection guards counted six. Final C1 was not run, and every temporary
+copy was removed. Account-transition policy/design is now the concrete blocker;
+no association/selection/retention change or deployed migration is approved.
+
+The owner-authorized 2026-11-06 isolated b004 inspection is recorded in
+[C1_PREFLIGHT_RESULTS.md](C1_PREFLIGHT_RESULTS.md): historical Subscription and
+WebhookLog are empty, but newer billing/identity schema is absent and C1's full
+transition is not yet verified. The copy was removed. Current live contents and
+trusted-association disposition remain unknown. Any further backup access or
+migration rehearsal needs separate authorization; decide disposition from the
+separately reviewed evidence:
 
 | Removed structure | Required condition / treatment |
 | --- | --- |

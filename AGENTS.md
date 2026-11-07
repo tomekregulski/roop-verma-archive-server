@@ -1,5 +1,18 @@
 # Working instructions
 
+## Owner hold — 2026-11-07
+
+Preserve the completed b004 rehearsal evidence; its file hashes are recorded in
+`REHEARSAL_EVIDENCE_INDEX.json`. Account deletion and listening telemetry are being
+revised; error storage and payment qualification may also change. Do not proceed
+to live cleanup, migration or rollout. Review the final target schema and exact
+migration sequence after those decisions, then determine the necessary new local
+checks/rehearsal. Prior passing results apply only to the recorded schema/sequence
+and do not approve the revised target. Older dated next-step suggestions below
+are superseded by this hold. Preserve all working-tree changes; no commit/push/merge.
+
+## Baseline working guidance
+
 - One engineer, 2–4 hours/week; beta roughly 3–4 months from the October 2026 baseline. Development hosting budget $10–15/month; launch target under $30/month; 100 registered users would be exceptional success. No real subscribers yet (owner report).
 - Establish and improve the backend baseline in small, reviewable changes. Do not broadly refactor or introduce PNPM, TypeScript, a monorepo, or hosting migrations without a concrete need.
 - Current outcome: backend email login and account/session ownership guards implemented after the owner approved the design checkpoint. Read `IDENTITY_API.md` and the current handoff at the top of `BACKEND_BASELINE.md`. The eight original identity acceptance targets pass. Webhook signatures are enforced and locally tested (2026-10-22); signing-secret deployment setup/verification, media/catalog authorization and other ranked blockers remain unresolved. Browser integration and deployed verification remain incomplete.
