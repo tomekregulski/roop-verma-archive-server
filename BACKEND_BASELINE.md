@@ -1,3 +1,27 @@
+# Completed revised seven-migration rehearsal — 2026-11-07
+
+Explicitly authorized fresh isolated b004 rehearsal **passed** for server
+`afa8d1c77bd9180348873b7aa1a2a8f2760a4bd8` and client
+`86c9c1b3454344e93bdacbaa52af7afeb028c68b`. TrackPlay/NetworkError were 0/0
+before retirement and immediately before the seventh migration. Six local test
+users were retired; all seven unchanged forward migrations succeeded and the
+final ledger had 31 matching complete entries. The revised final model structure,
+C1/removal guards and rollback were verified. All 74 tracks, stored listen totals
+(0, no nulls), catalog/tributes/media references were preserved. All temporary
+dumps/clusters were removed; no live SQL or billing/email/provider changes,
+application startup, deployment, push or merge occurred.
+
+New separate evidence:
+[results](REVISED_SEVEN_MIGRATION_REHEARSAL_RESULTS.md) and
+[source manifest](REVISED_SEVEN_MIGRATION_REHEARSAL_MANIFEST.json).
+All 12 original evidence files and original manifests/results remain unchanged.
+The earlier hold is superseded only for this fulfilled local authorization;
+live cleanup/migration/rollout remains unauthorized. Remaining platform, current-
+source/recovery, provider/configuration, owner provisioning and media gates are
+listed in the results. The older handoffs below retain their dated scope.
+
+---
+
 # Current owner hold — schema/sequence review pending, 2026-11-07
 
 Preserve the completed rehearsal evidence exactly as recorded; hashes for the
