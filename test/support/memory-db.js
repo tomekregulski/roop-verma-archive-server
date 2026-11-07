@@ -10,8 +10,6 @@ module.exports = function memoryDatabase(calls) {
       'billingCustomer',
       'billingOperation',
       'token',
-      'trackPlay',
-      'networkError',
     ].map((name) => [name, []])
   );
   let failSession = false;
@@ -44,7 +42,7 @@ module.exports = function memoryDatabase(calls) {
         return fn(args);
       };
     const defaults = (data) => ({
-      ...(['token', 'trackPlay', 'networkError'].includes(name)
+      ...(['token'].includes(name)
         ? { id: Math.max(0, ...tables[name].map((r) => r.id || 0)) + 1 }
         : {}),
       ...(name === 'loginProof' ? { delivered: false, consumedAt: null } : {}),
@@ -59,8 +57,7 @@ module.exports = function memoryDatabase(calls) {
             selectedCanceledAt: null,
             accessCheckedAt: null,
             accessPolicyKey: null,
-            cachedPaidFrom: null,
-            cachedPaidThrough: null,
+            cachedStatus: null,
             accessFreshUntil: null,
           }
         : {}),
@@ -79,7 +76,6 @@ module.exports = function memoryDatabase(calls) {
             stripeId: null,
             deletionRequestedAt: null,
             deletionRevision: 0,
-            deletionNotice: null,
             id: Math.max(0, ...tables.user.map((u) => u.id || 0)) + 1,
           }
         : {}),

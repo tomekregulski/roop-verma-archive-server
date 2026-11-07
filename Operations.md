@@ -1,18 +1,15 @@
-# Current Stripe-led operations — C1 local consolidation, 2026-11-02
+# Current Stripe-led operations — bounded simplification, 2026-11-07
 
-**Owner hold — 2026-11-07:** preserve the completed rehearsal evidence, indexed in
-[REHEARSAL_EVIDENCE_INDEX.json](REHEARSAL_EVIDENCE_INDEX.json). Account deletion
-and listening telemetry are being revised; error storage/payment qualification
-may also change. Do not proceed to live cleanup, migration or rollout. Review the
-final target schema and migration sequence after those decisions, then determine
-the necessary fresh local checks/rehearsal. The prior PASS applies only to its
-recorded snapshot and sequence; the older operational steps below are not current
-execution instructions. No source-data, provider, schema or migration action is
-authorized by recording this hold.
+**Local revision only.** The owner authorized this simplification with fake
+providers and fresh disposable PostgreSQL. No existing/remote database, actual
+backup, real provider, deployment or restoration action is authorized. The b004
+rehearsal indexed in [REHEARSAL_EVIDENCE_INDEX.json](REHEARSAL_EVIDENCE_INDEX.json)
+is preserved and applies only to its pinned six-migration target. Rehearse the
+new seven-migration sequence before any separately authorized rollout.
 
 Normal backend/frontend composition selects purchase, paid access and owner-assisted
 account deletion. Stripe owns Checkout, Portal, recurring billing and configured
-recovery. Owners use Dashboard/support for rare financial exceptions. There is
+recovery. Owners use Dashboard/support for rare financial exceptions. Customer deletion contact uses the existing Help/EmailJS support form; there is no deletion notification configuration. There is
 no reconciliation CLI, daily application reconciliation, grant/financial-history
 repair, generic operation recovery sweep or receipt-log monitoring procedure.
 [BILLING_API.md](BILLING_API.md) maps the one normal path; current verification and
@@ -22,8 +19,10 @@ No real provider, existing database, deployment or private delivery was exercise
 ## Activation dependencies — separately authorized work
 
 - Preserve reviewed D1–D10 settings: one positive monthly card tier, no trial/
-  discount/credit arrangements; Checkout return URLs, Portal period-end cancellation,
-  recurring recovery and supported dispute cancellation configuration. Verify the
+  discount/credit purchase features; Checkout return URLs, Portal period-end cancellation,
+  recurring recovery and supported dispute cancellation configuration. Active and
+  past_due allow access; indefinitely past_due can leave access enabled indefinitely.
+  Review Stripe recovery/retry and eventual cancellation settings before activation. Verify the
   pinned Stripe 17.5.0 / Acacia request, expansion, event and retry shapes in a
   designated real test environment. Local fakes establish none of those settings.
 - Supply DATABASE_URL and separately disposable shadow URL only under authorized
@@ -31,9 +30,6 @@ No real provider, existing database, deployment or private delivery was exercise
   settings, Stripe API key, endpoint-specific STRIPE_WEBHOOK_SECRET, explicit
   BILLING_PRICE_ID / BILLING_PRODUCT_ID / BILLING_CURRENCY / BILLING_LIVEMODE,
   RESEND_API_KEY and LOGIN_EMAIL_FROM. See `.env.example` / `IDENTITY_API.md`.
-- Owner must supply ACCOUNT_DELETION_SUPPORT_EMAIL; no recipient is inferred from
-  EmailJS or invented. Verify sender/inbox behavior separately. Missing/uncertain
-  mail does not erase a saved request; inspect the protected pending list.
 - Establish the intended owner's verified persisted identity/current isAdmin role
   through a separately approved process. `/owner/deletions` is now normally routed;
   frontend development AdminLogin does not supply authority. Agree support contact,
@@ -102,15 +98,22 @@ applied to bypass review. Historical migration files remain unchanged.
 
 ## Owner-assisted deletion
 
-A customer explicitly requests deletion in Account. This blocks new
-purchases/association, preserving login, trusted Portal and normal playback policy.
-Subscription cancellation stays separate and retains the app account. A pending
-request sends one best-effort templated notification with email/time/protected
-review link. Acceptance is not inbox delivery. Failed/uncertain/missing delivery
-never rolls back the request; no retries or external exactly-once guarantee.
-Owners should inspect the pending list even if no notification arrived. No
-response-time promise is approved. Withdrawal is support-assisted through the
-owner review and does not change Stripe billing or ordinary purchase safeguards.
+Customers contact support through the existing Help form. Verify that the
+request belongs to the account using the existing login/account identity process
+and manual support correspondence; knowing an email alone is not proof of request
+ownership. Do not invent another proof/token system or use Stripe billing email
+to change login identity. No response-time promise is approved.
+
+A persisted administrator opens `/owner/deletions`, enters the exact app account
+ID (shown as the signed-in customer’s account reference; the existing protected
+administrator user list is also available) and matching account
+email, attests verified request ownership and chooses **Start account deletion**.
+The transaction rechecks administrator authority under the target account lock.
+This blocks new purchases/association while retaining login, trusted Portal and
+ordinary playback policy. Repeated initiation is safe. Reopen one exact account
+review by ID after a reload; no pending queue or automatic email exists. **Abandon
+support deletion** requires a fresh review and clears the purchase block without
+changing Stripe. Customer cancellation in Portal leaves the app account intact.
 
 Before **Complete app account deletion**, review the correct account and:
 
@@ -138,17 +141,16 @@ Before **Complete app account deletion**, review the correct account and:
    still permits support withdrawal. Refresh/review after any stale or ambiguous
    result before retrying. A repeated completed request never recreates identity.
 
-Completion atomically deletes User, all sessions/login links,
-legacy Token and individual TrackPlay rows; aggregate Track.plays is preserved.
-It clears cache, retains customer/subscription/attempt deletion tombstones without
-automatic expiry, and removes names/email/request JSON from deleted live-v2 app
-attempts. Linked diagnostics lose structured identity and entire message/type
-fields; known embedded identifiers are also detected in unlinked error messages.
-Codes/times remain. Unknown encodings, arbitrary unlinked author text (including
-Tribute), provider mail, logs and backups are not an erasure guarantee or a new
-retention policy. Unsupported legacy immutable requests block completion pending
-investigation/C1 retention preflight. Existing public legacy telemetry/listening
-writers and play counting were not repaired by D9.
+Completion atomically deletes User, sessions/login proofs and legacy Token rows.
+It preserves aggregate Track.plays, catalog, tributes and media references; clears
+access evidence; retains customer/subscription/attempt security tombstones without
+automatic expiry; and removes names/email/request JSON from deleted live-v2 app
+attempts. The guarded simplification migration must already have removed empty
+TrackPlay and NetworkError stores; nonempty records require separately approved
+disposition before migration, not runtime deletion or diagnostic scrubbing.
+Unknown encodings, arbitrary author text, provider mail, logs and backups are not
+an erasure guarantee or a new retention policy. Unsupported immutable attempts
+still block completion pending investigation.
 
 Stripe customers, payments, invoices, refunds and other financial records remain.
 App deletion does not immediately invalidate issued media URLs (up to their
@@ -184,13 +186,65 @@ Separately verify deployed HTTPS/proxy/header preservation, clock, snapshot/API
 version, subscribed `checkout.session.completed` / `customer.subscription.deleted`
 events and genuine payload sizes. Unknown notifications do no provisioning or
 ledger work. Cookie ownership, signed events and provider email are distinct
-trust boundaries. Existing paid-invoice verification, cache/veto, final playback
+trust boundaries. Current status/association checks, cache/veto, final playback
 checks and transactional tombstones remain necessary.
+
+## Aggregate listens and failure diagnostics
+
+A listen means actual HTML audio `playing` begins, once per track selection and
+account/session state in the mounted player. Pause/resume, buffering events,
+rerenders and URL renewal do not increment again. Selecting away/back, another
+tab or a new page/session can count again. Counts are approximate starts, not
+unique people or completed recordings. Failed browser play and URL issuance do
+not count. Telemetry failures are best effort with no automatic retry; they do
+not interrupt playback. No individual duration/history or listener ID is stored.
+`POST /track/:trackId/listen/:key` accepts only empty JSON, validates the ID,
+enforces origin/CSRF and the existing keyed expiring IP rate limit (120/15m), then
+atomically increments `COALESCE(plays,0)+1`. It grants no media authority.
+Existing totals, including nulls, are untouched by migration; a null becomes 1
+only on an accepted start. No historical totals are derived or reset.
+
+Unexpected HTTP failures go to ordinary stderr/hosting logs with a random
+X-Request-Id, fixed route/operation, error class and safe internal code. Billing
+review/help outcomes and swallowed playback-read failures get fixed operation
+context too. Messages, stacks, request bodies, cookies/proofs, headers, provider
+payloads, personal data and private URLs are never serialized. Correlate a failed
+HTTP request's X-Request-Id from browser network details when available. There is
+no diagnostic database, per-error email, alert subscription or worker.
+Browser-only network/media failures, CORS blocks before the app, support EmailJS
+acceptance/inbox delivery, process crashes and provider problems that never reach
+the server are not fully observable in application logs. Use the visible retry/
+sign-in/billing/Help guidance and ordinary hosting logs; alerts and managed
+exception monitoring remain deferred.
+
+## Revised schema preflight
+
+The new forward migration `20261107120000_bounded_simplification` locks and refuses
+**any** TrackPlay or NetworkError row. There is no approved global destruction,
+archive, export or retention rule for those records. If either table is nonempty,
+stop for a precise owner disposition and separately reviewed implementation;
+never empty the table to bypass the guard. Old successful b004 checks preserved
+NetworkError and unrelated TrackPlay, so they do not establish this new condition.
+The migration drops only empty stores and User.deletionNotice, replaces paid-period
+cache columns with cachedStatus and invalidates derivative cache stamps. It keeps
+pending deletion/revisions, selection/veto, tombstones, authority, attempts, catalog,
+media references and aggregate totals. No historical migration was edited.
+
+The database session must reverify source/schema/checksums, all original C1 guards,
+new table counts/disposition, the exact seven-migration sequence and rollback,
+prior required NetworkError column diagnostic versus the removed final schema,
+aggregate/catalog/tribute/media preservation, pending state and all security/
+selection/attempt tombstones. Coordinate writer shutdown and generated-client
+rollout; old telemetry writers and old invoice-cache readers cannot run on the
+new schema. PostgreSQL 15 compatibility and real provider/deployed behavior remain
+unverified. Existing backup retrieval/rehearsal permissions are not renewed here.
 
 ## Local checks
 
 Use compatible Node 24.19.0 and generated Prisma 4.12.0 client. See
 [test/README.md](test/README.md) for synthetic/disposable PostgreSQL/browser commands.
-The strict schema diagnostic deliberately retains the unrelated telemetry
-nullability failure. Local checks never prove real delivery, launch readiness or
+The strict schema diagnostic must pass after guarded removal supersedes the old
+NetworkError.errorCode required-DB/nullable-model mismatch. The new migration tests
+explicitly assert the prior required column and nonempty refusal; do not suppress
+the old diagnostic on any target that still retains the table. Local checks never prove real delivery, launch readiness or
 the zero-routine-engineering / roughly five-hours-per-quarter target.

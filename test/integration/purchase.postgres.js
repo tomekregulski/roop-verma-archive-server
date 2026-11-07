@@ -3,8 +3,11 @@ const { test, before, beforeEach, after } = require('node:test');
 const { PrismaClient } = require('@prisma/client');
 const { createPurchase } = require('../../billing/purchase');
 const { config } = require('../support/billing-provider');
-const { purchaseCases, buyer, providerCalls } = require('../support/purchase-cases');
-const { postEvent, cancellation, pauseInvoice } = require('../support/paid-access-cases');
+const { purchaseCases, buyer, providerCalls,
+} = require('../support/purchase-cases');
+const { postEvent, cancellation,
+  pauseSubscription,
+} = require('../support/paid-access-cases');
 let database, f;
 before(async () => {
   database = await require('../support/purchase-postgres')(process.env.TEST_DATABASE_URL);
@@ -21,7 +24,8 @@ after(async () => {
     if (database) await database.close();
   }
 });
-purchaseCases({ test: (name, work) => test(name, { timeout: 10000 }, work), fixture: () => f });
+purchaseCases({ test: (name, work) => test(name, { timeout: 10000 }, work), fixture: () => f,
+});
 async function independent(work) {
   const db = new PrismaClient({ datasources: { db: { url: database.url } } });
   try {
@@ -44,10 +48,12 @@ test('PostgreSQL: independent clients reserve one attempt and concurrent case-in
   await independent(async (_other, purchase) => {
     await Promise.all([
       f.signup('Mixed@example.invalid'),
-      purchase.register({ firstName: 'New', lastName: 'Account', email: 'mixed@example.invalid' }),
+      purchase.register({ firstName: 'New', lastName: 'Account', email: 'mixed@example.invalid',
+      }),
     ]);
     const users = await database.db.user.findMany({
-      where: { email: { equals: 'mixed@example.invalid', mode: 'insensitive' } },
+      where: { email: { equals: 'mixed@example.invalid', mode: 'insensitive' },
+      },
     });
     assert.equal(users.length, 1);
     const results = await Promise.all(
@@ -135,7 +141,8 @@ test('PostgreSQL: completion suspended before commit cannot bypass independent p
   try {
     await ready;
     await independent(async (db) =>
-      db.user.update({ where: { id: user.id }, data: { deletionRequestedAt: f.clock() } })
+      db.user.update({ where: { id: user.id }, data: { deletionRequestedAt: f.clock() },
+      })
     );
     release();
     assert.equal((await pending).status, 200);
@@ -152,7 +159,7 @@ test('PostgreSQL: a suspended old paid fill cannot populate a replacement bindin
   const op = await f.operation(user.id);
   const e = f.complete(op.externalId);
   await f.notify(op.externalId);
-  const gate = pauseInvoice(f);
+  const gate = pauseSubscription(f);
   const pending = f.play(cookie);
   try {
     await gate.arrived;
@@ -187,7 +194,8 @@ test('PostgreSQL: customer/selection/session uniqueness prevents conflicting ass
   assert.equal((await f.confirm(b.cookie, session.id)).body.action, 'help');
   assert.equal(await f.customer(b.user.id), null);
   await assert.rejects(
-    database.db.billingOperation.update({ where: { id: second.id }, data: { externalId: first.externalId } })
+    database.db.billingOperation.update({ where: { id: second.id }, data: { externalId: first.externalId },
+    })
   );
 });
 

@@ -1,3 +1,195 @@
+# Test-harness housekeeping — 2026-11-07
+
+Completed the owner's bounded follow-up using synthetic state only. Changes are
+limited to the client browser harness, its support-test guard and housekeeping
+checks, plus this existing handoff. Client application source, backend deletion
+code, schema/migrations, the rehearsal index and retirement results were
+hash-checked unchanged for this follow-up. No PostgreSQL/Prisma startup, SQL,
+migration, existing database, backup, real provider request, deployment or
+commit/push/merge action occurred.
+
+The cleanup checks reproduced competing exit ownership: the optional test tool's
+`async-exit-hook` and Vite's standalone SIGTERM handler could exit before ordered
+cleanup completed. The harness now owns SIGINT/SIGTERM, uses Vite middleware with
+its own loopback listener, shares one idempotent close operation and attempts all
+remaining cleanup even after a close fails. Vite's cache now lives inside its
+owned temporary environment directory. Startup failures and cleanup failures
+preserve nonzero exit status; normal shutdown exits zero after cleanup.
+
+**Verification: 12/12 housekeeping checks pass on Node 24.19.0** (about 3.6 seconds
+for the final suite body):
+
+- Seven lifecycle cases: SIGINT, SIGTERM, repeated explicit close; synthetic storage
+  acquisition failure; actual control-listener and Vite-listener startup collisions;
+  and an injected close failure. Checks assert exact-once close ordering, reusable
+  ports, terminated inert child, removal of every owned temporary path/cache,
+  preservation of an unrelated marker and correct process exit status. Final check
+  found zero remaining housekeeping temporary directories.
+- Five offline support-entry cases: wrong initializer, wrong sender, both wrong,
+  missing sender and matching-fake positive control. The guard now checks both
+  `init` and `sendForm`. The actual TypeScript test entry is compiled/evaluated in
+  a VM with inert imports and no fetch/XMLHttpRequest/socket capabilities. Every
+  negative case rejects before rendering or installing the API adapter, with zero
+  send attempts/queued mail. The positive control reaches the deliberately stopped
+  render boundary, proving the guard accepts the real fake-module exports.
+- Existing frontend unit checks **14/14 pass**. Changed-test ESLint, TypeScript,
+  syntax and diff whitespace checks pass. No application suite or database
+  rehearsal was rerun; earlier results below keep their original scope.
+
+Lifecycle verification uses the actual optional `async-exit-hook` library, real
+Vite/HTTP listeners and the existing in-memory fake-provider HTTP fixture. An inert
+Node child and synthetic file markers substitute for PostgreSQL/storage; no real
+ORM/PostgreSQL factory is invoked. Child environments exclude configured
+application/provider credentials. This verifies the shared launcher lifecycle and
+its resource ownership, not real PostgreSQL engine shutdown or SIGKILL/crash
+recovery. The historical EmailJS hot-reload uncertainty below remains historical;
+this follow-up made no provider requests and does not establish its past outcome.
+
+Reproduce from the client with compatible Node 24.19.0 and the existing optional
+test-tool path (used only to locate `async-exit-hook`; PostgreSQL is not imported):
+
+```sh
+EMBEDDED_POSTGRES_MODULE=/absolute/path/to/embedded-postgres/dist/index.js \
+  node --test test/browser-harness-housekeeping.mjs
+node --test test/*.test.cjs
+```
+
+No further deletion redesign, product changes or database work was undertaken.
+
+---
+
+# Bounded simplification — current handoff, 2026-11-07
+
+The owner's revised brief is implemented locally in the existing normal
+composition. D2/D9/D10 changes are authoritative in
+[STRIPE_LED_DECISIONS.md](STRIPE_LED_DECISIONS.md); D1 and D3–D8 are unchanged.
+No alternate engine, compatibility reader, diagnostic worker or tracking store
+was introduced. The 10–16 active-engineering-hour estimate was planning, not
+clocked labor or an operational readiness claim.
+
+- **Support deletion:** removed customer request controls/API, automatic deletion
+  mail/config/status, pending queue and diagnostic scrubbing. A current persisted
+  administrator initiates one exact account with matching email and explicit
+  attestation that support verified request ownership. Customer Account shows its
+  reference for support. Review/abandon/exact-Session recovery/completion reuse
+  existing auth, locks, pending revision, closure checks, fresh review, Dashboard
+  attestation and transactional revocation/deletion/security tombstones. Login,
+  trusted Portal and ordinary access survive initiation; new purchases/association
+  do not. Stripe records remain untouched; cancellation remains separate.
+- **Aggregate starts:** removed TrackPlay ingestion, individual timing/history and
+  personal telemetry payloads. The first actual audio `playing` event increments
+  Track.plays once per selected track/account/session, including across URL renewal;
+  repeated events, pause/resume and rerenders do not. Empty-body validated POST,
+  origin/CSRF/key and existing expiring keyed-IP limiter; atomic nullable-safe SQL
+  increment. No playback grant, listener ID, retry/count-repair engine or totals
+  reset/reconstruction. Counts are approximate starts, not people or completion.
+- **Failures/support:** ordinary safe server/hosting logs replace NetworkError CRUD
+  and unused browser logging/error-email machinery. Random request references,
+  fixed operation context, safe internal codes/error classes; no raw errors,
+  provider/request payloads, credentials/proofs/cookies, personal data or private
+  URLs. Existing Help/EmailJS remains, with guarded busy/retry and acceptance-only
+  messaging. Browser/media/network failures outside backend reach are not fully
+  observable; alerts and managed exception monitoring remain deferred.
+- **Status access:** active/past_due allow only for trusted intended tier/product/
+  mode/selection; all listed other statuses, missing/unknown/malformed status and
+  untrusted association fail closed. Removed paid-period/invoice qualification and
+  **all production invoice reads**. Strict supported Checkout completion remains
+  separate. Shared PostgreSQL cachedStatus replaces invented paid intervals with
+  the same fixed pre-read maximum-15-minute deadline, no sliding/stale-on-error,
+  terminal veto and replacement/in-flight protections. Final signing rechecks both
+  session (including logout/revocation) and current access after media mapping.
+  Refund alone does not revoke; active period-end cancellation remains accessible.
+
+## Comparable reduction and operations
+
+Compared with the clean working-tree source at this task's start, using the same
+union of changed/removed/new production JS/TS/TSX files, excluding tests, docs,
+locks, migrations and generated files:
+
+| Scope | Before | After |
+| --- | ---: | ---: |
+| Backend affected production files / lines | 22 / 1,769 | 17 / 1,531 |
+| Backend non-whitespace characters | 54,947 | 47,932 |
+| Client affected production files / lines | 13 / 1,660 | 11 / 1,533 |
+| Client non-whitespace characters | 39,251 | 36,903 |
+
+Combined net reduction: **7 production files, 365 lines (10.6%), 9,363
+non-whitespace characters (9.9%)**. The comparison includes new aggregate/logging
+code and support changes. Comments/formatting contribute to line counts; the
+character comparison is provided independently. Schema removes two tables and
+net two retained-model columns (deletionNotice and two paid-period columns replaced
+by one status column). All other tables, aggregate plays and archive references
+remain. No dependency/lockfile changes or new monitoring subscriptions.
+
+Operations drop deletion-notification configuration/inbox-followup, pending-queue
+checking, diagnostic CRUD/storage/scrubbing and invoice-qualification investigation.
+A cold access check uses **one selected-subscription GET instead of two GETs**;
+hot shared-cache checks use zero provider reads. Owner Dashboard closure and rare
+exceptions remain manual. Stripe recovery configuration is an activation dependency:
+**indefinitely past_due can mean indefinitely enabled access**. No custom grace
+calendar, extra-month ledger or quarterly-labor savings are claimed.
+
+## Verification and boundaries
+
+Node 24.19.0, locked Stripe/Prisma, real local HTTP/cookies/signatures/Prisma and
+fresh disposable PostgreSQL; Stripe/login mail/media fake:
+
+- **260 synthetic backend checks / 142 disposable PostgreSQL checks pass.** Includes
+  atomic/concurrent aggregate increments, validation/rate/origin/CSRF protections,
+  complete status matrix, no invoice API use, session/proof/logout/admin/isolation,
+  raw signature verification, purchase retries/concurrency/ownership and late
+  completion, deletion rollback/races/tombstones, cache freshness/outages/veto/
+  replacement/independent-client fills and final signing revocation.
+- **38 React purchase/owner/support checks, 27 player checks, 14 frontend unit
+  checks, 19 HTTP/browser security checks and one wrong-origin CORS check pass.** Axios/Audio/EmailJS doubles; support tests hard-refuse execution
+  unless the fake EmailJS module is selected by the standalone harness.
+- Normal-route browser journey: signup → captured proof → Checkout → pending return
+  and playback denial → signed paid association → playback authorization → Portal
+  → ordinary-owner denial → persisted owner initiation/review → active billing
+  blocker → abandon/restart → fake Dashboard closure → fresh attestation/completion
+  → late signed completion acknowledged without identity recreation. Sanitized
+  fixture results show playback 403/403/200, one Checkout, owner actions all 200,
+  and only the synthetic owner remaining. Ignored screenshot:
+  client `test/evidence/simplification-owner-complete.png`.
+- Strict final-schema diagnostic **7/7 pass** after guarded removal supersedes the
+  old NetworkError.errorCode required-DB/nullable-model mismatch. Prior-schema
+  tests explicitly assert the required column and nonempty refusal/rollback;
+  no historical migration or failing assertion was suppressed.
+- TypeScript, changed-client ESLint, normal Vite build, Prisma validation, changed
+  JS syntax and diff whitespace pass. Existing bundle/browser-data warnings remain.
+
+**Support-test isolation caveat:** while adding the fake EmailJS alias, an already
+open regression page could hot-reload before the harness restart. It was closed;
+only synthetic form values were supplied, but an attempted real EmailJS request
+cannot be ruled out. No provider delivery/outcome was verified. The final run uses
+a hard fake-module identity guard and fake transport; do not interpret it as real
+support-provider verification. No real Stripe/media/existing-database/backup,
+deployment/restoration or commit/push/merge action was performed.
+
+## Existing-data blocker and next database-session checks
+
+Forward `20261107120000_bounded_simplification` locks and refuses **any** TrackPlay
+or NetworkError records before dropping only empty stores. Their global retention,
+archive/export/destruction policy is unapproved; nonempty contents are a precise
+rollout blocker requiring a separate owner disposition, not permission to erase.
+The migration removes notification state, invalidates derivative old access cache
+and replaces its evidence columns; pending state/revisions, ownership/selection/
+veto, attempts/security tombstones, archive/tribute/media and totals survive.
+
+All pre-existing migration and rehearsal artifact hashes were checked unchanged.
+The successful b004 six-migration evidence remains pinned to its source/schema;
+it does not verify this target or renew backup/existing-DB permission. The database
+session must recheck the source/ledger/checksums and original C1 guards, both new
+nonempty-table conditions/disposition, exact **seven-forward-migration** sequence,
+refusal/rollback, required-column-versus-removed-table diagnostic, pending/admin/
+session/selection/attempt/tombstone preservation and aggregate/catalog/tribute/
+media invariants. Coordinate old-writer shutdown and generated-client rollout.
+PostgreSQL 15 compatibility, actual providers, deployed HTTPS/cookies and real
+private delivery remain separate verification/activation gates. Full operator
+instructions are in [Operations.md](Operations.md); no launch approval is inferred.
+
+---
+
 # Readability follow-up — 2026-11-03
 
 Billing evidence/paid-period validation now names association, automatic payment,

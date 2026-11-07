@@ -24,8 +24,14 @@ userRouter
 userRouter
   .route('/public/:key')
   .get(isValidApiKey, controllers.get.publicTracks);
+// Approximate telemetry is independent of playback authorization.
 userRouter
-  .route('/track-play/:key')
-  .post(isValidApiKey, controllers.post.trackPlay);
+  .route('/:trackId/listen/:key')
+  .post(
+    noStore,
+    browserGuard,
+    isValidApiKey,
+    require('../../../playback/listen')
+  );
 
 module.exports = userRouter;

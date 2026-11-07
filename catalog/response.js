@@ -33,7 +33,7 @@ function catalogResponse(req, res, next) {
   const operation = segments[1]?.toLowerCase();
   const model = models[resource];
   const issuance = resource === 'track' && req.method === 'POST' && segments.length === 4 && segments[2].toLowerCase() === 'playback-access';
-  const telemetry = resource === 'track' && req.method === 'POST' && segments.length === 3 && operation === 'track-play';
+  const telemetry = resource === 'track' && req.method === 'POST' && segments.length === 4 && segments[2].toLowerCase() === 'listen';
   if (model && !telemetry && !issuance) {
     res.set('Cache-Control', 'no-store');
     const json = res.json;

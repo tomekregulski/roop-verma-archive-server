@@ -2,7 +2,12 @@ const { config, identity } = require('./runtime');
 const { failure } = require('./service');
 const wrap = (handler) => (req, res, next) =>
   Promise.resolve()
-    .then(() => handler(req, res, next))
+    .then(() => {
+      req.logOperation = `${req.method} ${req.baseUrl || ''}${
+        req.route?.path || '/unmatched'
+      }`;
+      return handler(req, res, next);
+    })
     .catch(next);
 const noStore = (_req, res, next) => {
   res.set('Cache-Control', 'no-store');

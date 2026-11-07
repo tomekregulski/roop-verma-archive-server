@@ -9,7 +9,9 @@ async function main() {
     const code = await new Promise((resolve, reject) => {
       const suites = ['test/integration/identity.postgres.js'];
       if (process.argv.includes('--billing'))
-        suites.push('test/integration/consolidation.postgres.js');
+        suites.push('test/integration/consolidation.postgres.js',
+          'test/integration/simplification.postgres.js'
+        );
       if (process.argv.includes('--billing') || process.argv.includes('--paid-access'))
         suites.push('test/integration/paid-access.postgres.js');
       if (process.argv.includes('--billing') || process.argv.includes('--purchase'))

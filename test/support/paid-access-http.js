@@ -29,10 +29,12 @@ module.exports = async function paidAccessFixture(options = {}) {
   f.signatures = signatures;
   f.access = () => access;
   f.restartAccess = () => {
-    access = createPaidAccess({ db: f.prisma, stripe: f.stripe, config, now: clock });
+    access = createPaidAccess({ db: f.prisma, stripe: f.stripe, config, now: clock,
+    });
   };
   f.play = (cookie) => f.json('track/20/playback-access/synthetic-public-key', {}, cookie);
-  f.binding = () => f.prisma.billingCustomer.findUnique({ where: { customerId: 'cus_test_a' } });
+  f.binding = () => f.prisma.billingCustomer.findUnique({ where: { customerId: 'cus_test_a' },
+    });
   f.select = (data = {}) =>
     f.prisma.billingCustomer.update({
       where: { customerId: 'cus_test_a' },
@@ -41,8 +43,7 @@ module.exports = async function paidAccessFixture(options = {}) {
         selectedCanceledAt: null,
         accessCheckedAt: null,
         accessPolicyKey: null,
-        cachedPaidFrom: null,
-        cachedPaidThrough: null,
+        cachedStatus: null,
         accessFreshUntil: null,
         ...data,
       },
