@@ -109,6 +109,37 @@ test('real PostgreSQL: owned Checkout attempt persists and cross-account lookup 
 test('real PostgreSQL: migration replay is idempotent', () => {
   assert.equal(cli(['migrate', 'deploy']).status, 0);
 });
+
+test('real PostgreSQL: anonymous support shares atomic limits across independent clients without storing message content', async () => {
+  const other = new PrismaClient({ datasources: { db: { url: url.href } } });
+  let otherSends = 0;
+  const identity = require('../../identity/service').createIdentity({
+    db: other, config: f.config, sendEmail: async () => {}, now: f.clock,
+  });
+  const support = require('../../support/service').createSupport({
+    identity, config: f.config, recipient: 'support@example.invalid',
+    transport: async () => { otherSends++; return { ok: true, json: async () => ({ id: 'synthetic' }) }; },
+  });
+  const message = { name: 'Synthetic Support', email: 'support-user@example.invalid', message: 'Private synthetic support message' };
+  try {
+    const statuses = await Promise.all(Array.from({ length: 10 }, (_, index) => index % 2
+      ? support.send(message, '127.0.0.1').then(() => 202, error => error.status)
+      : f.json('support', message).then(result => result.status)));
+    assert.equal(statuses.filter(status => status === 202).length, 5);
+    assert.equal(statuses.filter(status => status === 429).length, 5);
+    assert.equal(f.supportMail.length + otherSends, 5);
+    const counters = await other.identityRateLimit.findMany({});
+    assert.equal(counters.length, 2);
+    assert.ok(counters.every(counter => /^[a-f0-9]{64}$/.test(counter.key)));
+    const serialized = JSON.stringify(counters);
+    for (const value of Object.values(message)) assert.ok(!serialized.includes(value));
+    assert.equal(await db.user.count(), 2);
+    assert.equal(await db.loginProof.count(), 0);
+    assert.equal(await db.identitySession.count(), 0);
+  } finally {
+    await other.$disconnect();
+  }
+});
 // A strict, separately invoked assessment. It found an existing telemetry-model
 // mismatch, outside identity scope; preserve the failing assertion as evidence.
 if (process.env.RVDL_ASSESS_FULL_SCHEMA === '1') test('full schema assessment: migration output matches Prisma', () => {

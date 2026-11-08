@@ -59,7 +59,8 @@ test('mounted catalog and tribute route inventory has no unreviewed mutation pat
     return layers[0].handle;
   }
   const v1 = mounted(f.app._router, '/api/v1');
-  const reviewedMounts = [...catalogResources, 'tribute', 'user', 'auth', 'payment'];
+  // The anonymous contact route has its own origin/CSRF/validation/rate HTTP coverage.
+  const reviewedMounts = [...catalogResources, 'tribute', 'user', 'auth', 'payment', 'support'];
   assert.equal(v1.stack.length, reviewedMounts.length, 'review any new top-level router or catalog alias');
   for (const path of reviewedMounts) mounted(v1, '/' + path);
   for (const resource of [...catalogResources, 'tribute']) {

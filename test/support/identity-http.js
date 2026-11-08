@@ -8,10 +8,12 @@ const memoryDatabase = require('./memory-db');
 module.exports = async function createIdentityFixture(options = {}) {
   const calls = [];
   const mail = [];
+  const supportMail = [];
   const warnings = [];
   const db = options.db || memoryDatabase(calls);
   let time = new Date('2026-10-17T16:00:00Z');
   let mailFailure = false;
+  let supportFailure = false;
   const config = configuration({
     CLIENT_URL: 'https://client.example.invalid',
     AUTH_RATE_LIMIT_SECRET: 'synthetic-rate-secret-at-least-32-characters',
@@ -33,6 +35,17 @@ module.exports = async function createIdentityFixture(options = {}) {
     now: () => time,
     wait: async () => {},
     responseFloorMs: 0,
+  });
+  const support = require('../../support/service').createSupport({
+    identity,
+    config,
+    recipient: options.supportRecipient === undefined ? 'support@example.invalid' : options.supportRecipient,
+    transport: async (_url, request) => {
+      calls.push('support.send');
+      supportMail.push(JSON.parse(request.body));
+      if (supportFailure) throw Error('synthetic private support provider payload');
+      return { ok: true, json: async () => ({ id: 'synthetic-support-id' }) };
+    },
   });
   const stripe = options.stripe || require('./billing-provider').provider(calls);
   const runtime = require('../../billing/compose').createBillingRuntime({
@@ -80,6 +93,7 @@ module.exports = async function createIdentityFixture(options = {}) {
       if (Module._resolveFilename(request, args[0]).endsWith('/billing/runtime.js')) return runtime;
       if (Module._resolveFilename(request, args[0]).endsWith('/identity/runtime.js'))
         return { db, config, identity };
+      if (Module._resolveFilename(request, args[0]).endsWith('/support/runtime.js')) return support;
       return originalLoad.call(this, request, ...args);
     };
     app = require('../../app')();
@@ -111,6 +125,7 @@ module.exports = async function createIdentityFixture(options = {}) {
     prisma: db,
     calls,
     mail,
+    supportMail,
     warnings,
     config,
     stripe,
@@ -126,11 +141,16 @@ module.exports = async function createIdentityFixture(options = {}) {
     failMail(value = true) {
       mailFailure = value;
     },
+    failSupport(value = true) {
+      supportFailure = value;
+    },
     async reset() {
       calls.length = 0;
       mail.length = 0;
+      supportMail.length = 0;
       warnings.length = 0;
       mailFailure = false;
+      supportFailure = false;
       time = new Date('2026-10-17T16:00:00Z');
       stripe.reset?.();
       if (db.tables) {

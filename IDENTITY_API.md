@@ -103,6 +103,7 @@ existing media-type PUT bug (it targets Location), which remains unchanged.
 | CLIENT_URL | Exact frontend HTTPS origin; no path/query/credentials; HTTP loopback allowed for development |
 | RESEND_API_KEY | Server-only sending credential for the approved provider |
 | LOGIN_EMAIL_FROM | Sender configured on the provider's verified domain |
+| SUPPORT_EMAIL_TO | Fixed backend support recipient; Help sends through Resend with the same verified sender/key |
 | AUTH_RATE_LIMIT_SECRET | Random secret of at least 32 characters for HMAC rate-counter keys |
 | SESSION_COOKIE_SAME_SITE | lax default; strict or none supported; none requires Secure |
 | SESSION_COOKIE_SECURE | true default; false allowed only with a loopback client in non-production |
