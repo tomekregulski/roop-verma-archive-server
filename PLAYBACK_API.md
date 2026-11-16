@@ -1,3 +1,66 @@
+# Private sample delivery — revised scope, 2026-11-14
+
+The deliverable is secure playback of one sample through the **existing player**.
+Keep the two-hour link contract and current explicit Retry behavior. Recordings
+are mostly 15–45 minutes; no ordinary-listening failure currently justifies
+automatic renewal, position restoration or background recovery. Expanded client
+work is preserved separately at `/private/tmp/rvdl-private-audio-client` on
+`codex/private-audio-delivery`; it is excluded from the delivery candidate.
+At the owner’s request, the scoped changes now live as unstaged changes in the
+normal server/client `main` checkouts. Client source differs from `bf272a0` only
+by the owner-approved 2026-11-15 ended-state fix; the isolated minimal worktree
+is retained as a source copy.
+
+R2 Standard is owner-approved for local implementation and the isolated synthetic
+provider test. Normal server runtime
+uses `playback/r2.js` with the maintained AWS S3 v3 client/presigner (locked
+3.1169.0). Actual R2 delivery, ranges, CORS and separate short-link expiry now pass;
+current player results and cleanup are in the
+[provider report](PRIVATE_AUDIO_PROVIDER_CHECK.md). Hosted activation remains separate.
+Current active/past_due policy, trusted association, fixed cache, terminal
+cancellation veto and final session/access checks are unchanged. Older invoice/
+paid-period policy below is historical.
+
+Mapping uses an operator-owned JSON file at absolute `PLAYBACK_ASSETS_FILE`:
+
+```json
+[{"trackId": 10, "key": "playback/<64 lowercase SHA-256 hex characters>.mp3"}]
+```
+
+The placeholder is deliberately invalid. Compute the digest from approved MP3
+bytes and use Track.id, not Track.trackId. Only those two fields are accepted;
+duplicate IDs/keys, URLs, traversal, bucket fields and non-MP3 keys fail closed.
+A successfully configured process loads the manifest once; replace it atomically
+and restart for a reviewed mapping change. No schema/migration, mapping API or
+Track.url/public Cloudinary fallback is introduced.
+
+Explicit PLAYBACK_R2_ACCOUNT_ID / BUCKET / ACCESS_KEY_ID / SECRET_ACCESS_KEY and
+optional JURISDICTION (`default`, `eu`, `us`) bind one R2 endpoint/private playback
+bucket. No arbitrary endpoint or ambient AWS credential chain is accepted.
+Archive originals/credentials remain separate. Missing config/mapping/object or
+invalid metadata/signing fails safely with 503.
+
+Resolution performs a bounded five-second HEAD (no SDK retries), verifies nonempty
+`audio/mpeg` content without compression, then preserves the existing final
+session/status check before object-specific GET signing. Signing permits at most
+the existing two hours, rounding down to whole seconds. HEAD verifies metadata,
+not an entire media hash or immunity to a later privileged overwrite/delete.
+Trusted uploaders must verify the digest, use create-only writes and never
+replace digest keys. Issued URLs and delivered bytes are not instantly revoked.
+
+Local server evidence: **271 synthetic / 142 fresh disposable PostgreSQL checks
+pass**, Node 24.19.0, PostgreSQL 18.6; actual offline SDK signatures with fake HEAD/
+media. No existing DB or historical rehearsal changed. The expanded client's
+28 React, 27 unit and 9 native local MP3 checks apply only to that preserved work,
+not the existing-player candidate. Existing-player real R2 playback, unbuffered
+seeks, pause/resume, Retry and full 15-minute continuous playback pass; approved
+test cleanup completed. The observed end-of-track UI issue was fixed on 2026-11-15
+with a native ended-state handler and focused React regression; no continuation
+or renewal was added. The real R2 test was not repeated for that client-only fix.
+See [operations](Operations.md) and the provider report for precise limits.
+
+---
+
 # Current billing reader — C1, 2026-11-02
 
 Normal composition uses `billing/paid-access.js` with the shared PostgreSQL

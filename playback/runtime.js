@@ -1,15 +1,17 @@
 const { db, identity } = require('../identity/runtime');
 const { createPlayback } = require('./service');
 
-// Entitlement uses the shared Stripe-led paid-access adapter. Delivery integration remains incomplete. No env flag, test grant,
-// legacy URL fallback or fake signer is available to the deployed application.
-const unavailable = async () => {
-  throw new Error('Playback integration incomplete');
-};
+let delivery;
+/** Loads explicit delivery configuration only when authorized playback needs it. */
+function getDelivery() {
+  if (!delivery) delivery = require('./r2').createR2Delivery(process.env);
+  return delivery;
+}
+
 module.exports = createPlayback({
   db,
   identity,
   readEntitlement: require('../billing/runtime').readEntitlement,
-  resolveAsset: unavailable,
-  signPlayback: unavailable,
+  resolveAsset: (trackId) => getDelivery().resolveAsset(trackId),
+  signPlayback: (input) => getDelivery().signPlayback(input),
 });
