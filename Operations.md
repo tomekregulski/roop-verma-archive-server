@@ -1,3 +1,77 @@
+# Private sample delivery — revised scope, 2026-11-14
+
+Securely fetch/play one sample through the existing player. Keep two-hour links
+and explicit Retry. Most recordings are 15–45 minutes. Automatic renewal,
+seamless position restoration and background-tab recovery are excluded unless
+ordinary-listening tests demonstrate a material failure and the owner approves
+a proportionate fix. The completed expanded client work remains preserved in its
+own worktree; it is not the activation candidate.
+
+At the owner's request, current scoped changes are now **unstaged on main** in
+`/Users/tomekregulski/Desktop/rvdl/roop-verma-archive-server` (baseline `8632b7a`)
+and `/Users/tomekregulski/Desktop/rvdl/roop-verma-archive-client` (baseline `bf272a0`).
+Server changes supply the manifest/private R2 adapters and SDK. Client changes are
+the handoff, isolated synthetic/provider test tooling and the owner-approved
+2026-11-15 ended-state fix. No branch switch, staging, commit, push, PR or
+deployment occurred.
+
+The isolated server and minimal client worktrees remain as source copies.
+Expanded client renewal work remains at `/private/tmp/rvdl-private-audio-client`;
+pre-revision server files are also preserved at
+`/private/tmp/rvdl-private-audio-preserved/server-before-scope-tightening.zip`.
+
+Use one private playback-only Standard bucket and a bucket-scoped Object Read
+credential. Keep archive originals elsewhere and uploader credentials outside the
+app. Deploy an operator-owned manifest mapping exact Track primary IDs to
+`playback/<sha256>.mp3`; compute digests locally, create objects with
+`If-None-Match: *`, `Content-Type: audio/mpeg`, no compression, and
+`Cache-Control: private, no-store`. Never overwrite keys. Mapping updates require
+a reviewed manifest replacement and restart; they do not revoke prior URLs.
+No signed URLs, credentials or private locators belong in ordinary logs/evidence.
+
+[PLAYBACK_API.md](PLAYBACK_API.md) describes fail-closed configuration and final
+session/status validation. The two-hour capability and 15-minute status-cache
+limits remain; active/past_due and terminal cancellation policy are unchanged.
+[The provider report](PRIVATE_AUDIO_PROVIDER_CHECK.md) records the owner's separate
+approval and actual isolated R2 test: SDK range/CORS/read-only/tampering/expiry
+checks and existing-player playback/seeking/pause/resume/Retry/full 15-minute
+listen pass. Approved cleanup completed. The observed end-of-track UI issue was
+fixed on 2026-11-15 with a focused regression (29 React assertions / 14 unit
+checks, types/lint/build pass). Completion stops at the selected track without
+automatic continuation or renewal. That client-only follow-up made no provider
+calls. The R2 check used generated audio and synthetic local
+identity/billing only. Email DNS is independent; real archive/DB/hosted actions
+still need separate authorization. Test approval is not public activation.
+
+**Public-activation follow-up (owner noted; excluded from private test):** review
+playback-access rate limiting using the existing limiter plus a low budget alert.
+Successful HEAD/GET requests can accrue fees; valid links can be reused until
+expiry even if issuance stops. This is risk reduction, not a hard R2 spending cap.
+Proceed with the approved private sample test without adding these mechanisms.
+
+**SDK maintenance/compatibility:** @aws-sdk/client-s3 and s3-request-presigner
+3.1169.0, recommended in Cloudflare's official S3 example, require Node >=20 and
+pass on pinned Node 24.19.0. They add 27 locked packages / about 8.7 MB of package
+files, change no existing package versions, and add no browser bundle dependency.
+They handle request authentication/signing; manifest validation uses Node built-ins,
+with no dependency for trivial helpers. The independent SigV4 verifier is test-only.
+
+**Activation coordination (copyable; not sent):** no model, migration, historical
+results or rehearsal manifest changed; the seven-migration sequence is intact.
+Separate server draft `cfac252` adds support/hosted work: merge both additions in
+Operations.md, test/README.md, .env.example and package/lock files. Client draft
+`47fc9c7` changes support/harness/runtime setup; designer work through `7f8e53d`
+remains untouched. No playback API/schema conflict or copied draft changes.
+Production storage config/manifest/token/CORS and hosted HTTPS/cookie verification
+remain activation dependencies; isolated test results do not configure hosted
+runtime. Login-email DNS/deployment
+and public-URL retirement are separate. Preexisting work and current branch selections remain
+unchanged; scoped files are visible as ordinary unstaged changes. Existing DB
+access, actual archive/provider actions outside the approved sample and rollout
+remain gated.
+
+---
+
 # Current Stripe-led operations — bounded simplification, 2026-11-07
 
 **Local revision only.** The owner authorized this simplification with fake

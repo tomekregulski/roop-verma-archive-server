@@ -1,3 +1,38 @@
+# Private sample delivery — revised verification scope, 2026-11-14
+
+Server Node 24.19.0: `node --test test/*.test.js` **271/271 pass**. Nine delivery
+checks cover strict manifests, independent offline SDK GET signature verification,
+wrong method/object, missing assets, active/past_due/foreign accounts and logout,
+revocation/expiration/cancellation during HEAD. HEAD/media are doubled; no provider
+requests. Two explicit provider-fixture tests cover real HTTP auth/isolation with
+synthetic delivery. A focused unconfigured-runtime rerun passes after removing
+operator PLAYBACK_* credentials from that test process.
+
+Fresh disposable PostgreSQL **142/142 pass**:
+`EMBEDDED_POSTGRES_MODULE=/absolute/path/to/embedded-postgres/dist/index.js node
+scripts/test-identity-postgres.js --billing`. Optional tool PostgreSQL 18.6,
+Node 24.19.0, synthetic providers; cluster closed/removed in finally. Existing
+status-cache, terminal veto, association and deletion races retain their guards.
+No schema/migration change or existing DB access. This is not a new b004/PG15
+backup rehearsal and does not change its preserved evidence.
+
+The preserved **expanded** client has 28 React / 27 unit / 9 native local MP3
+checks and passing type/lint/build checks. Those results include optional renewal
+and are not acceptance evidence for the narrower delivery candidate. The approved
+real R2 check now passes 11 explicit SDK checks, including ranges/CORS, read-only
+permissions, tampering denial and separate five-second provider expiry. Existing
+AudioPlayer native playback, unbuffered seeks, pause/resume and Retry also pass;
+full 15-minute continuous playback and approved cleanup completed. The observed
+end-of-track UI state issue was fixed on 2026-11-15; all 29 React assertions pass,
+including focused completion label/position and no continuation/renewal/listen
+regression. This uses the existing Audio double; it made no provider calls and
+does not replace the earlier native R2 evidence. Current client 14 unit checks,
+types, touched-file lint and build pass. See the
+[provider report](../PRIVATE_AUDIO_PROVIDER_CHECK.md) for exact evidence/limits;
+hosted behavior and full two-hour wall-clock expiry remain unverified.
+
+---
+
 # Bounded simplification verification — 2026-11-07
 
 Current local results: **260 synthetic / 142 disposable PostgreSQL / 7 strict

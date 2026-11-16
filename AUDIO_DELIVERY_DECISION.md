@@ -1,3 +1,44 @@
+# Private sample delivery — narrowed decision, 2026-11-14
+
+Owner approved R2 Standard / private playback-only storage / object-specific
+presigned GETs for local implementation and a separate isolated generated-sample
+provider check. The revised deliverable is one protected
+sample in the existing player, retaining two-hour links and explicit Retry.
+Recordings are mostly 15–45 minutes; automatic renewal/background recovery and
+seamless position preservation are optional preserved work, not requirements or
+activation dependencies. No ordinary-listening failure currently justifies them.
+
+Use maintained AWS S3 v3 client/presigner rather than custom runtime SigV4 code:
+Node >=20, tested on pinned Node 24.19.0; 27 added locked packages / about 8.7 MB
+of package files, no existing upgrades and no frontend dependency. Manifest and
+configuration checks use built-in Node APIs. No Worker, proxy, CDN or DRM added.
+See official [S3 SDK example](https://developers.cloudflare.com/r2/examples/aws/aws-sdk-js-v3/)
+and [presigning](https://developers.cloudflare.com/r2/api/s3/presigned-urls/).
+
+[Current R2 pricing](https://developers.cloudflare.com/r2/pricing/): Standard
+includes 10 GB-month, 1M Class A and 10M Class B monthly; excess storage
+$0.015/GB-month, writes $4.50/million, reads $0.36/million, with free direct egress
+and billing-unit rounding. Allowances are shared; the new test account's dashboard
+showed $0.00 billable usage during verification, which is not a final invoice.
+The earlier library storage bounds still suggest roughly $0–$0.03/month if the
+allowance is unused; no bulk migration or archival estimate is approved here.
+
+Server mapping/signing and actual R2 SDK delivery/ranges/CORS/short-link expiry
+pass. The approved generated 15-minute sample also plays/seeks/pauses/resumes
+through the unchanged player with explicit Retry; full 15-minute continuous
+playback and approved cleanup completed. The minor end-of-track UI state issue
+was fixed with owner approval on 2026-11-15 using native completion state and a
+focused regression; no automatic continuation/renewal was added. The
+[provider report](PRIVATE_AUDIO_PROVIDER_CHECK.md) records
+precise results and limits. Current billing authority is STRIPE_LED_DECISIONS.md;
+old invoice/paid-period and provider-pending claims below are historical.
+The earlier 12–20 hour estimate included optional recovery and is no longer the
+remaining plan: allow roughly 1–3 active hours for the focused provider check and
+handoff after access/approval, excluding owner/provider waiting or demonstrated
+new defects. Any such defect gets a small proposal before implementation expands.
+
+---
+
 # Audio storage and subscriber delivery — decision brief
 
 **Local implementation update — 2026-10-28:** the owner subsequently authorized

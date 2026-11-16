@@ -3,13 +3,22 @@ const { test, before, after } = require('node:test');
 const createFixture = require('./support/identity-http');
 const addCatalog = require('./support/catalog-db');
 let f;
+const playbackEnvironment = {};
 before(async () => {
+  // This check is explicitly unconfigured; never consume operator media credentials.
+  for (const name of Object.keys(process.env).filter((key) => key.startsWith('PLAYBACK_'))) {
+    playbackEnvironment[name] = process.env[name];
+    delete process.env[name];
+  }
   // No playback injection: load the actual production composition, replacing
   // only identity/storage as in the existing HTTP harness.
   f = await createFixture(); addCatalog(f.prisma, f.calls);
   f.prisma.tables.track.push({ id: 1, public: true, url: 'https://legacy.example.invalid/public.mp3' }, { id: 2, public: false });
 });
-after(async () => { if (f) await f.close(); });
+after(async () => {
+  if (f) await f.close();
+  Object.assign(process.env, playbackEnvironment);
+});
 test('normal runtime never issues fake or legacy URLs, even for public tracks and active admins', async () => {
   const publicResult = await f.json('track/1/playback-access/synthetic-public-key', {});
   assert.equal(publicResult.status, 503); assert.equal(publicResult.body.url, undefined);
