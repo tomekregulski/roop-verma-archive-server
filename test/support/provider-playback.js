@@ -5,17 +5,25 @@ const { config } = require('./billing-provider');
 const { postEvent, cancellation } = require('./paid-access-cases');
 
 /** Exercises existing HTTP authorization against a supplied real delivery adapter. */
-module.exports = async function providerPlayback({ delivery, port = 3181 } = {}) {
+module.exports = async function providerPlayback({ delivery, port = 3181, catalogTrack } = {}) {
   if (process.env.NODE_ENV === 'production' || !delivery)
     throw Error('Explicit non-production delivery adapter required');
   const clientOrigin = 'http://127.0.0.1:3180';
-  let fixture;
+  if (catalogTrack && (!Number.isInteger(catalogTrack.id) || catalogTrack.id < 1 ||
+      catalogTrack.public !== false || Object.hasOwn(catalogTrack, 'url')))
+    throw Error('Explicit subscriber catalog snapshot without media locator required');
+  let fixture, failNextDelivery = false;
   fixture = await createFixture({
     port,
     configuration: { CLIENT_URL: clientOrigin, SESSION_COOKIE_SECURE: 'false' },
     playbackAdapters: () => ({
       ...delivery,
+      /** Simulates one storage outage before real delivery, without bypassing authorization. */
       async resolveAsset(trackId) {
+        if (failNextDelivery) {
+          failNextDelivery = false;
+          throw Error('Synthetic one-shot delivery failure');
+        }
         const asset = await delivery.resolveAsset(trackId);
         fixture.advance(Date.now() - fixture.clock().getTime());
         return asset;
@@ -27,7 +35,7 @@ module.exports = async function providerPlayback({ delivery, port = 3181 } = {})
     fixture.advance(Date.now() - fixture.clock().getTime());
   });
   addCatalog(fixture.prisma, fixture.calls);
-  const track = {
+  const track = catalogTrack ? structuredClone(catalogTrack) : {
     id: 10, trackId: 10, tapeId: 1, ragaId: 1, primaryArtistId: 1,
     plays: 0, alap: true, jor: false, jhalla: false, slowGat: false,
     mediumGat: false, fastGat: false, accompanied: false, notes: '',
@@ -79,7 +87,7 @@ module.exports = async function providerPlayback({ delivery, port = 3181 } = {})
       const action = url.searchParams.get('action');
       if (req.method === 'GET' && action === 'state') {
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ public: track.public, plays: track.plays, requests })); return;
+        res.end(JSON.stringify({ trackId: track.id, public: track.public, plays: track.plays, requests })); return;
       }
       if (req.method !== 'POST') { res.writeHead(405).end(); return; }
       if (action === 'login') {
@@ -88,6 +96,8 @@ module.exports = async function providerPlayback({ delivery, port = 3181 } = {})
         if (!email) { res.writeHead(400).end(); return; }
         const cookie = await fixture.login(email);
         res.setHeader('Set-Cookie', `${cookie}; Path=/; HttpOnly; SameSite=Lax`);
+      } else if (action === 'fail-next') {
+        failNextDelivery = true;
       } else if (action === 'public') {
         const value = url.searchParams.get('value');
         if (!['true', 'false'].includes(value)) { res.writeHead(400).end(); return; }

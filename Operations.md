@@ -1,3 +1,29 @@
+# One-recording R2 pilot — verified, 2026-11-16
+
+[Results, retained configuration and hosted integration contract](ONE_RECORDING_R2_PILOT.md):
+existing subscriber Track.id **7** (catalog number 15), Chandrakaunsi Kanada,
+1979-01-27, Yoga Society of Florida; catalog artist Kevin West Milburn. Exact
+versioned Cloudinary MP3 HEAD: 200, audio/mpeg, 46,673,192 bytes, v1650679366.
+Owner-approved exact copy is now retained in **rvdl-private-playback**, private
+R2 Standard/ENAM, audio/mpeg, private/no-store; duration **19:26.8**. Create-only
+upload and complete read-back SHA-256 match passed. Existing-player playback,
+unbuffered forward/back seeks, pause/resume, explicit Retry after fixture-only
+503, browser range/CORS, subscriber denials and unsigned/write/delete denials
+passed. Synthetic cancellation/revocation denied fresh issuance. Final read-only
+application-DB snapshot, visibility, source reference and **plays=0 unchanged**.
+Read-only exact-bucket token and one-entry ID-7 manifest/configuration retained
+privately at `~/.config/rvdl/private-playback` (0700/0600). Temporary uploader
+revoked (SDK HEAD now 401), downloads/raw locators/temp credentials removed and
+local processes stopped. Expected ongoing R2 cost $0 within shared allowances;
+no hard spending cap. Twelve existing focused synthetic checks plus the separate
+primary-ID regression, client types/touched fixture lint/launcher syntax pass.
+Hosted configuration/materialization/deployment remain instructions only, with
+no change to the separate activation/schema/migration sequence. Server PR #70
+and client PR #109 are merged in the inspected checkouts; older unstaged-state
+descriptions below are historical. Prior generated-sample expiry/completion
+evidence is separate. No whole-recording completion, hosted login/playback,
+library migration, legacy-URL retirement or archival-preservation claim.
+
 # Private sample delivery — revised scope, 2026-11-14
 
 Securely fetch/play one sample through the existing player. Keep two-hour links
