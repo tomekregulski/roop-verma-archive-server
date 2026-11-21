@@ -1,3 +1,17 @@
+# Hosted startup and rebased source — 2026-11-20
+
+Combined activation and one-recording pilot source passes **301/301 synthetic
+backend tests** on Node 24.19.0. Five new `hosted-startup.test.js` checks cover
+private file/directory modes, existing-reader compatibility, replacement on
+restart, invalid-input preservation/cleanup, missing/oversized input and sanitized
+command failure before application boot. No provider or existing DB is used.
+Run `node --test test/hosted-startup.test.js` or the normal full synthetic suite.
+The local Procfile selects the wrapper; hosted changes still await the approval
+described in [Operations.md](../Operations.md). Historical counts below apply to
+their recorded source and are not additive acceptance requirements.
+
+---
+
 # Resend support remap — current local checks, 2026-11-07
 
 284 synthetic backend checks (24 support), one focused PostgreSQL 15.18 shared-

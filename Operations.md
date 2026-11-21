@@ -1,3 +1,114 @@
+# Hosted activation follow-up — 2026-11-20
+
+Owner renewed the approved activation sequence with fresh preconditions and added
+hosted verification of the completed one-recording R2 pilot. Additional hosted
+playback changes must be prepared for approval before applying them. The scope
+is Track.id **7** only; no broader transfer, optional renewal or public-URL
+retirement. Earlier dated evidence and the seven-migration target remain intact.
+
+## Current verified preparation
+
+- Client `hosted-test-env` at `fec1aa2` includes pilot main `857b5c6` and activation
+  work. Server rebase conflicts were resolved by preserving both handoffs and
+  playback/support configuration; owner completed the rebase at `402e62f` on
+  `hosted-test-env`, including pilot main `c19152c`. Subsequent wrapper changes
+  below are local and uncommitted. No push or deployment was performed.
+- All three public DNS values match the existing Resend domain setup, including
+  the complete public DKIM key. Triggered domain verification; Resend now shows
+  **Verified / Ready**. Tracking remains unconfigured. The optional root DMARC
+  change was not applied.
+- Rechecked exact Heroku app/add-on IDs: the approved DATABASE attachment is
+  unchanged and distinct from BROWN. Web=0, no dynos. Configured the agreed
+  LOGIN_EMAIL_FROM; configuration release **v165 succeeded**. One clearly labeled
+  sender-delivery check to the agreed owner Gmail was accepted by Resend; inbox
+  receipt was confirmed by the owner in the inbox. This contained no login proof and
+  does not establish hosted login. An initial HTTP 403 refused the first request;
+  retry with an explicit application user-agent and idempotency key succeeded.
+- The selected Stripe price is still active, **test mode**, USD 1000 cents per
+  month and the approved product. Webhook secret is still missing. No purchase
+  or application-account creation has been performed.
+- Primary Netlify now publishes pilot main `857b5c6`, deploy
+  `6b00d9b3a168a05ecd003151`; automatic builds remain enabled. This supersedes
+  the old published-commit baseline below. The activation branch still needs its
+  reviewed proxy/support/runtime build. Sandbox and previews remain excluded.
+- Retained private operator files exist with directory 0700/files 0600; the
+  manifest contains exactly Track.id 7 and SHA-256
+  `b2010707d74abc060628cd1907b8379674fd110a5131754431a141039b51e289`.
+  Cloudflare's token inventory showed the retained token active, exact playback
+  bucket scope and **Object Read only**. After the owner restored dashboard
+  sign-in, confirmed the bucket is private (public development URL disabled,
+  no custom domain), Standard/ENAM, and its existing CORS exactly matches the
+  local-only GET/Range rule in the pilot. The proposed additional origin is
+  staged in the unsaved CORS editor for review; no Save was clicked. No R2
+  hosted configuration or CORS change has been applied. One fresh SDK HEAD
+  with the retained read credential passed: 46,673,192 bytes, audio/mpeg,
+  private/no-store, no compression. No audio body was downloaded.
+- Schema, all 31 migrations, migration lock, original retirement SQL and all
+  12 preserved historical evidence files still match their pinned hashes.
+- Node 24.19.0 full synthetic backend suite: **301/301 pass**, including five
+  hosted-startup checks. Providers/accounts are synthetic; loopback access was
+  needed outside the sandbox. No existing database write or media fetch occurred.
+- Fresh verified-TLS read-only PostgreSQL preflight matched app config to the
+  provider resource endpoint and canonical attachment; shadow remains distinct.
+  PostgreSQL 15.18, 24 complete checksum-matched ledger entries, 17 baseline
+  tables, six users/six distinct customer references, no blank/duplicate
+  normalized emails, and Token/Subscription/WebhookLog/TrackPlay/NetworkError
+  all zero. Archive counts match the earlier baseline, including 74 tracks,
+  aggregate plays=0/nulls=0; Track 7 remains subscriber-only, plays=0. Two C1
+  predicates are zero; the other seven are absent/not evaluated until the
+  intermediate schema. Exact six-account fingerprint comparison and full schema
+  verification still precede any write. Transaction rolled back; no writes.
+- Client's 14 unit checks and TypeScript check pass after the rebase.
+
+## Additional hosted playback changes — prepared, awaiting approval
+
+1. Deploy the local `Procfile` (`web: node scripts/start-hosted.js`) with the
+   combined activation/pilot source. The wrapper consumes PLAYBACK_ASSETS_JSON
+   only during startup, creates the destination directory at 0700, writes an
+   exclusive adjacent 0600 candidate, validates using existing `readAssets`,
+   refuses empty/invalid input, and atomically renames it to PLAYBACK_ASSETS_FILE.
+   It then removes the JSON startup input from process.env and loads the normal
+   application entry point in the same process. No mapping endpoint or schema
+   change. Normal direct `npm start` remains `node index.js` and does not read
+   PLAYBACK_ASSETS_JSON. The wrapper is implemented locally, not yet hosted.
+2. While the existing backend remains stopped, set only these additional Heroku
+   names from private operator files: PLAYBACK_ASSETS_JSON (the exact pinned
+   one-entry manifest), PLAYBACK_ASSETS_FILE=/app/.playback/assets.json,
+   PLAYBACK_R2_ACCOUNT_ID, PLAYBACK_R2_BUCKET=rvdl-private-playback,
+   PLAYBACK_R2_JURISDICTION=default, PLAYBACK_R2_ACCESS_KEY_ID and
+   PLAYBACK_R2_SECRET_ACCESS_KEY (the retained read credential). Keep all values
+   server-side; no upload credential or Netlify media secret. Reverify local
+   source permissions, manifest hash/ID set, provider account/bucket and read
+   permission before transfer. The startup file is recreated on every dyno start;
+   a one-off dyno file or temporary local file is not the durable source.
+3. After current-rule inspection, add only canonical frontend origin
+   https://www.roopvermalibrary.com to the existing private bucket GET/Range CORS
+   rule. Preserve http://127.0.0.1:3180, GET, Range, exposed Accept-Ranges /
+   Content-Range / Content-Length / ETag and 300-second max age. Exact proposed
+   JSON: `scripts/hosted-playback-cors.json`. No wildcard origin, write method,
+   public development URL, custom domain or additional bucket/token. Stop for
+   unexpected current settings rather than overwriting unrelated rules.
+4. After the original backup/retirement/seven-migration sequence and coordinated
+   deployment, verify real owner/ordinary email login and Stripe test Checkout
+   before playing Track.id 7 through the existing player. Check unpaid/anonymous
+   denial, paid native progression, unbuffered seek, pause/resume, CORS/Range and
+   existing explicit Retry. Keep two-hour links and current cache/session gates;
+   other recordings stay unmapped/unavailable. Actual normal playback may
+   increment Track 7's aggregate starts; preserve other catalog/media fields and
+   other tracks. Complete playback before canceling only the new test subscription.
+   Verify cancellation/logout deny fresh issuance; already-issued capabilities
+   retain their existing expiry. No optional renewal or whole-recording claim.
+
+Fresh backup capture/verified local restore, exact six b004 identity/fingerprint
+comparison, locked retirement, staged migration guards and schema/aggregate
+verification remain mandatory before deployment. The old November 7 source
+archive/build manifests are superseded by the rebased source and must not be
+deployed; pin a fresh combined source artifact after these local changes pass.
+No further approval is needed for the original Stage 2 sequence, but the above
+additional hosted playback changes await the requested concrete approval.
+
+---
+
 # Shared hosted TEST activation — prepared 2026-11-07
 
 **Stage 2 approved — 2026-11-07.** The owner explicitly agreed after the
