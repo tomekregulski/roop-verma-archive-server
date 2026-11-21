@@ -1,0 +1,12 @@
+[
+  {
+    "AllowedOrigins": [
+      "http://127.0.0.1:3180",
+      "https://www.roopvermalibrary.com"
+    ],
+    "AllowedMethods": ["GET"],
+    "AllowedHeaders": ["Range"],
+    "ExposeHeaders": ["Accept-Ranges", "Content-Range", "Content-Length", "ETag"],
+    "MaxAgeSeconds": 300
+  }
+]

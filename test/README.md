@@ -1,3 +1,42 @@
+# Hosted startup and rebased source — 2026-11-20
+
+Combined activation and one-recording pilot source passes **301/301 synthetic
+backend tests** on Node 24.19.0. Five new `hosted-startup.test.js` checks cover
+private file/directory modes, existing-reader compatibility, replacement on
+restart, invalid-input preservation/cleanup, missing/oversized input and sanitized
+command failure before application boot. No provider or existing DB is used.
+Run `node --test test/hosted-startup.test.js` or the normal full synthetic suite.
+The local Procfile selects the wrapper; hosted changes still await the approval
+described in [Operations.md](../Operations.md). Historical counts below apply to
+their recorded source and are not additive acceptance requirements.
+
+---
+
+# Resend support remap — current local checks, 2026-11-07
+
+284 synthetic backend checks (24 support), one focused PostgreSQL 15.18 shared-
+limiter check, 42 React purchase/owner/support checks, 14 frontend unit checks and
+seven harness lifecycle checks pass. TypeScript, changed-file lint and Vite build
+pass. Only synthetic contacts, fake Resend and fresh loopback PostgreSQL were used.
+The existing normal fixture now injects a separate fake support transport; the
+React page installs its catch-all Axios adapter before mounting. EmailJS's SDK,
+alias, fake SDK module and five obsolete module-identity guard cases are removed.
+Historical evidence below retains its original scope; it is not the current
+support transport. No real message, existing database or provider call was used.
+
+```sh
+node --test test/support.test.js
+# TEST_DATABASE_URL must meet the existing disposable loopback guard.
+node --test --test-name-pattern='^real PostgreSQL: anonymous support' test/integration/identity.postgres.js
+```
+
+The focused component page remains `test/purchase-ui-browser.html` under the
+standalone test harness. Its support cases use held local API requests, including
+uncertain errors, 429, missing acceptance, rapid clicks and late unmounted results.
+Current operational/configuration and DNS gates are in [Operations.md](../Operations.md).
+
+---
+
 # Private sample delivery — revised verification scope, 2026-11-14
 
 Server Node 24.19.0: `node --test test/*.test.js` **271/271 pass**. Nine delivery
@@ -33,7 +72,7 @@ hosted behavior and full two-hour wall-clock expiry remain unverified.
 
 ---
 
-# Bounded simplification verification — 2026-11-07
+# Earlier bounded simplification verification — 2026-11-07
 
 Current local results: **260 synthetic / 142 disposable PostgreSQL / 7 strict
 schema / 38 React purchase-owner-support / 27 React player / 14 frontend unit

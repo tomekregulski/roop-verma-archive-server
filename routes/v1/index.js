@@ -11,6 +11,7 @@ const artistRouter = require('./artist');
 const categoryRouter = require('./category');
 const tributeRouter = require('./tribute');
 const mediaTypeRouter = require('./mediaType');
+const supportRouter = require('./support');
 
 const v1Router = express.Router();
 
@@ -26,5 +27,6 @@ v1Router.use('/payment', paymentRouter);
 v1Router.use('/track', trackRouter);
 v1Router.use('/tribute', tributeRouter);
 v1Router.use('/media-type', mediaTypeRouter);
+v1Router.use('/support', supportRouter);
 
 module.exports = v1Router;
