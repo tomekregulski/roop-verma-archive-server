@@ -9,7 +9,10 @@ function exactBody(req, key) {
 module.exports = {
   login: wrap(async (req, res) => {
     await identity.requestLogin(emailAddress(exactBody(req, 'email')), req.ip);
-    res.status(202).json({ message: 'If the account is eligible, a login link will be emailed.' });
+    res.status(202).json({
+      message: 'If the account is eligible, a login link will be emailed.',
+      ...(config.testAccessEmails ? { testing: true } : {}),
+    });
   }),
   verify: wrap(async (req, res) => {
     const result = await identity.verify(exactBody(req, 'token'), req.ip, req.cookies && req.cookies[config.cookieName]);

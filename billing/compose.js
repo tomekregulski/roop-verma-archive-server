@@ -7,6 +7,7 @@ function createBillingRuntime({ db, stripe, config, identityConfig, now }) {
     stripe,
     config,
     clientOrigin: identityConfig.clientOrigin,
+    testAccessEmails: identityConfig.testAccessEmails,
     now,
     access,
   });

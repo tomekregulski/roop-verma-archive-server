@@ -33,7 +33,9 @@ const cleared = {
 };
 const sessionId = (value) => typeof value === 'string' && /^cs_[A-Za-z0-9_]{1,240}$/.test(value);
 
-function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date(), access }) {
+function createPurchase({
+  db, stripe, config, clientOrigin, testAccessEmails, now = () => new Date(), access,
+}) {
   const provider = async (call) => {
     try {
       return await call();
@@ -107,15 +109,20 @@ function createPurchase({ db, stripe, config, clientOrigin, now = () => new Date
   }
   async function register(input) {
     const parameters = registrationInput(input);
+    // Keep the same response for approved and unapproved addresses.
+    const result = testAccessEmails ? { accepted: true, testing: true } : { accepted: true };
+    const lookupEmail = parameters.email.toLowerCase();
+    const email = testAccessEmails ? testAccessEmails.get(lookupEmail) : parameters.email;
+    if (!email) return result;
     await db.$transaction(async (tx) => {
-      await lock(tx, 'registration:' + parameters.email.toLowerCase());
+      await lock(tx, 'registration:' + lookupEmail);
       const existing = await tx.user.findMany({
-        where: { email: { equals: parameters.email, mode: 'insensitive' } },
+        where: { email: { equals: email, mode: 'insensitive' } },
         take: 2,
       });
-      if (!existing.length) await tx.user.create({ data: { ...parameters, stripeId: null, isAdmin: false } });
+      if (!existing.length) await tx.user.create({ data: { ...parameters, email, stripeId: null, isAdmin: false } });
     });
-    return { accepted: true };
+    return result;
   }
   async function selected(binding) {
     if (!binding?.selectedSubscriptionId) return null;

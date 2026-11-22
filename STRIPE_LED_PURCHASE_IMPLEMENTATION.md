@@ -1,3 +1,40 @@
+# Hosted TEST submission restriction — local handoff, 2026-11-22
+
+The server uses one optional `TEST_ACCESS_EMAILS` variable for signup, login
+email, outstanding login proofs and support. The rule applies to requests
+proxied by Netlify and requests sent directly to Heroku. Frontend visitor
+protection would cover Netlify deploys while leaving the direct Heroku origin
+reachable. Heroku's documented Trusted IPs require Private Spaces, and Heroku
+maintenance would also interrupt owner use and webhook delivery. The archive's
+public listening routes remain available. [Netlify visitor access](https://docs.netlify.com/manage/security/secure-access-to-sites/password-protection/),
+[Heroku routing](https://devcenter.heroku.com/articles/http-routing)
+
+Signup and login have the same generic responses for approved and unapproved
+addresses in TEST, with a public `testing: true` hint. Unapproved requests
+stop before User or proof writes and mail delivery. Login rate counters and
+response delay still apply. Approval checks the normalized mailbox, and a new
+TEST signup stores the exact configured address. Outstanding unapproved proofs
+cannot establish a session. Support requires a current approved session before
+validating and sending the existing fixed-recipient message. Existing sessions
+and administrator, billing and playback decisions retain their normal rules.
+
+Local evidence on Node 24.19.0 includes **308 synthetic backend tests**, **143
+integration tests** on fresh disposable PostgreSQL 18, **45** purchase/owner/
+identity/support and **29** playback assertions in headless Chromium, plus
+**14 frontend unit tests**, **7 harness lifecycle tests**, TypeScript,
+changed-file ESLint and a production build. A loopback reverse proxy check
+also verified the direct and proxied denials and the approved cookie/support
+flow. The new tests exercise direct HTTP requests, blank/malformed policy,
+owner and ordinary access, CSRF, existing sessions, stale proofs, rate limits,
+signed webhooks and private playback. Providers were synthetic. The production
+build retains the existing browser-data and bundle-size warnings.
+
+Exact hosted activation, verification, limitations and reopening are in
+[Operations.md](Operations.md). No hosted changes, existing database access,
+real mail, purchases, commits or pushes were made for this work.
+
+---
+
 # Test-harness housekeeping — 2026-11-07
 
 Completed the owner's bounded follow-up using synthetic state only. Changes are

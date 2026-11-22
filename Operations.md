@@ -1,3 +1,171 @@
+# Hosted TEST signup, login and support restriction — 2026-11-22
+
+**Active on hosted TEST.** The owner approved the rollout and privately confirmed
+exactly two distinct mailboxes, the existing owner and ordinary tester.
+
+- **Heroku** `roop-verma-archive`, config release **v169**, application release
+  **v170**, build `79041e8a-b0fe-4568-a5fe-96f4d525fbca`, slug
+  `4e57effb-823f-4849-9722-78de4196ed5e`. Reviewed overlay on Git base
+  `0af804a4c14ab589d6e313e6952e530e75cd4a11`. Server archive SHA-256
+  `266a13db9164e6f5855bbb0573faf6a8c13430438e74e923640776dcb9013dce`.
+  Heroku identifies the uploaded source with the first 40 characters of the
+  archive hash. The existing Eco web process was verified up.
+- **Netlify** `rvdl-ui`, production deploy `6b034a83de37e76a65617882` from
+  reviewed overlay on Git base `87044aada1127002bc81090be4f24f2f8cf69998`.
+  Artifact manifest SHA-256
+  `e59a24ec231ab817540a3d4a7c95525e5149028fa9349f7ef0456acae17ea7ec`.
+  All eight public artifact files matched the published bytes. Automatic
+  builds remain enabled. Carry the client changes forward in the next source
+  release so an automatic build continues to show the TEST notices.
+- **Hosted negative verification passed** on the canonical Netlify proxy and
+  direct Heroku API. Unapproved synthetic signup and login returned generic
+  `202` with `testing: true`. Anonymous support with the approved tester's
+  contact address and login missing CSRF returned `403`. Anonymous session,
+  owner, billing and private Track 7 requests returned `401`; playback returned
+  no locator. An unsigned webhook returned `400` on Heroku. A clean Chromium
+  profile verified all three TEST notices in the published client.
+- **Approved verification passed.** Both mailboxes received login links.
+  Each proof exchanged for a secure, HttpOnly, host-only session through the
+  canonical proxy. Session reads returned `200` with the expected persisted
+  role. Proof reuse returned `401`. The ordinary tester received `403` from
+  the owner route and the owner reached the invalid-ID check (`400`), which
+  avoided querying a target account. Checkout without CSRF returned `403`
+  for both sessions. One labeled support submission from the ordinary tester
+  returned provider acceptance (`202`). Both test sessions were signed out and
+  checked for session denial.
+- Hosted support verification reached provider acceptance. Inbox receipt was
+  not independently checked. Signed Stripe event delivery was verified locally
+  with fake providers. Separate database and mail-provider record checks for the
+  synthetic probes were outside the approved scope. Hosted verification used the
+  normal app. No purchase or account administration action was taken.
+
+The November 22 owner-supplied check found eight accounts including the two
+known TEST accounts. All six unexpected registrations had zero consumed login
+proofs, sessions and billing attempts. The rollout leaves their records in place.
+
+**Activation sequence**
+
+1. In Heroku app `roop-verma-archive`, set the server config var
+   `TEST_ACCESS_EMAILS` to the exact existing owner mailbox and only the exact
+   mailboxes the owner explicitly approves, comma-separated. Enter them privately
+   in Heroku. Include the ordinary TEST account only if the owner confirms it.
+   Match the stored spelling for existing accounts. A blank value or any
+   malformed entry closes all three actions, including for the owner.
+2. Deploy the reviewed server changes to that same app with the existing
+   Procfile and configuration. Set the variable before activating the new
+   server revision. The earlier server revision does not enforce it.
+3. Publish the reviewed client build to the existing Netlify production site
+   `rvdl-ui` with the current same-origin API proxy. The TEST notices come
+   from server responses, so the client needs no new build variable.
+
+**Verify after activation**
+
+- First confirm the deployed server revision and the presence of the variable.
+  Use a fresh synthetic unapproved address through both
+  `https://www.roopvermalibrary.com/api/v1` and
+  `https://roop-verma-archive.herokuapp.com/api/v1`. With the usual CSRF
+  header and signup compatibility key, signup and login should return generic
+  `202` responses with `testing: true` and no cookie. Anonymous support should
+  return `403` with `TEST_SUPPORT_RESTRICTED`, even if the request body gives an
+  approved email. Confirm the signup, login and Help notices in the canonical UI.
+- With separate read-only database and provider-verification authorization,
+  confirm zero User or login-proof writes for the synthetic addresses and no
+  matching delivery attempts. A `202` by itself does not prove suppression.
+  With separate real-mail approval, have the owner complete one normal email
+  login and verify their existing role. Repeat with a confirmed ordinary tester
+  if approved, verify owner-route denial, and send one labeled support message
+  if approved. Do not create a purchase to test containment.
+- Confirm unsigned webhook rejection and anonymous private Track 7 denial
+  without a locator. If a signed event arrives during ordinary later TEST use,
+  check its delivery outcome. Local synthetic verification covers correctly
+  signed and unsigned requests and entitlement-based playback denial.
+
+**Reopen after separate approval**
+
+Unset `TEST_ACCESS_EMAILS` on Heroku while retaining the patched revision.
+Heroku restarts and the existing public signup, login and support behavior resumes
+without a Netlify rebuild. Confirm public responses through the canonical proxy.
+
+```sh
+heroku config:unset TEST_ACCESS_EMAILS --app roop-verma-archive
+```
+
+To keep the site up while temporarily blocking all three actions, set the variable
+to an empty value on the patched revision. Rolling back to the pre-patch server
+would reopen the endpoints. [Heroku config vars](https://devcenter.heroku.com/articles/config-vars)
+
+The list limits eligible addresses. Someone who knows an approved address can
+still start signup for that address or trigger a rate-limited login message to
+its stored mailbox. They need the mailbox proof to sign in. Existing sessions
+keep their ordinary authority and an unlisted session cannot send support.
+Approval alone grants neither administrator access nor private playback.
+The approved session authorizes support submission, and the form still accepts
+a caller-provided reply address.
+See the [implementation handoff](STRIPE_LED_PURCHASE_IMPLEMENTATION.md) for local evidence.
+
+---
+
+# Hosted TEST milestone closure — 2026-11-21 (America/New_York)
+
+**Milestone closed.** The final required playback acceptance gap is now verified.
+This follow-up supersedes the earlier open seek gap and point-in-time user/play
+counts below. The original activation handoff was committed as `3566d4d` and
+merged through PR #73; its historical evidence remains unchanged.
+
+- Deployed application revisions remain server
+  `f72e915ce88acf947ccc79ff8bf8974dce115e1f`, Heroku **v168**, and client
+  `87044aada1127002bc81090be4f24f2f8cf69998`, Netlify
+  `6b024ed55f19f262a290e548`. Maintenance remains off, existing Eco web=1,
+  primary automatic builds enabled. The intervening server merge changes only
+  Operations.md; no application code, schema, configuration or deployment changed
+  for this follow-up.
+- Used the existing ordinary TEST account (id 120) for one additional temporary
+  Stripe TEST Checkout, with the same approved USD 10/month price and synthetic
+  test card. The owned purchase completed/paid. Exact new resource references
+  are retained privately; no unrelated provider history was accessed.
+- Inspected the existing native HTMLAudioElement through Chrome DevTools, returning
+  only duration/current time/paused/ready state/buffered time ranges. Applied
+  **Slow 4G to this test tab only** so a distant seek could be observed without
+  buffering the complete recording first. No playback feature or diagnostic API
+  was added to the application.
+
+The decisive hosted Track.id **7** observation was:
+
+| Observation | Native media evidence (seconds) |
+|---|---|
+| Before seek, 2026-11-21 23:33:43.491 America/New_York | Playing at **983.143307**; buffered **890.469–1047.756** |
+| Seek destination | **276** (04:36), outside the complete pre-seek buffered interval |
+| After seek, 2026-11-21 23:34:03.399 America/New_York | Playing at **294.103457**; readyState=4; new buffer **275.251–300.335**, with prior **890.469–1047.756** retained |
+
+The player advanced at the new position and paused normally. This establishes an
+actual native seek outside the observed buffer, followed by new buffering and
+successful playback, rather than only a changed slider value.
+
+- Unloaded the diagnostic document, restored **No throttling**, and closed
+  DevTools. Canceled **only the follow-up TEST subscription**, immediately with
+  no proration or new invoice. Its persisted terminal veto and fresh Track 7
+  issuance denial (**403**) passed. The original session-created TEST subscription
+  remains canceled. App accounts and TEST provider records are retained.
+- Final read-only checks passed: **31 matching migrations, 74 tracks, catalog and
+  media fingerprints preserved**, Track 7 aggregate starts **1 → 2**, all other
+  track starts **0**. The signature-protected webhook requests observed across
+  the two test rounds returned **200,200,200,200**. Both deployments are unchanged.
+- Fresh preconditions found one unknown additional registration (id **121**).
+  At inspection it was non-admin, had one delivered but unconsumed login proof,
+  **zero sessions**, zero billing attempts and no billing reference. The owner
+  accepted leaving it untouched for review in a future session. Final count:
+  **three app users / one administrator**. No access-policy change was made, and
+  the unknown person's name/address are omitted from this handoff.
+- **Remaining limits:** full-recording playback and two-hour capability expiry
+  were not run. Management explicitly excluded these as milestone blockers
+  without a specific concern. Other recordings remain unmapped; no bulk transfer,
+  optional renewal, public-URL retirement or public launch was performed.
+
+This closure changes only Operations.md on `codex/hosted-track7-seek-verification`.
+No client change, application deployment or push is included.
+
+---
+
 # Hosted activation execution checkpoint — 2026-11-21
 
 **Hosted TEST active; core acceptance passed, with one playback evidence gap below.** The owner approved the
