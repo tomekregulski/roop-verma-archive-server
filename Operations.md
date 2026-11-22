@@ -1,3 +1,144 @@
+# Hosted activation execution checkpoint — 2026-11-21
+
+**Hosted TEST active; core acceptance passed, with one playback evidence gap below.** The owner approved the
+changed Netlify baseline `6b00e7f28b5f1199a144dfa0`. Paused automatic builds and
+published verified client artifact as `6b024ed55f19f262a290e548` on primary rvdl-ui.
+All eight public artifact files match exact prepared bytes. Netlify's file-list
+paths are lowercased and its ninth file is a CLI-serialized reserved netlify.toml;
+logical configuration is verified by actual canonical/noncanonical routing.
+Automatic builds were restored to their prior enabled setting after fresh remote
+main checks matched both pinned commits; the verified deploy remains published.
+Backend is release v168,
+Eco web=1, maintenance off. No sandbox/preview deployment was performed.
+
+Owner approved the additional hosted playback changes and renewed Stage 2.
+Pinned merged sources: server `f72e915ce88acf947ccc79ff8bf8974dce115e1f`,
+client `87044aada1127002bc81090be4f24f2f8cf69998`. Both reviewed trees match;
+only this operations checkpoint is modified. No application code change,
+commit, push, branch switch or new plan purchase was performed in this run.
+
+- The owner restored Eco. Read-only probes of the locked Prisma 4.12.0 client
+  and migration CLI passed strict TLS in temporary existing Eco Linux dynos,
+  including database-name/OID and read-only transaction guards. The local macOS
+  native Prisma trust failure was not bypassed; certificate verification was
+  never disabled. All temporary operator dynos exited.
+- Applied the exact private Track 7 manifest and retained bucket-scoped Object
+  Read credential to Heroku. Saved only the approved canonical frontend origin
+  addition to the existing localhost GET/Range R2 CORS rule. Public bucket access
+  remains disabled; no other recording was mapped or transferred.
+- Verified the existing Stripe TEST monthly price and Portal period-end/no-proration
+  settings. Disabled old test webhook `we_1OEBqEBlr8UFcXJyNTVoBve0`; replacement
+  `we_1Ue2klBlr8UFcXJyfM2fBZC2` pins `2024-12-18.acacia` and only
+  checkout.session.completed/customer.subscription.deleted. Its signing secret
+  was placed directly in Heroku; temporary local secret copy removed.
+- Canonical DATABASE backup **b005**, UUID
+  `3da67b00-127c-4043-8e85-a6d3d95e22ae`, succeeded with zero warnings,
+  52,713 bytes, capture started 2026-11-21 01:10:56 UTC after maintenance.
+  SHA-256 `a4c35c23e0f8f4b9effe20f9f0d112894b187fdff8693ab4b4ae5e6d48374f7e`.
+  Privately downloaded and verified, then restored in one transaction into fresh
+  protected PostgreSQL 15.18. Pinned b004 hash and its separate restore passed.
+  Both actual local backup/restore copies and clusters were removed; remote
+  backups remain available.
+- Compared baseline schema, the six exact b004 ID/customer/full-row fingerprints,
+  protected archive fingerprints and retained sequences against fresh/live state.
+  Guarded retirement committed exactly **six User / zero Token / zero TrackPlay**
+  deletions. Existing Stripe customers were not deleted. Private retirement
+  targets were removed after success.
+- All **seven staged migrations completed** using the exact locked CLI in isolated
+  Linux operator dynos. Every prefix ledger/checksum/schema and preservation
+  check passed. All nine C1 guards were zero before removal, both global stores
+  were zero before the final stage. Final state: **31 complete matching migration
+  entries, exact final schema, User=0, 74 tracks preserved**, no fabricated billing
+  selection. All 12 historical evidence files retain their pinned hashes.
+- Pinned backend archive SHA-256
+  `b8c0f7d3fe869465e86a1f879f2702a066c16fec3ec5f6fd4216ec293a7c5b59`
+  built successfully as Heroku build `ced60527-991f-46a9-9459-ae788d0f69c3`,
+  **release v168**, slug `7faaeba3-0e10-48d3-b5a9-9f0f59002c84`, exact server
+  commit above and `web: node scripts/start-hosted.js`.
+- New-slug read-only prestart check passed Node **24.22.3**, Prisma **4.12.0**,
+  final database metadata, the exact one-entry Track 7 manifest, file **0600** /
+  directory **0700**, startup JSON removal, R2 HEAD and unmapped-other-track
+  refusal. Started the existing Eco web=1 and removed maintenance. Backend
+  anonymous session returns JSON **401** with **no-store**.
+- Client TypeScript and production build passed on Node 24.19.0 with same-origin
+  API, fixed owner contact, no EmailJS transport and no provider secrets. Deployed
+  assets and actual canonical API/proxy behavior verified. Anonymous session,
+  owner data and private Track 7 requests return 401; missing-CSRF/wrong-origin
+  requests return 403; account responses are JSON/no-store with no anonymous
+  cookie or media locator. The noncanonical deploy host serves SPA, with no API proxy.
+- Owner confirmed actual login mail in Inbox and opened the one-time link normally.
+  Proof exchange returned 200. Read-only checks found exactly one fresh unprivileged
+  account, one delivered/consumed proof and one active session. The guarded owner
+  SQL changed exactly one account. Reload and persisted owner UI passed; exact
+  self-review reached the backend administrator route and correctly returned 404
+  because no deletion is pending. No deletion case was initiated. A pre-grant
+  preservation check was corrected to allow the normal signup's User_id_seq
+  advance; catalog fingerprints were unchanged and no grant was attempted by that
+  failed check.
+- Exactly one owned Stripe TEST Checkout completed/paid for USD 1000 cents/month;
+  operation completed, trusted user/customer/subscription binding persisted, shared
+  access cache active/fresh. New exact references are stored privately. Signature-
+  protected webhook returned 200. TEST Portal showed the new subscription, test
+  payment method and management controls; returned normally. No old provider
+  customer/payment history was accessed.
+- The real support form accepted one clearly labeled synthetic request through
+  Resend; owner confirmed support mail in Inbox.
+- Paid Track 7 native playback advanced to 00:52/19:26, paused, resumed, sought
+  to approximately 15:32 and advanced to 16:02. Unpaid Track 7 returned 403 before
+  purchase. Unmapped Track 8 remained unavailable, including explicit Retry; no
+  fallback or other asset mapping was added. Bounded operator R2 test returned
+  206 for 1024 bytes with expected total/type/private-no-store/CORS; Range preflight
+  204/max-age 300; unsigned request refused (400 InvalidArgument/XML), unapproved
+  origin not allowed. Native buffered ranges are not visible for the detached
+  Audio object: native seek passed, but unbuffered-native-seek coverage is not
+  claimed. This test does not establish full-recording playback.
+- Canceled **only the new TEST subscription**, immediately, with no proration or
+  new invoice; terminal selected-subscription veto persisted. Cancellation then
+  denied fresh Track 7 issuance (403); normal logout denied issuance (401).
+  Existing two-hour capabilities retain their original expiry; no public-URL
+  retirement or optional renewal was introduced. New TEST Customer / Checkout /
+  invoice records remain in Stripe; exact new resource references are private.
+- Ordinary alias login reached Inbox and completed normally after the owner opened
+  its exact link in the controlled Chrome profile. With third-party cookies
+  blocked by the owner, its session survived reload. Reusing that same proof was
+  rejected **within the original proof TTL**, verified by delivered/consumed proof
+  timestamps and the matching 401 request window. Ordinary account is persisted
+  unprivileged; owner UI refuses it, and unpaid Track 7 issuance returned 403.
+  Owner's session remains revoked. The owner restored their previous Chrome cookie
+  preference. Browser policy had refused internal chrome://settings access; all
+  settings inspection/change was performed manually by the owner.
+- Final checks: 31 matching migrations / strict final schema, 74 tracks, every
+  catalog/media field preserved, **Track 7 plays=1**, all other track plays=0,
+  two fresh retained app users / exactly one administrator / no deletion request.
+  User_id_seq advanced only for the two normal registrations; other retained
+  sequences are unchanged. Signed completion/deletion webhook responses were
+  **200, 200**. Observed Track 7 issuance status sequence across anonymous, unpaid,
+  paid, canceled, logged-out and ordinary-unpaid states: **401,403,200,403,401,403**.
+  Live same-origin anonymous logout response confirms the empty host-cookie clear
+  has Secure / HttpOnly / SameSite=Lax / Path=/ and no Domain, without exposing
+  any cookie value. All eight published frontend artifact files match exact bytes.
+- **Evidence gap / limits:** native seek and resume passed, but native buffered
+  ranges were not exposed in the visible detached-Audio UI, so an independently
+  proven unbuffered native seek is not claimed. Whole-recording playback and
+  two-hour expiry behavior were not exercised. No extra TEST purchase was created
+  to expand verification. Source checks and earlier synthetic tests remain scoped
+  to their recorded evidence. The shared TEST is operational; this remaining
+  playback acceptance detail needs a separate observed check before closing every
+  item in the additional-playback checklist.
+
+Only Operations.md changed locally; both repos remain on the pinned main branches.
+No new source patch, branch, commit, push or merge was created. The retired six
+legacy app users are not recreated; fresh owner/ordinary users are retained for
+shared testing. The ordinary account has a current session; owner login uses the
+normal email-link flow. The newly created subscription is canceled, so a deliberate
+new TEST purchase is required for another paid playback session.
+
+Do not deploy the old slug or roll back code against the migrated schema. A data
+restore is a separate owner decision. No bulk transfer, optional renewal,
+public-URL retirement or public launch is included.
+
+---
+
 # Hosted activation follow-up — 2026-11-20
 
 Owner renewed the approved activation sequence with fresh preconditions and added
