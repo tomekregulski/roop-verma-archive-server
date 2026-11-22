@@ -18,6 +18,15 @@ test('invalid origin configuration errors never echo its value', () => {
   try { configuration({ ...base, CLIENT_URL: 'sensitive-invalid-url' }); } catch (caught) { error = caught; }
   assert.equal(String(error).includes('sensitive'), false);
 });
+test('only an absent TEST list opens public access; one invalid entry closes the entire list', () => {
+  assert.equal(configuration(base).testAccessEmails, null);
+  assert.deepEqual(
+    configuration({ ...base, TEST_ACCESS_EMAILS: ' A@EXAMPLE.INVALID, b@example.invalid ' }).testAccessEmails,
+    new Map([['a@example.invalid', 'A@EXAMPLE.INVALID'], ['b@example.invalid', 'b@example.invalid']])
+  );
+  for (const value of ['', '  ', 'a@example.invalid,', 'a@example.invalid,invalid'])
+    assert.deepEqual(configuration({ ...base, TEST_ACCESS_EMAILS: value }).testAccessEmails, new Map());
+});
 test('mailer uses the fixed provider URL, controlled sender, plain-text link and bounded timeout', async () => {
   let called = false;
   const send = mailer(configuration(base), async (url, request) => {

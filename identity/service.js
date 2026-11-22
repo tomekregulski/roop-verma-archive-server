@@ -17,6 +17,11 @@ function emailAddress(value) {
   return email;
 }
 
+/** Match the case-insensitive account lookup without treating aliases as the same address. */
+function allowsTestEmail(list, email) {
+  return !list || list.has(email.toLowerCase());
+}
+
 function registrationInput(body) {
   const { firstName, lastName } = body;
   const email = emailAddress(body.email);
@@ -42,6 +47,7 @@ function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = 
     await limit('login-global', 'all', 120, 60 * 1000);
     const started = Date.now();
     try {
+      if (!allowsTestEmail(config.testAccessEmails, email)) return;
       // Preserve existing case; ambiguous case-duplicate records require reconciliation.
       const users = await db.user.findMany({ where: { email: { equals: email, mode: 'insensitive' } }, take: 2 });
       if (users.length !== 1) return;
@@ -77,7 +83,9 @@ function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = 
       if (!proof) throw failure(401, 'Invalid or expired login link');
       await lockAccount(tx, proof.userId);
       const current = await tx.user.findUnique({ where: { id: proof.userId } });
-      if (!current || current.email !== proof.email) throw failure(401, 'Invalid or expired login link');
+      if (!current || current.email !== proof.email ||
+          !allowsTestEmail(config.testAccessEmails, current.email))
+        throw failure(401, 'Invalid or expired login link');
       // PostgreSQL rechecks this predicate after a competing update commits.
       const consumed = await tx.loginProof.updateMany({
         where: { tokenHash, delivered: true, consumedAt: null, expiresAt: { gt: now() } },
@@ -105,4 +113,4 @@ function createIdentity({ db, config, sendEmail, now = () => new Date(), wait = 
   }
   return { requestLogin, verify, authenticate, logout, limit };
 }
-module.exports = { createIdentity, emailAddress, registrationInput, hash, publicUser, failure };
+module.exports = { createIdentity, emailAddress, allowsTestEmail, registrationInput, hash, publicUser, failure };

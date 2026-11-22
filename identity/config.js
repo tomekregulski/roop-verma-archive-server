@@ -1,3 +1,16 @@
+const { emailAddress } = require('./service');
+
+/** An absent list opens public use. A blank or malformed list allows nobody. */
+function testAccessEmails(value) {
+  if (value === undefined) return null;
+  try {
+    const addresses = value.split(',').map(emailAddress);
+    return new Map(addresses.map((address) => [address.toLowerCase(), address]));
+  } catch {
+    return new Map();
+  }
+}
+
 module.exports = function configuration(env = process.env) {
   let client;
   try { client = new URL(env.CLIENT_URL); }
@@ -17,6 +30,7 @@ module.exports = function configuration(env = process.env) {
   return {
     clientOrigin: client.origin, rateSecret: env.AUTH_RATE_LIMIT_SECRET,
     resendKey: env.RESEND_API_KEY, emailFrom: env.LOGIN_EMAIL_FROM, proxyHops,
+    testAccessEmails: testAccessEmails(env.TEST_ACCESS_EMAILS),
     cookieName: secure ? '__Host-rv-session' : 'rv-session-local',
     cookie: { httpOnly: true, secure, sameSite, path: '/' },
     proofMs: 15 * 60 * 1000, sessionMs: 7 * 24 * 60 * 60 * 1000,
