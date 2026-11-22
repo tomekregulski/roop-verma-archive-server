@@ -1,3 +1,64 @@
+# Hosted TEST milestone closure — 2026-11-21 (America/New_York)
+
+**Milestone closed.** The final required playback acceptance gap is now verified.
+This follow-up supersedes the earlier open seek gap and point-in-time user/play
+counts below. The original activation handoff was committed as `3566d4d` and
+merged through PR #73; its historical evidence remains unchanged.
+
+- Deployed application revisions remain server
+  `f72e915ce88acf947ccc79ff8bf8974dce115e1f`, Heroku **v168**, and client
+  `87044aada1127002bc81090be4f24f2f8cf69998`, Netlify
+  `6b024ed55f19f262a290e548`. Maintenance remains off, existing Eco web=1,
+  primary automatic builds enabled. The intervening server merge changes only
+  Operations.md; no application code, schema, configuration or deployment changed
+  for this follow-up.
+- Used the existing ordinary TEST account (id 120) for one additional temporary
+  Stripe TEST Checkout, with the same approved USD 10/month price and synthetic
+  test card. The owned purchase completed/paid. Exact new resource references
+  are retained privately; no unrelated provider history was accessed.
+- Inspected the existing native HTMLAudioElement through Chrome DevTools, returning
+  only duration/current time/paused/ready state/buffered time ranges. Applied
+  **Slow 4G to this test tab only** so a distant seek could be observed without
+  buffering the complete recording first. No playback feature or diagnostic API
+  was added to the application.
+
+The decisive hosted Track.id **7** observation was:
+
+| Observation | Native media evidence (seconds) |
+|---|---|
+| Before seek, 2026-11-21 23:33:43.491 America/New_York | Playing at **983.143307**; buffered **890.469–1047.756** |
+| Seek destination | **276** (04:36), outside the complete pre-seek buffered interval |
+| After seek, 2026-11-21 23:34:03.399 America/New_York | Playing at **294.103457**; readyState=4; new buffer **275.251–300.335**, with prior **890.469–1047.756** retained |
+
+The player advanced at the new position and paused normally. This establishes an
+actual native seek outside the observed buffer, followed by new buffering and
+successful playback, rather than only a changed slider value.
+
+- Unloaded the diagnostic document, restored **No throttling**, and closed
+  DevTools. Canceled **only the follow-up TEST subscription**, immediately with
+  no proration or new invoice. Its persisted terminal veto and fresh Track 7
+  issuance denial (**403**) passed. The original session-created TEST subscription
+  remains canceled. App accounts and TEST provider records are retained.
+- Final read-only checks passed: **31 matching migrations, 74 tracks, catalog and
+  media fingerprints preserved**, Track 7 aggregate starts **1 → 2**, all other
+  track starts **0**. The signature-protected webhook requests observed across
+  the two test rounds returned **200,200,200,200**. Both deployments are unchanged.
+- Fresh preconditions found one unknown additional registration (id **121**).
+  At inspection it was non-admin, had one delivered but unconsumed login proof,
+  **zero sessions**, zero billing attempts and no billing reference. The owner
+  accepted leaving it untouched for review in a future session. Final count:
+  **three app users / one administrator**. No access-policy change was made, and
+  the unknown person's name/address are omitted from this handoff.
+- **Remaining limits:** full-recording playback and two-hour capability expiry
+  were not run. Management explicitly excluded these as milestone blockers
+  without a specific concern. Other recordings remain unmapped; no bulk transfer,
+  optional renewal, public-URL retirement or public launch was performed.
+
+This closure changes only Operations.md on `codex/hosted-track7-seek-verification`.
+No client change, application deployment or push is included.
+
+---
+
 # Hosted activation execution checkpoint — 2026-11-21
 
 **Hosted TEST active; core acceptance passed, with one playback evidence gap below.** The owner approved the
